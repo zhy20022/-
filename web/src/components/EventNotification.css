@@ -1,0 +1,111 @@
+/**
+ * 活动切换通知样式（顶部横幅）
+ */
+
+.event-notification {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.event-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.event-notification-icon {
+  font-size: 24px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.event-notification-text {
+  flex: 1;
+}
+
+.event-notification-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.event-notification-message {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.event-notification-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.event-notification-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .event-notification-content {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .event-notification-icon {
+    font-size: 20px;
+  }
+
+  .event-notification-title {
+    font-size: 14px;
+  }
+
+  .event-notification-message {
+    font-size: 12px;
+  }
+
+  .event-notification-close {
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+  }
+}
+
+

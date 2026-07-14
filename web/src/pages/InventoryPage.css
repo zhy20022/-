@@ -1,0 +1,248 @@
+.inventory-page {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  padding-top: 90px; /* 为横屏按钮预留空间 */
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-container h1 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-container > button,
+.back-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.inventory-feedback {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.inventory-feedback.info {
+  background: #ebf8ff;
+  border: 1px solid #90cdf4;
+  color: #2b6cb0;
+}
+
+.inventory-feedback.success {
+  background: #f0fff4;
+  border: 1px solid #68d391;
+  color: #276749;
+}
+
+.inventory-feedback.error {
+  background: #fff5f5;
+  border: 1px solid #feb2b2;
+  color: #c53030;
+}
+
+.inventory-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #eee;
+}
+
+.inventory-tabs button {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.inventory-tabs button:hover {
+  color: #667eea;
+}
+
+.inventory-tabs button.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.item-card {
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 5px;
+  border: 2px solid #ddd;
+  transition: all 0.3s;
+}
+
+.item-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.item-card.locked {
+  opacity: 0.7;
+  background: #eee;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.item-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.lock-badge {
+  padding: 4px 8px;
+  background: #f39c12;
+  color: white;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.item-info {
+  margin-bottom: 15px;
+}
+
+.item-info p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.item-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.item-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.lock-btn {
+  background: #f39c12;
+  color: white;
+}
+
+.lock-btn:hover {
+  background: #e67e22;
+}
+
+.unlock-btn {
+  background: #3498db;
+  color: white;
+}
+
+.unlock-btn:hover {
+  background: #2980b9;
+}
+
+.dismantle-btn {
+  background: #e74c3c;
+  color: white;
+}
+
+.dismantle-btn:hover {
+  background: #c0392b;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  color: #999;
+  font-size: 18px;
+}
+
+.material-transactions {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.material-transactions h2 {
+  margin: 0 0 12px;
+  color: #2d3748;
+  font-size: 20px;
+}
+
+.transaction-list {
+  display: grid;
+  gap: 8px;
+}
+
+.transaction-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 90px minmax(120px, 220px);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #4a5568;
+  font-size: 14px;
+}
+
+.transaction-row strong {
+  color: #2d3748;
+}
+
+.transaction-row small {
+  color: #718096;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

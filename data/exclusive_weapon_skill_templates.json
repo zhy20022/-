@@ -1,0 +1,94 @@
+{
+  "templates": {
+    "physical_dps": {
+      "template_key": "physical_dps",
+      "name": "专武连击",
+      "description": "物理输出专属武器技能模板，偏向单体爆发。",
+      "cooldown": 10.0,
+      "damage_multiplier": 1.8,
+      "physical_damage_ratio": 0.85,
+      "magical_damage_ratio": 0.15,
+      "target_type": "SINGLE",
+      "target_count": 1,
+      "is_heal": false,
+      "heal_ratio": 0.0,
+      "effect_tags": [
+        "exclusive_weapon",
+        "physical"
+      ],
+      "impact_hint": "专属武器追加一次物理爆发"
+    },
+    "magic_dps": {
+      "template_key": "magic_dps",
+      "name": "秘术共鸣",
+      "description": "法系输出专属武器技能模板，偏向单体法术爆发。",
+      "cooldown": 10.0,
+      "damage_multiplier": 1.8,
+      "physical_damage_ratio": 0.15,
+      "magical_damage_ratio": 0.85,
+      "target_type": "SINGLE",
+      "target_count": 1,
+      "is_heal": false,
+      "heal_ratio": 0.0,
+      "effect_tags": [
+        "exclusive_weapon",
+        "magic"
+      ],
+      "impact_hint": "专属武器引发秘术共鸣"
+    },
+    "tank": {
+      "template_key": "tank",
+      "name": "守护反击",
+      "description": "坦克专属武器技能模板，低倍率但冷却稳定。",
+      "cooldown": 12.0,
+      "damage_multiplier": 1.25,
+      "physical_damage_ratio": 0.5,
+      "magical_damage_ratio": 0.5,
+      "target_type": "SINGLE",
+      "target_count": 1,
+      "is_heal": false,
+      "heal_ratio": 0.0,
+      "effect_tags": [
+        "exclusive_weapon",
+        "guard"
+      ],
+      "impact_hint": "专属武器释放守护反击"
+    },
+    "healer": {
+      "template_key": "healer",
+      "name": "复苏祷言",
+      "description": "治疗职业专属武器技能模板，周期性群体治疗。",
+      "cooldown": 12.0,
+      "damage_multiplier": 0.0,
+      "physical_damage_ratio": 0.0,
+      "magical_damage_ratio": 0.0,
+      "target_type": "ALL",
+      "target_count": 5,
+      "is_heal": true,
+      "heal_ratio": 1.1,
+      "effect_tags": [
+        "exclusive_weapon",
+        "heal"
+      ],
+      "impact_hint": "专属武器释放复苏祷言"
+    },
+    "support": {
+      "template_key": "support",
+      "name": "战术号令",
+      "description": "辅助职业专属武器技能模板，先以低伤害群体压制承载模板入口。",
+      "cooldown": 12.0,
+      "damage_multiplier": 1.05,
+      "physical_damage_ratio": 0.35,
+      "magical_damage_ratio": 0.65,
+      "target_type": "ALL",
+      "target_count": 5,
+      "is_heal": false,
+      "heal_ratio": 0.0,
+      "effect_tags": [
+        "exclusive_weapon",
+        "support"
+      ],
+      "impact_hint": "专属武器发出战术号令"
+    }
+  }
+}

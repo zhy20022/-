@@ -1,0 +1,170 @@
+/**
+ * 横竖屏切换按钮样式
+ * 参考：NEOWIZ 棕色尘埃2 的切换体验
+ */
+
+.orientation-toggle {
+  position: fixed;
+  z-index: 1000; /* 降低z-index，避免遮挡页面标题和重要按钮 */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px; /* 稍微减小内边距，减少占用空间 */
+  background: rgba(0, 0, 0, 0.6); /* 降低不透明度，减少视觉干扰 */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 13px; /* 稍微减小字体 */
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* 减小阴影 */
+}
+
+.orientation-toggle:hover {
+  background: rgba(0, 0, 0, 0.85);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.orientation-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 位置样式 */
+.orientation-toggle.top-right {
+  top: 16px; /* 稍微上移 */
+  right: 16px; /* 稍微左移，给内容留出更多空间 */
+}
+
+.orientation-toggle.top-left {
+  top: 20px;
+  left: 20px;
+}
+
+.orientation-toggle.bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+.orientation-toggle.bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.orientation-toggle.center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.orientation-toggle.center:hover {
+  transform: translate(-50%, -52%);
+}
+
+.orientation-toggle.center:active {
+  transform: translate(-50%, -50%);
+}
+
+/* 图标样式 */
+.orientation-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.orientation-toggle:hover .orientation-icon {
+  transform: rotate(90deg);
+}
+
+.orientation-toggle.portrait .orientation-icon {
+  transform: rotate(0deg);
+}
+
+.orientation-toggle.landscape .orientation-icon {
+  transform: rotate(90deg);
+}
+
+/* 标签样式 */
+.orientation-label {
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .orientation-toggle {
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+
+  .orientation-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .orientation-toggle.top-right,
+  .orientation-toggle.top-left {
+    top: 10px;
+  }
+
+  .orientation-toggle.top-right {
+    right: 10px;
+  }
+
+  .orientation-toggle.top-left {
+    left: 10px;
+  }
+
+  .orientation-toggle.bottom-right,
+  .orientation-toggle.bottom-left {
+    bottom: 10px;
+  }
+
+  .orientation-toggle.bottom-right {
+    right: 10px;
+  }
+
+  .orientation-toggle.bottom-left {
+    left: 10px;
+  }
+}
+
+/* 桌面端样式（Steam适配） */
+@media (min-width: 769px) {
+  .orientation-toggle {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .orientation-toggle:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* 动画效果 */
+@keyframes orientationSwitch {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.orientation-toggle.portrait,
+.orientation-toggle.landscape {
+  animation: orientationSwitch 0.3s ease-out;
+}
+
+

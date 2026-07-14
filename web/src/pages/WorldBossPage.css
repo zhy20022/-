@@ -1,0 +1,387 @@
+.world-boss-page {
+  min-height: 100vh;
+  padding: 20px;
+  background: #eef2f6;
+}
+
+.world-boss-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 88px 24px 28px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(24, 39, 75, 0.12);
+}
+
+.world-boss-header,
+.boss-overview-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.world-boss-header {
+  margin-bottom: 16px;
+}
+
+.world-boss-header h1,
+.world-boss-panel h2,
+.world-boss-panel h3 {
+  margin: 0;
+  color: #182033;
+}
+
+.world-boss-header p,
+.world-boss-panel p,
+.world-boss-title-line span,
+.world-boss-muted {
+  color: #64748b;
+}
+
+.world-boss-back,
+.world-boss-actions button,
+.world-boss-title-line button,
+.manual-score-row button,
+.chest-row button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #2f5c67;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chest-row button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+button:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.world-boss-message {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.world-boss-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.world-boss-list,
+.world-boss-panel {
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  background: #fbfdff;
+  padding: 16px;
+}
+
+.world-boss-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.world-boss-list button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+  color: #334155;
+  text-align: left;
+  cursor: pointer;
+}
+
+.world-boss-list button.active {
+  border-color: #2f5c67;
+  background: #eef8f8;
+}
+
+.world-boss-list button span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.world-boss-main {
+  display: grid;
+  gap: 16px;
+}
+
+.world-boss-kicker {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.world-boss-actions,
+.world-boss-title-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.world-boss-title-line {
+  justify-content: space-between;
+}
+
+.world-boss-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.world-boss-grid.two-column {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.world-boss-stat-row,
+.ranking-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.world-boss-stat-row {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.world-boss-stat-row span {
+  color: #64748b;
+}
+
+.world-boss-stat-row strong {
+  color: #172033;
+}
+
+.world-boss-formation,
+.world-boss-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.world-boss-formation div,
+.world-boss-tags span {
+  border-radius: 8px;
+  background: #e8f3f1;
+  color: #285e61;
+  padding: 7px 9px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.manual-score-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.manual-score-row input {
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+
+.layer-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.layer-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.layer-metrics div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #dbe3ea;
+}
+
+.layer-metrics span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.layer-metrics strong {
+  color: #172033;
+  font-size: 22px;
+}
+
+.layer-progress-track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.layer-progress-track div {
+  height: 100%;
+  min-width: 2px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f5c67, #d97706);
+  transition: width 180ms ease;
+}
+
+.world-boss-ranking,
+.chest-list,
+.announcement-list,
+.history-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.settlement-panel,
+.chest-panel,
+.announcement-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.settlement-tier-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.settlement-tier-list div,
+.settlement-row,
+.chest-row,
+.announcement-row,
+.history-row {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #dbe3ea;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.chest-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.chest-row div {
+  display: grid;
+  gap: 3px;
+}
+
+.chest-row span,
+.announcement-row span,
+.history-row span,
+.settlement-tier-list span,
+.settlement-row span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.chest-row strong,
+.announcement-row strong,
+.history-row strong,
+.settlement-tier-list strong,
+.settlement-row strong {
+  color: #285e61;
+}
+
+.settlement-history {
+  display: grid;
+  gap: 8px;
+}
+
+.settlement-history h4 {
+  margin: 0;
+  color: #172033;
+}
+
+.ranking-row {
+  grid-template-columns: 70px minmax(120px, 1fr) minmax(110px, 0.8fr) minmax(110px, 0.8fr) 60px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #dbe3ea;
+  color: #334155;
+}
+
+.ranking-row.header {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 800;
+}
+
+.world-boss-empty {
+  padding: 18px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .world-boss-layout,
+  .world-boss-grid,
+  .world-boss-grid.two-column,
+  .settlement-tier-list,
+  .layer-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .world-boss-header,
+  .boss-overview-panel {
+    flex-direction: column;
+  }
+
+  .ranking-row {
+    grid-template-columns: 56px minmax(80px, 1fr) minmax(90px, 0.8fr);
+  }
+
+  .ranking-row span:nth-child(4),
+  .ranking-row span:nth-child(5) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .world-boss-page {
+    padding: 10px;
+  }
+
+  .world-boss-shell {
+    padding: 72px 12px 18px;
+  }
+
+  .manual-score-row,
+  .chest-row {
+    grid-template-columns: 1fr;
+  }
+}

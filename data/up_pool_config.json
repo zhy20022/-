@@ -1,0 +1,11 @@
+{
+  "pool_type": "UP_POOL",
+  "up_rate": 0.5,
+  "up_character_names": [
+    "寒澈",
+    "光属性法系远程输出",
+    "暗属性物理近战输出"
+  ],
+  "title": "初始UP池",
+  "description": "UP角色占50%抽取权重；未命中UP时从全角色池抽取。"
+}

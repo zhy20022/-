@@ -1,0 +1,259 @@
+.enhancement-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.enhancement-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.enhancement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  padding-top: 60px; /* 为横屏按钮预留空间 */
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.enhancement-header h1 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.back-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.3s;
+  box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.5);
+}
+
+.enhancement-feedback {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.enhancement-feedback.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.enhancement-feedback.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.enhancement-content {
+  display: flex;
+  gap: 20px;
+}
+
+.equipment-list {
+  width: 400px;
+}
+
+.equipment-list h2 {
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 20px;
+}
+
+.equipment-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.equipment-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.equipment-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.equipment-card.selected {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.equipment-icon {
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.equipment-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.equipment-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.enhancement-detail {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.enhancement-detail-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 16px;
+}
+
+.enhancement-detail-content h2 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.equipment-level {
+  margin: 15px 0;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #333;
+}
+
+.enhancement-preview {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.enhancement-preview > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #2d3748;
+}
+
+.enhancement-preview > div.enough {
+  background: #f0fff4;
+  color: #276749;
+  border-color: #c6f6d5;
+}
+
+.enhancement-preview > div.lacking {
+  background: #fff5f5;
+  color: #c53030;
+  border-color: #fed7d7;
+}
+
+.enhancement-info {
+  margin: 20px 0;
+  padding: 15px;
+  background: #fff3cd;
+  border-radius: 6px;
+}
+
+.enhancement-info p {
+  margin: 8px 0;
+  color: #856404;
+  font-size: 14px;
+}
+
+.enhancement-actions {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.btn-enhance {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-enhance:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-enhance:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+

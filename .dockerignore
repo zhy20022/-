@@ -1,0 +1,14 @@
+.venv/
+.pytest_cache/
+.local-postgres-data/
+build/
+dist/
+node_modules/
+server-nest/node_modules/
+server-nest/dist/
+web/node_modules/
+web/dist/
+*.log
+*.db
+*.sqlite
+__pycache__/

@@ -1,0 +1,64 @@
+{
+  "stages": [
+    {
+      "stageId": "default_idle_stage",
+      "name": "Training Grounds",
+      "minClaimSeconds": 60,
+      "maxClaimSeconds": 28800,
+      "requiredPower": 0,
+      "teamPowerDivisor": 10000,
+      "maxTeamBonus": 0.5,
+      "goldPerHour": 120,
+      "rewardsPerHour": [
+        {
+          "itemConfigId": "idle_training_crystal",
+          "itemType": "material",
+          "quantity": 60,
+          "payload": {
+            "category": "idle_exp"
+          }
+        }
+      ]
+    },
+    {
+      "stageId": "iron_mine_idle",
+      "name": "Iron Mine",
+      "minClaimSeconds": 60,
+      "maxClaimSeconds": 28800,
+      "requiredPower": 500,
+      "teamPowerDivisor": 12000,
+      "maxTeamBonus": 0.45,
+      "goldPerHour": 80,
+      "rewardsPerHour": [
+        {
+          "itemConfigId": "iron_ore",
+          "itemType": "material",
+          "quantity": 45,
+          "payload": {
+            "category": "equipment"
+          }
+        }
+      ]
+    },
+    {
+      "stageId": "world_boss_support_idle",
+      "name": "World Boss Support",
+      "minClaimSeconds": 60,
+      "maxClaimSeconds": 28800,
+      "requiredPower": 1000,
+      "teamPowerDivisor": 15000,
+      "maxTeamBonus": 0.4,
+      "goldPerHour": 60,
+      "rewardsPerHour": [
+        {
+          "itemConfigId": "illustration_fragment_box",
+          "itemType": "fragment",
+          "quantity": 12,
+          "payload": {
+            "category": "world_boss"
+          }
+        }
+      ]
+    }
+  ]
+}

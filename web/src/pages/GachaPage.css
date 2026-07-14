@@ -1,0 +1,359 @@
+.gacha-page {
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.page-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 30px;
+  padding-top: 90px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-container h1 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.back-btn {
+  padding: 12px 24px;
+  background: #315f72;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #244a59;
+  transform: translateY(-1px);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.gacha-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.gacha-info {
+  padding: 14px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.gacha-info span,
+.gacha-info small {
+  color: #718096;
+  font-size: 13px;
+}
+
+.gacha-info strong {
+  color: #1a202c;
+  font-size: 20px;
+}
+
+.pool-selector {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.pool-selector button {
+  text-align: left;
+  padding: 12px;
+  border: 1px solid #cbd5e0;
+  background: #fff;
+  color: #2d3748;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+}
+
+.pool-selector button span {
+  color: #718096;
+  font-size: 12px;
+}
+
+.pool-selector button.active {
+  border-color: #2f855a;
+  background: #f0fff4;
+}
+
+.pity-panel {
+  padding: 14px;
+  background: #fffaf0;
+  border: 1px solid #f6ad55;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+.pity-header {
+  display: flex;
+  justify-content: space-between;
+  color: #744210;
+  margin-bottom: 10px;
+}
+
+.pity-bar {
+  height: 10px;
+  background: #feebc8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pity-bar div {
+  height: 100%;
+  background: #dd6b20;
+  transition: width 0.2s ease;
+}
+
+.pity-panel p {
+  margin: 8px 0 0;
+  color: #744210;
+  font-size: 13px;
+}
+
+.up-pool-panel {
+  padding: 14px;
+  background: #f0fff4;
+  border: 1px solid #9ae6b4;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+.up-pool-panel > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #22543d;
+}
+
+.up-pool-panel p {
+  margin: 8px 0 10px;
+  color: #276749;
+  font-size: 13px;
+}
+
+.up-character-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.up-character-list span {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #c6f6d5;
+  color: #22543d;
+  font-size: 12px;
+}
+
+.pull-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  margin-bottom: 24px;
+}
+
+.pull-buttons button {
+  padding: 15px;
+  background: #2b6cb0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  transition: background 0.2s;
+}
+
+.pull-buttons button span {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.pull-buttons button:hover:not(:disabled) {
+  background: #2c5282;
+}
+
+.pull-buttons button:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+}
+
+.pull-result {
+  padding: 18px;
+  background: #f7fafc;
+  border-radius: 8px;
+  border: 1px solid #cbd5e0;
+  margin-bottom: 24px;
+}
+
+.result-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.pull-result h3 {
+  margin: 0 0 6px;
+  color: #2d3748;
+}
+
+.pull-result p {
+  margin: 0;
+  color: #4a5568;
+}
+
+.summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+.summary-chips span {
+  padding: 5px 9px;
+  background: #edf2f7;
+  color: #2d3748;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.result-card {
+  min-height: 112px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 12px;
+  position: relative;
+  background: #fff;
+}
+
+.result-card.new {
+  border-color: #38a169;
+  background: #f0fff4;
+}
+
+.result-card.duplicate {
+  border-color: #718096;
+}
+
+.result-card h4 {
+  margin: 22px 0 6px;
+  color: #1a202c;
+}
+
+.result-card p,
+.result-card small {
+  margin: 0;
+  color: #4a5568;
+  font-size: 12px;
+}
+
+.result-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #2f855a;
+  color: #fff;
+  font-size: 12px;
+}
+
+.duplicate .result-badge {
+  background: #718096;
+}
+
+.gacha-history h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  color: #2d3748;
+}
+
+.history-empty {
+  padding: 20px;
+  text-align: center;
+  color: #718096;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.history-row div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.history-row span {
+  color: #718096;
+  font-size: 12px;
+}
+
+.history-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 840px) {
+  .gacha-info-grid,
+  .pool-selector,
+  .pull-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .result-summary,
+  .history-row {
+    flex-direction: column;
+  }
+
+  .summary-chips,
+  .history-stats {
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "timezone": "Asia/Shanghai",
+  "goals": [
+    {
+      "goalKey": "idle_claim",
+      "title": "领取挂机收益",
+      "eventType": "idle_claim",
+      "target": 1,
+      "rewards": {
+        "gold": 100,
+        "items": [
+          { "itemConfigId": "daily_token", "itemType": "material", "quantity": 1 }
+        ]
+      }
+    },
+    {
+      "goalKey": "battle_clear",
+      "title": "完成一次战斗结算",
+      "eventType": "battle_clear",
+      "target": 1,
+      "rewards": {
+        "items": [
+          { "itemConfigId": "daily_token", "itemType": "material", "quantity": 1 },
+          { "itemConfigId": "generic_battle_material", "itemType": "material", "quantity": 2 }
+        ]
+      }
+    },
+    {
+      "goalKey": "gacha_draw",
+      "title": "进行一次招募",
+      "eventType": "gacha_draw",
+      "target": 1,
+      "rewards": {
+        "items": [
+          { "itemConfigId": "daily_token", "itemType": "material", "quantity": 1 }
+        ]
+      }
+    },
+    {
+      "goalKey": "guild_contribute",
+      "title": "完成一次公会贡献",
+      "eventType": "guild_contribute",
+      "target": 1,
+      "rewards": {
+        "items": [
+          { "itemConfigId": "daily_token", "itemType": "material", "quantity": 1 }
+        ]
+      }
+    },
+    {
+      "goalKey": "friend_assist",
+      "title": "使用一次好友助战",
+      "eventType": "friend_assist",
+      "target": 1,
+      "rewards": {
+        "items": [
+          { "itemConfigId": "daily_token", "itemType": "material", "quantity": 1 }
+        ]
+      }
+    }
+  ]
+}

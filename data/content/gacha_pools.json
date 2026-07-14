@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "pools": [
+    {
+      "key": "starter",
+      "name": "Starter Recruitment",
+      "cost": { "currency": "premiumCurrency", "amount": 160 },
+      "entries": [
+        {
+          "entryId": "starter_fire_dps",
+          "type": "character",
+          "weight": 40,
+          "rarity": "rare",
+          "characterConfigId": "fire_dps_001",
+          "name": "Fire Vanguard",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_water_healer",
+          "type": "character",
+          "weight": 30,
+          "rarity": "rare",
+          "characterConfigId": "water_healer_001",
+          "name": "Water Medic",
+          "attributeType": "WATER",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_tank",
+          "type": "character",
+          "weight": 20,
+          "rarity": "epic",
+          "characterConfigId": "earth_tank_001",
+          "name": "Earth Guard",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_gold",
+          "type": "item",
+          "weight": 10,
+          "rarity": "common",
+          "itemConfigId": "gold_pack_small",
+          "itemType": "currency",
+          "quantity": 500,
+          "name": "Small Gold Pack"
+        }
+      ]
+    }
+  ]
+}

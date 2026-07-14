@@ -1,0 +1,43 @@
+{
+  "battleSettlement": {
+    "allowClientRewards": false,
+    "defaultSuccessRewards": [
+      {
+        "itemConfigId": "generic_battle_material",
+        "itemType": "material",
+        "quantity": 1,
+        "payload": {
+          "category": "battle_settlement_default"
+        }
+      }
+    ],
+    "dungeons": [
+      {
+        "dungeonId": "http_integration_dungeon",
+        "successRewards": [
+          {
+            "itemConfigId": "server_authority_crystal",
+            "itemType": "material",
+            "quantity": 3,
+            "payload": {
+              "category": "e2e_authoritative_reward"
+            }
+          }
+        ]
+      },
+      {
+        "dungeonId": "default_idle_stage",
+        "successRewards": [
+          {
+            "itemConfigId": "idle_training_crystal",
+            "itemType": "material",
+            "quantity": 5,
+            "payload": {
+              "category": "idle_unlock"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+.app {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+/* 避免横屏切换按钮遮挡页面内容 */
+.app-orientation-container {
+  /* 给所有页面内容区域添加顶部内边距，避免被横屏按钮遮挡 */
+  padding-top: 0;
+}
+
+/* 当横屏按钮在右上角时，页面头部需要预留空间 */
+.app-orientation-container:has(.orientation-toggle.top-right) .page-container,
+.app-orientation-container:has(.orientation-toggle.top-right) .page-header,
+.app-orientation-container:has(.orientation-toggle.top-right) .menu-container {
+  /* 预留顶部空间，避免横屏按钮遮挡 */
+  position: relative;
+  z-index: 1;
+}
+
+/* 通用页面容器样式 - 确保标题区域不被遮挡 */
+.page-container,
+.menu-container {
+  position: relative;
+}
+
+.page-header {
+  /* 确保标题区域有足够空间 */
+  padding-top: 60px; /* 为横屏按钮预留空间 */
+  position: relative;
+  z-index: 1;
+}
+
+/* 特殊处理：主菜单不需要padding-top */
+.menu-container {
+  padding-top: 40px; /* 保持原有padding */
+}
+
+/* 横竖屏布局优化 */
+.app-orientation-container.mobile.portrait {
+  /* 移动端竖屏样式 */
+}
+
+.app-orientation-container.mobile.landscape {
+  /* 移动端横屏样式 */
+}
+
+.app-orientation-container.desktop.portrait {
+  /* 桌面端竖屏样式（Steam窗口模式） */
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.app-orientation-container.desktop.landscape {
+  /* 桌面端横屏样式（Steam全屏模式） */
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+

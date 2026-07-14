@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gamer-postgres
+    environment:
+      POSTGRES_DB: gamer_online
+      POSTGRES_USER: gamer
+      POSTGRES_PASSWORD: gamer_dev_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - gamer_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gamer -d gamer_online"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: gamer-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - gamer_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ./server-nest
+    container_name: gamer-nest-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 4100
+      DATABASE_URL: postgres://gamer:gamer_dev_password@postgres:5432/gamer_online
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-only-change-me
+      ADMIN_TOKEN: dev-admin-token
+      CONTENT_DIR: /workspace/data/content
+    ports:
+      - "4100:4100"
+    volumes:
+      - ./data/content:/workspace/data/content:ro
+
+volumes:
+  gamer_postgres_data:
+  gamer_redis_data:

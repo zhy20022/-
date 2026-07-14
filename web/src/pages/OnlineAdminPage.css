@@ -1,0 +1,243 @@
+.online-admin-page {
+  min-height: 100vh;
+  background: #f1f5f9;
+  color: #111827;
+  padding: 24px;
+  padding-top: 78px;
+}
+
+.online-admin-shell {
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+.online-admin-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.online-admin-header h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.online-admin-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.online-admin-back,
+.online-admin-token button,
+.online-admin-panel-title button {
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: 800;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.online-admin-back {
+  background: #334155;
+}
+
+.online-admin-panel-title button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.online-admin-message {
+  background: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  color: #075985;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-weight: 800;
+}
+
+.online-admin-token {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: end;
+  background: white;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.online-admin-token label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.online-admin-token input,
+.online-admin-search {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.online-admin-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.online-admin-stats div,
+.online-admin-panel {
+  background: white;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.online-admin-stats div {
+  padding: 14px;
+}
+
+.online-admin-stats strong {
+  display: block;
+  font-size: 24px;
+}
+
+.online-admin-stats span {
+  color: #64748b;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.online-admin-grid {
+  display: grid;
+  grid-template-columns: 420px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.online-admin-panel {
+  padding: 16px;
+}
+
+.online-admin-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.online-admin-panel-title h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.online-admin-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.online-admin-player-list {
+  display: grid;
+  gap: 8px;
+  max-height: 620px;
+  overflow: auto;
+}
+
+.online-admin-player-list button {
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid #d7dee8;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.online-admin-player-list button.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.online-admin-player-list strong,
+.online-admin-player-list span,
+.online-admin-player-list small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.online-admin-player-list span,
+.online-admin-player-list small {
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.online-admin-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  padding: 18px;
+  text-align: center;
+}
+
+.online-admin-detail h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.online-admin-mini-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.online-admin-mini-stats span {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #334155;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.online-admin-data-block {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.online-admin-data-block h4 {
+  margin: 0 0 8px;
+  color: #111827;
+}
+
+.online-admin-data-block p {
+  margin: 5px 0;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 980px) {
+  .online-admin-token,
+  .online-admin-grid,
+  .online-admin-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .online-admin-header {
+    grid-template-columns: 1fr;
+  }
+}

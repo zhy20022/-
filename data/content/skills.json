@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "description": "Config-driven skill templates. Each template is expanded for every AttributeType.",
+  "templates": [
+    {
+      "id_suffix": "low_a_1",
+      "name_template": "{attribute} Low A Skill 1",
+      "logic": "A",
+      "tier": "LOW",
+      "unlock": { "type": "INITIAL" },
+      "skill_multiplier": 1.0,
+      "physical_damage_ratio": 1.0,
+      "magical_damage_ratio": 0.0,
+      "target_type": "SINGLE",
+      "description_template": "{attribute} low-tier single-target physical opener."
+    },
+    {
+      "id_suffix": "low_a_2",
+      "name_template": "{attribute} Low A Skill 2",
+      "logic": "A",
+      "tier": "LOW",
+      "unlock": { "type": "INITIAL" },
+      "skill_multiplier": 1.1,
+      "physical_damage_ratio": 1.0,
+      "magical_damage_ratio": 0.0,
+      "target_type": "SINGLE",
+      "description_template": "{attribute} low-tier single-target physical strike."
+    },
+    {
+      "id_suffix": "low_a_3",
+      "name_template": "{attribute} Low A Skill 3",
+      "logic": "A",
+      "tier": "LOW",
+      "unlock": { "type": "INITIAL" },
+      "skill_multiplier": 1.2,
+      "physical_damage_ratio": 1.0,
+      "magical_damage_ratio": 0.0,
+      "target_type": "SINGLE",
+      "description_template": "{attribute} low-tier single-target finisher."
+    },
+    {
+      "id_suffix": "low_b_1",
+      "name_template": "{attribute} Low B Skill 1",
+      "logic": "B",
+      "tier": "LOW",
+      "unlock": { "type": "INITIAL" },
+      "skill_multiplier": 1.2,
+      "physical_damage_ratio": 0.8,
+      "magical_damage_ratio": 0.2,
+      "target_type": "SINGLE",
+      "description_template": "{attribute} low-tier mixed damage skill."
+    },
+    {
+      "id_suffix": "low_b_2",
+      "name_template": "{attribute} Low B Skill 2",
+      "logic": "B",
+      "tier": "LOW",
+      "unlock": { "type": "INITIAL" },
+      "skill_multiplier": 1.3,
+      "physical_damage_ratio": 0.8,
+      "magical_damage_ratio": 0.2,
+      "target_type": "SINGLE",
+      "description_template": "{attribute} low-tier stronger mixed damage skill."
+    },
+    {
+      "id_suffix": "mid_a_1",
+      "name_template": "{attribute} Mid A Skill 1",
+      "logic": "A",
+      "tier": "MID",
+      "unlock": { "type": "LEVEL", "required_level": 2 },
+      "skill_multiplier": 1.5,
+      "physical_damage_ratio": 1.0,
+      "magical_damage_ratio": 0.0,
+      "target_type": "ALL",
+      "description_template": "{attribute} mid-tier area physical sweep."
+    },
+    {
+      "id_suffix": "mid_a_2",
+      "name_template": "{attribute} Mid A Skill 2",
+      "logic": "A",
+      "tier": "MID",
+      "unlock": { "type": "LEVEL", "required_level": 2 },
+      "skill_multiplier": 1.7,
+      "physical_damage_ratio": 1.0,
+      "magical_damage_ratio": 0.0,
+      "target_type": "ALL",
+      "description_template": "{attribute} mid-tier stronger area physical sweep."
+    },
+    {
+      "id_suffix": "mid_b_1",
+      "name_template": "{attribute} Mid B Skill",
+      "logic": "B",
+      "tier": "MID",
+      "unlock": { "type": "LEVEL", "required_level": 2 },
+      "skill_multiplier": 1.3,
+      "physical_damage_ratio": 0.7,
+      "magical_damage_ratio": 0.3,
+      "target_type": "MULTIPLE",
+      "target_count": 2,
+      "description_template": "{attribute} mid-tier two-target mixed strike."
+    },
+    {
+      "id_suffix": "mid_c_1",
+      "name_template": "{attribute} Mid C Skill",
+      "logic": "C",
+      "tier": "MID",
+      "unlock": { "type": "LEVEL", "required_level": 2 },
+      "skill_multiplier": 2.0,
+      "physical_damage_ratio": 0.5,
+      "magical_damage_ratio": 0.5,
+      "target_type": "SINGLE",
+      "description_template": "{attribute} mid-tier burst strike."
+    },
+    {
+      "id_suffix": "high_b_1",
+      "name_template": "{attribute} High B Skill",
+      "logic": "B",
+      "tier": "HIGH",
+      "unlock": { "type": "LEVEL", "required_level": 4 },
+      "skill_multiplier": 2.5,
+      "physical_damage_ratio": 0.6,
+      "magical_damage_ratio": 0.4,
+      "target_type": "SINGLE",
+      "telegraph": "High impact cast",
+      "cast_hint": "Preparing a high-tier strike",
+      "impact_hint": "Heavy impact",
+      "description_template": "{attribute} high-tier burst skill."
+    }
+  ]
+}

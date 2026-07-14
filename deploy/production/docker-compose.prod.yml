@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ../../server-nest
+    restart: unless-stopped
+    env_file:
+      - ./.env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../../data/content:/workspace/data/content:ro
+    expose:
+      - "4100"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 20s
+      timeout: 5s
+      retries: 20
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/production/nginx/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
+      API_UPSTREAM: api:4100
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./certbot/www:/var/www/certbot:ro
+      - ./letsencrypt:/etc/letsencrypt:ro
+
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["certbot"]
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
+    command:
+      [
+        "certonly",
+        "--webroot",
+        "--webroot-path=/var/www/certbot",
+        "--email=${ACME_EMAIL}",
+        "--agree-tos",
+        "--no-eff-email",
+        "-d",
+        "${DOMAIN_NAME}"
+      ]
+
+volumes:
+  postgres_data:
+  redis_data:
