@@ -27,6 +27,17 @@ export interface GachaPool {
   entries: GachaEntry[];
 }
 
+export interface CharacterConfig {
+  id: string;
+  name: string;
+  attributeType: string;
+  professionType: string;
+  professionName?: string;
+  rarity?: string;
+  weaponName?: string;
+  skills?: Array<Record<string, unknown>>;
+}
+
 const DEFAULT_POOL: GachaPool = {
   key: 'starter',
   name: 'Starter Recruitment',
@@ -109,25 +120,33 @@ export class GachaService {
   private async applyEntry(playerId: string, entry: GachaEntry) {
     if (entry.type === 'character') {
       const configId = entry.characterConfigId || entry.entryId;
+      const characterConfig = await this.findCharacterConfig(configId);
+      const rarity = characterConfig?.rarity || entry.rarity;
       const existing = await this.characters.findOne({ where: { playerId, characterConfigId: configId } });
       if (existing) {
         const shards = await this.inventory.grant(playerId, [{
           itemConfigId: `${configId}_shard`,
           itemType: 'fragment',
-          quantity: entry.rarity === 'epic' ? 30 : 10,
-          payload: { duplicateCharacter: configId, rarity: entry.rarity },
+          quantity: rarity === 'epic' ? 30 : 10,
+          payload: { duplicateCharacter: configId, rarity },
         }], 'gacha_duplicate');
-        return { ...entry, duplicate: true, convertedTo: shards[0] };
+        return { ...entry, ...this.entryFromConfig(characterConfig), duplicate: true, convertedTo: shards[0] };
       }
       const character = await this.characters.save(this.characters.create({
         playerId,
         characterConfigId: configId,
-        attributeType: entry.attributeType || 'FIRE',
-        professionType: entry.professionType || 'PHYSICAL_MELEE_DPS',
+        attributeType: characterConfig?.attributeType || entry.attributeType || 'FIRE',
+        professionType: characterConfig?.professionType || entry.professionType || 'PHYSICAL_MELEE_DPS',
         level: 1,
         exp: 0,
+        skillSlots: this.skillSlotsFromConfig(characterConfig),
+        equipment: {
+          configId,
+          rarity,
+          weaponName: characterConfig?.weaponName || '',
+        },
       }));
-      return { ...entry, duplicate: false, character };
+      return { ...entry, ...this.entryFromConfig(characterConfig), duplicate: false, character };
     }
 
     const granted = await this.inventory.grant(playerId, [{
@@ -155,5 +174,37 @@ export class GachaService {
     const config = await this.configs.getContentConfig('gacha_pools');
     const payload = config.payload as { pools?: GachaPool[] } | null;
     return payload?.pools?.length ? payload.pools : [DEFAULT_POOL];
+  }
+
+  private async findCharacterConfig(configId: string): Promise<CharacterConfig | null> {
+    const config = await this.configs.getContentConfig('characters');
+    const payload = config.payload as { characters?: CharacterConfig[] } | null;
+    return payload?.characters?.find((character) => character.id === configId) || null;
+  }
+
+  private entryFromConfig(config: CharacterConfig | null) {
+    if (!config) return {};
+    return {
+      name: config.name,
+      rarity: config.rarity || 'rare',
+      attributeType: config.attributeType,
+      professionType: config.professionType,
+      professionName: config.professionName,
+      weaponName: config.weaponName || '',
+      skills: config.skills || [],
+    };
+  }
+
+  private skillSlotsFromConfig(config: CharacterConfig | null) {
+    const skills = config?.skills || [];
+    return {
+      configId: config?.id,
+      configuredSkills: skills,
+      skillSlots: Object.fromEntries(
+        skills
+          .filter((skill) => skill.slot)
+          .map((skill) => [String(skill.slot), skill]),
+      ),
+    };
   }
 }

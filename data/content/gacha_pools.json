@@ -1,50 +1,1979 @@
 {
-  "version": 1,
+  "version": 2,
+  "description": "64角色配置抽卡池。旧Python前端使用大写key；Nest新后端也读取同一份配置。",
   "pools": [
     {
       "key": "starter",
-      "name": "Starter Recruitment",
-      "cost": { "currency": "premiumCurrency", "amount": 160 },
+      "name": "全属性角色池",
+      "description": "包含当前64名角色，适合静态试玩和新后端默认抽取。",
+      "cost": {
+        "currency": "premiumCurrency",
+        "amount": 160
+      },
       "entries": [
         {
-          "entryId": "starter_fire_dps",
+          "entryId": "starter_char_001_water_physical_tank",
           "type": "character",
-          "weight": 40,
+          "weight": 100,
           "rarity": "rare",
-          "characterConfigId": "fire_dps_001",
-          "name": "Fire Vanguard",
-          "attributeType": "FIRE",
+          "characterConfigId": "char_001_water_physical_tank",
+          "name": "江无尘",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_char_002_water_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_002_water_magic_tank",
+          "name": "默渊",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_003_water_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_003_water_physical_melee_dps",
+          "name": "寒澈",
+          "attributeType": "WATER",
           "professionType": "PHYSICAL_MELEE_DPS"
         },
         {
-          "entryId": "starter_water_healer",
+          "entryId": "starter_char_004_water_magic_melee_dps",
           "type": "character",
-          "weight": 30,
+          "weight": 100,
           "rarity": "rare",
-          "characterConfigId": "water_healer_001",
-          "name": "Water Medic",
+          "characterConfigId": "char_004_water_magic_melee_dps",
+          "name": "蔺疏澜",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_005_water_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_005_water_physical_ranged_dps",
+          "name": "盛濛饮",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_006_water_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_006_water_magic_ranged_dps",
+          "name": "景自琉",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_007_water_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_007_water_healer",
+          "name": "沐霖",
           "attributeType": "WATER",
           "professionType": "HEALER"
         },
         {
-          "entryId": "starter_tank",
+          "entryId": "starter_char_008_water_support",
           "type": "character",
-          "weight": 20,
-          "rarity": "epic",
-          "characterConfigId": "earth_tank_001",
-          "name": "Earth Guard",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_008_water_support",
+          "name": "玉尘子",
+          "attributeType": "WATER",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "starter_char_009_earth_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_009_earth_physical_tank",
+          "name": "玄珞",
           "attributeType": "EARTH",
           "professionType": "PHYSICAL_TANK"
         },
         {
-          "entryId": "starter_gold",
-          "type": "item",
-          "weight": 10,
-          "rarity": "common",
-          "itemConfigId": "gold_pack_small",
-          "itemType": "currency",
-          "quantity": 500,
-          "name": "Small Gold Pack"
+          "entryId": "starter_char_010_earth_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_010_earth_magic_tank",
+          "name": "玄渊",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_011_earth_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_011_earth_physical_melee_dps",
+          "name": "衡震",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_012_earth_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_012_earth_magic_melee_dps",
+          "name": "漠行汲",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_013_earth_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_013_earth_physical_ranged_dps",
+          "name": "石鸣锋",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_014_earth_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_014_earth_magic_ranged_dps",
+          "name": "钟闻壑",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_015_earth_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_015_earth_healer",
+          "name": "谷见微",
+          "attributeType": "EARTH",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_char_016_earth_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_016_earth_support",
+          "name": "原晦",
+          "attributeType": "EARTH",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "starter_char_017_thunder_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_017_thunder_physical_tank",
+          "name": "雷震壑",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_char_018_thunder_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_018_thunder_magic_tank",
+          "name": "承霄入",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_019_thunder_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_019_thunder_physical_melee_dps",
+          "name": "殷破",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_020_thunder_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_020_thunder_magic_melee_dps",
+          "name": "惊兀蛊",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_021_thunder_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_021_thunder_physical_ranged_dps",
+          "name": "折羽",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_022_thunder_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_022_thunder_magic_ranged_dps",
+          "name": "夕元道人",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_023_thunder_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_023_thunder_healer",
+          "name": "那兰隐",
+          "attributeType": "THUNDER",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_char_024_thunder_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_024_thunder_support",
+          "name": "路同久",
+          "attributeType": "THUNDER",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "starter_char_025_wind_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_025_wind_physical_tank",
+          "name": "沈御霄",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_char_026_wind_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_026_wind_magic_tank",
+          "name": "云无羁",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_027_wind_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_027_wind_physical_melee_dps",
+          "name": "淳于绝",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_028_wind_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_028_wind_magic_melee_dps",
+          "name": "闻微",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_029_wind_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_029_wind_physical_ranged_dps",
+          "name": "暮岑归",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_030_wind_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_030_wind_magic_ranged_dps",
+          "name": "闻时止",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_031_wind_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_031_wind_healer",
+          "name": "苏勤",
+          "attributeType": "WIND",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_char_032_wind_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_032_wind_support",
+          "name": "壹程",
+          "attributeType": "WIND",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "starter_char_033_fire_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_033_fire_physical_tank",
+          "name": "阿骨勒",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_char_034_fire_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_034_fire_magic_tank",
+          "name": "肃祀生",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_035_fire_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_035_fire_physical_melee_dps",
+          "name": "赤螭",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_036_fire_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_036_fire_magic_melee_dps",
+          "name": "喜诛",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_037_fire_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_037_fire_physical_ranged_dps",
+          "name": "炷微",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_038_fire_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_038_fire_magic_ranged_dps",
+          "name": "金翎",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_039_fire_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_039_fire_healer",
+          "name": "角赦",
+          "attributeType": "FIRE",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_char_040_fire_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_040_fire_support",
+          "name": "彤丹",
+          "attributeType": "FIRE",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "starter_char_041_wood_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_041_wood_physical_tank",
+          "name": "原伯铮",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_char_042_wood_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_042_wood_magic_tank",
+          "name": "桓珀",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_043_wood_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_043_wood_physical_melee_dps",
+          "name": "参御",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_044_wood_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_044_wood_magic_melee_dps",
+          "name": "梧隐",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_045_wood_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_045_wood_physical_ranged_dps",
+          "name": "景明",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_046_wood_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_046_wood_magic_ranged_dps",
+          "name": "寄微",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_047_wood_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_047_wood_healer",
+          "name": "空湛",
+          "attributeType": "WOOD",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_char_048_wood_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_048_wood_support",
+          "name": "殷承容",
+          "attributeType": "WOOD",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "starter_char_049_light_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_049_light_physical_tank",
+          "name": "齐景夕",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_char_050_light_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_050_light_magic_tank",
+          "name": "韧心",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_051_light_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_051_light_physical_melee_dps",
+          "name": "齐哲伊",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_052_light_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_052_light_magic_melee_dps",
+          "name": "齐昱思",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_053_light_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_053_light_physical_ranged_dps",
+          "name": "刘白",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_054_light_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_054_light_magic_ranged_dps",
+          "name": "溯净",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_055_light_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_055_light_healer",
+          "name": "昭世灯",
+          "attributeType": "LIGHT",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_char_056_light_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_056_light_support",
+          "name": "烛世言",
+          "attributeType": "LIGHT",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "starter_char_057_dark_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_057_dark_physical_tank",
+          "name": "厄殁",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "starter_char_058_dark_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_058_dark_magic_tank",
+          "name": "墨韫",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "starter_char_059_dark_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_059_dark_physical_melee_dps",
+          "name": "王子",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_060_dark_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_060_dark_magic_melee_dps",
+          "name": "张静虚",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "starter_char_061_dark_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_061_dark_physical_ranged_dps",
+          "name": "叶沉",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_062_dark_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_062_dark_magic_ranged_dps",
+          "name": "迭翎卿",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "starter_char_063_dark_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_063_dark_healer",
+          "name": "司空朔",
+          "attributeType": "DARK",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "starter_char_064_dark_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_064_dark_support",
+          "name": "钱明舒",
+          "attributeType": "DARK",
+          "professionType": "SUPPORT"
+        }
+      ]
+    },
+    {
+      "key": "WATER_EARTH_THUNDER",
+      "name": "水土雷角色池",
+      "description": "包含水、土、雷三个属性的24名角色。",
+      "cost": {
+        "currency": "premiumCurrency",
+        "amount": 160
+      },
+      "entries": [
+        {
+          "entryId": "water_earth_thunder_char_001_water_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_001_water_physical_tank",
+          "name": "江无尘",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "water_earth_thunder_char_002_water_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_002_water_magic_tank",
+          "name": "默渊",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "water_earth_thunder_char_003_water_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_003_water_physical_melee_dps",
+          "name": "寒澈",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_004_water_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_004_water_magic_melee_dps",
+          "name": "蔺疏澜",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_005_water_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_005_water_physical_ranged_dps",
+          "name": "盛濛饮",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_006_water_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_006_water_magic_ranged_dps",
+          "name": "景自琉",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_007_water_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_007_water_healer",
+          "name": "沐霖",
+          "attributeType": "WATER",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "water_earth_thunder_char_008_water_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_008_water_support",
+          "name": "玉尘子",
+          "attributeType": "WATER",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "water_earth_thunder_char_009_earth_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_009_earth_physical_tank",
+          "name": "玄珞",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "water_earth_thunder_char_010_earth_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_010_earth_magic_tank",
+          "name": "玄渊",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "water_earth_thunder_char_011_earth_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_011_earth_physical_melee_dps",
+          "name": "衡震",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_012_earth_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_012_earth_magic_melee_dps",
+          "name": "漠行汲",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_013_earth_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_013_earth_physical_ranged_dps",
+          "name": "石鸣锋",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_014_earth_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_014_earth_magic_ranged_dps",
+          "name": "钟闻壑",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_015_earth_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_015_earth_healer",
+          "name": "谷见微",
+          "attributeType": "EARTH",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "water_earth_thunder_char_016_earth_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_016_earth_support",
+          "name": "原晦",
+          "attributeType": "EARTH",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "water_earth_thunder_char_017_thunder_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_017_thunder_physical_tank",
+          "name": "雷震壑",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "water_earth_thunder_char_018_thunder_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_018_thunder_magic_tank",
+          "name": "承霄入",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "water_earth_thunder_char_019_thunder_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_019_thunder_physical_melee_dps",
+          "name": "殷破",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_020_thunder_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_020_thunder_magic_melee_dps",
+          "name": "惊兀蛊",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_021_thunder_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_021_thunder_physical_ranged_dps",
+          "name": "折羽",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_022_thunder_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_022_thunder_magic_ranged_dps",
+          "name": "夕元道人",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "water_earth_thunder_char_023_thunder_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_023_thunder_healer",
+          "name": "那兰隐",
+          "attributeType": "THUNDER",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "water_earth_thunder_char_024_thunder_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_024_thunder_support",
+          "name": "路同久",
+          "attributeType": "THUNDER",
+          "professionType": "SUPPORT"
+        }
+      ]
+    },
+    {
+      "key": "FIRE_WOOD_WIND",
+      "name": "火木风角色池",
+      "description": "包含火、木、风三个属性的24名角色。",
+      "cost": {
+        "currency": "premiumCurrency",
+        "amount": 160
+      },
+      "entries": [
+        {
+          "entryId": "fire_wood_wind_char_033_fire_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_033_fire_physical_tank",
+          "name": "阿骨勒",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "fire_wood_wind_char_034_fire_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_034_fire_magic_tank",
+          "name": "肃祀生",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "fire_wood_wind_char_035_fire_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_035_fire_physical_melee_dps",
+          "name": "赤螭",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_036_fire_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_036_fire_magic_melee_dps",
+          "name": "喜诛",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_037_fire_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_037_fire_physical_ranged_dps",
+          "name": "炷微",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_038_fire_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_038_fire_magic_ranged_dps",
+          "name": "金翎",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_039_fire_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_039_fire_healer",
+          "name": "角赦",
+          "attributeType": "FIRE",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "fire_wood_wind_char_040_fire_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_040_fire_support",
+          "name": "彤丹",
+          "attributeType": "FIRE",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "fire_wood_wind_char_041_wood_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_041_wood_physical_tank",
+          "name": "原伯铮",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "fire_wood_wind_char_042_wood_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_042_wood_magic_tank",
+          "name": "桓珀",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "fire_wood_wind_char_043_wood_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_043_wood_physical_melee_dps",
+          "name": "参御",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_044_wood_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_044_wood_magic_melee_dps",
+          "name": "梧隐",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_045_wood_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_045_wood_physical_ranged_dps",
+          "name": "景明",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_046_wood_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_046_wood_magic_ranged_dps",
+          "name": "寄微",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_047_wood_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_047_wood_healer",
+          "name": "空湛",
+          "attributeType": "WOOD",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "fire_wood_wind_char_048_wood_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_048_wood_support",
+          "name": "殷承容",
+          "attributeType": "WOOD",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "fire_wood_wind_char_025_wind_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_025_wind_physical_tank",
+          "name": "沈御霄",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "fire_wood_wind_char_026_wind_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_026_wind_magic_tank",
+          "name": "云无羁",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "fire_wood_wind_char_027_wind_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_027_wind_physical_melee_dps",
+          "name": "淳于绝",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_028_wind_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_028_wind_magic_melee_dps",
+          "name": "闻微",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_029_wind_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_029_wind_physical_ranged_dps",
+          "name": "暮岑归",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_030_wind_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_030_wind_magic_ranged_dps",
+          "name": "闻时止",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "fire_wood_wind_char_031_wind_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_031_wind_healer",
+          "name": "苏勤",
+          "attributeType": "WIND",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "fire_wood_wind_char_032_wind_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_032_wind_support",
+          "name": "壹程",
+          "attributeType": "WIND",
+          "professionType": "SUPPORT"
+        }
+      ]
+    },
+    {
+      "key": "LIGHT_DARK",
+      "name": "光暗角色池",
+      "description": "包含光、暗两个属性的16名角色。",
+      "cost": {
+        "currency": "premiumCurrency",
+        "amount": 160
+      },
+      "entries": [
+        {
+          "entryId": "light_dark_char_049_light_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_049_light_physical_tank",
+          "name": "齐景夕",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "light_dark_char_050_light_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_050_light_magic_tank",
+          "name": "韧心",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "light_dark_char_051_light_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_051_light_physical_melee_dps",
+          "name": "齐哲伊",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "light_dark_char_052_light_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_052_light_magic_melee_dps",
+          "name": "齐昱思",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "light_dark_char_053_light_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_053_light_physical_ranged_dps",
+          "name": "刘白",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "light_dark_char_054_light_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_054_light_magic_ranged_dps",
+          "name": "溯净",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "light_dark_char_055_light_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_055_light_healer",
+          "name": "昭世灯",
+          "attributeType": "LIGHT",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "light_dark_char_056_light_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_056_light_support",
+          "name": "烛世言",
+          "attributeType": "LIGHT",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "light_dark_char_057_dark_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_057_dark_physical_tank",
+          "name": "厄殁",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "light_dark_char_058_dark_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_058_dark_magic_tank",
+          "name": "墨韫",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "light_dark_char_059_dark_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_059_dark_physical_melee_dps",
+          "name": "王子",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "light_dark_char_060_dark_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_060_dark_magic_melee_dps",
+          "name": "张静虚",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "light_dark_char_061_dark_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_061_dark_physical_ranged_dps",
+          "name": "叶沉",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "light_dark_char_062_dark_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_062_dark_magic_ranged_dps",
+          "name": "迭翎卿",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "light_dark_char_063_dark_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_063_dark_healer",
+          "name": "司空朔",
+          "attributeType": "DARK",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "light_dark_char_064_dark_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_064_dark_support",
+          "name": "钱明舒",
+          "attributeType": "DARK",
+          "professionType": "SUPPORT"
+        }
+      ]
+    },
+    {
+      "key": "UP_POOL",
+      "name": "当期UP角色池",
+      "description": "UP角色权重更高，未命中时从64名角色中抽取。",
+      "cost": {
+        "currency": "premiumCurrency",
+        "amount": 160
+      },
+      "entries": [
+        {
+          "entryId": "up_char_001_water_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_001_water_physical_tank",
+          "name": "江无尘",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_002_water_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_002_water_magic_tank",
+          "name": "默渊",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_003_water_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_003_water_physical_melee_dps",
+          "name": "寒澈",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_004_water_magic_melee_dps",
+          "type": "character",
+          "weight": 900,
+          "rarity": "rare",
+          "characterConfigId": "char_004_water_magic_melee_dps",
+          "name": "蔺疏澜",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_005_water_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_005_water_physical_ranged_dps",
+          "name": "盛濛饮",
+          "attributeType": "WATER",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_006_water_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_006_water_magic_ranged_dps",
+          "name": "景自琉",
+          "attributeType": "WATER",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_007_water_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_007_water_healer",
+          "name": "沐霖",
+          "attributeType": "WATER",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_008_water_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_008_water_support",
+          "name": "玉尘子",
+          "attributeType": "WATER",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "up_char_009_earth_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_009_earth_physical_tank",
+          "name": "玄珞",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_010_earth_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_010_earth_magic_tank",
+          "name": "玄渊",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_011_earth_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_011_earth_physical_melee_dps",
+          "name": "衡震",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_012_earth_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_012_earth_magic_melee_dps",
+          "name": "漠行汲",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_013_earth_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_013_earth_physical_ranged_dps",
+          "name": "石鸣锋",
+          "attributeType": "EARTH",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_014_earth_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_014_earth_magic_ranged_dps",
+          "name": "钟闻壑",
+          "attributeType": "EARTH",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_015_earth_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_015_earth_healer",
+          "name": "谷见微",
+          "attributeType": "EARTH",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_016_earth_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_016_earth_support",
+          "name": "原晦",
+          "attributeType": "EARTH",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "up_char_017_thunder_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_017_thunder_physical_tank",
+          "name": "雷震壑",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_018_thunder_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_018_thunder_magic_tank",
+          "name": "承霄入",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_019_thunder_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_019_thunder_physical_melee_dps",
+          "name": "殷破",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_020_thunder_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_020_thunder_magic_melee_dps",
+          "name": "惊兀蛊",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_021_thunder_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_021_thunder_physical_ranged_dps",
+          "name": "折羽",
+          "attributeType": "THUNDER",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_022_thunder_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_022_thunder_magic_ranged_dps",
+          "name": "夕元道人",
+          "attributeType": "THUNDER",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_023_thunder_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_023_thunder_healer",
+          "name": "那兰隐",
+          "attributeType": "THUNDER",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_024_thunder_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_024_thunder_support",
+          "name": "路同久",
+          "attributeType": "THUNDER",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "up_char_025_wind_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_025_wind_physical_tank",
+          "name": "沈御霄",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_026_wind_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_026_wind_magic_tank",
+          "name": "云无羁",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_027_wind_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_027_wind_physical_melee_dps",
+          "name": "淳于绝",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_028_wind_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_028_wind_magic_melee_dps",
+          "name": "闻微",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_029_wind_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_029_wind_physical_ranged_dps",
+          "name": "暮岑归",
+          "attributeType": "WIND",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_030_wind_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_030_wind_magic_ranged_dps",
+          "name": "闻时止",
+          "attributeType": "WIND",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_031_wind_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_031_wind_healer",
+          "name": "苏勤",
+          "attributeType": "WIND",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_032_wind_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_032_wind_support",
+          "name": "壹程",
+          "attributeType": "WIND",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "up_char_033_fire_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_033_fire_physical_tank",
+          "name": "阿骨勒",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_034_fire_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_034_fire_magic_tank",
+          "name": "肃祀生",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_035_fire_physical_melee_dps",
+          "type": "character",
+          "weight": 900,
+          "rarity": "rare",
+          "characterConfigId": "char_035_fire_physical_melee_dps",
+          "name": "赤螭",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_036_fire_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_036_fire_magic_melee_dps",
+          "name": "喜诛",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_037_fire_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_037_fire_physical_ranged_dps",
+          "name": "炷微",
+          "attributeType": "FIRE",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_038_fire_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_038_fire_magic_ranged_dps",
+          "name": "金翎",
+          "attributeType": "FIRE",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_039_fire_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_039_fire_healer",
+          "name": "角赦",
+          "attributeType": "FIRE",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_040_fire_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_040_fire_support",
+          "name": "彤丹",
+          "attributeType": "FIRE",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "up_char_041_wood_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_041_wood_physical_tank",
+          "name": "原伯铮",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_042_wood_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_042_wood_magic_tank",
+          "name": "桓珀",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_043_wood_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_043_wood_physical_melee_dps",
+          "name": "参御",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_044_wood_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_044_wood_magic_melee_dps",
+          "name": "梧隐",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_045_wood_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_045_wood_physical_ranged_dps",
+          "name": "景明",
+          "attributeType": "WOOD",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_046_wood_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_046_wood_magic_ranged_dps",
+          "name": "寄微",
+          "attributeType": "WOOD",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_047_wood_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_047_wood_healer",
+          "name": "空湛",
+          "attributeType": "WOOD",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_048_wood_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "rare",
+          "characterConfigId": "char_048_wood_support",
+          "name": "殷承容",
+          "attributeType": "WOOD",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "up_char_049_light_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_049_light_physical_tank",
+          "name": "齐景夕",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_050_light_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_050_light_magic_tank",
+          "name": "韧心",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_051_light_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_051_light_physical_melee_dps",
+          "name": "齐哲伊",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_052_light_magic_melee_dps",
+          "type": "character",
+          "weight": 900,
+          "rarity": "epic",
+          "characterConfigId": "char_052_light_magic_melee_dps",
+          "name": "齐昱思",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_053_light_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_053_light_physical_ranged_dps",
+          "name": "刘白",
+          "attributeType": "LIGHT",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_054_light_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_054_light_magic_ranged_dps",
+          "name": "溯净",
+          "attributeType": "LIGHT",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_055_light_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_055_light_healer",
+          "name": "昭世灯",
+          "attributeType": "LIGHT",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_056_light_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_056_light_support",
+          "name": "烛世言",
+          "attributeType": "LIGHT",
+          "professionType": "SUPPORT"
+        },
+        {
+          "entryId": "up_char_057_dark_physical_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_057_dark_physical_tank",
+          "name": "厄殁",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_TANK"
+        },
+        {
+          "entryId": "up_char_058_dark_magic_tank",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_058_dark_magic_tank",
+          "name": "墨韫",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_TANK"
+        },
+        {
+          "entryId": "up_char_059_dark_physical_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_059_dark_physical_melee_dps",
+          "name": "王子",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_060_dark_magic_melee_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_060_dark_magic_melee_dps",
+          "name": "张静虚",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_MELEE_DPS"
+        },
+        {
+          "entryId": "up_char_061_dark_physical_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_061_dark_physical_ranged_dps",
+          "name": "叶沉",
+          "attributeType": "DARK",
+          "professionType": "PHYSICAL_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_062_dark_magic_ranged_dps",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_062_dark_magic_ranged_dps",
+          "name": "迭翎卿",
+          "attributeType": "DARK",
+          "professionType": "MAGIC_RANGED_DPS"
+        },
+        {
+          "entryId": "up_char_063_dark_healer",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_063_dark_healer",
+          "name": "司空朔",
+          "attributeType": "DARK",
+          "professionType": "HEALER"
+        },
+        {
+          "entryId": "up_char_064_dark_support",
+          "type": "character",
+          "weight": 100,
+          "rarity": "epic",
+          "characterConfigId": "char_064_dark_support",
+          "name": "钱明舒",
+          "attributeType": "DARK",
+          "professionType": "SUPPORT"
         }
       ]
     }

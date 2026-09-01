@@ -1,11 +1,16 @@
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import { CHARACTER_POOL, CharacterPoolEntry } from '../data/characterPool'
 
 interface DemoCharacter {
   character_id: string
+  config_id?: string
   name: string
   profession_type: string
   attribute_type: string
   level: number
+  rarity?: string
+  weapon_name?: string
+  skills?: CharacterPoolEntry['skills']
 }
 
 interface DemoDungeon {
@@ -208,22 +213,28 @@ const handleDemoRequest = (config: InternalAxiosRequestConfig, url: string) => {
       success: true,
       history: state.gachaHistory,
       pity: { current: state.gachaHistory.length % 50, threshold: 50, remaining: 50 - (state.gachaHistory.length % 50), next_guaranteed: false },
-      up_pool: null,
+      up_pool: buildStaticUpPool(),
+      available_characters: CHARACTER_POOL,
     }
   }
 
   if (url === '/api/gacha/pull' && method === 'post') {
     const count = Number(body.pull_count || 1)
-    const results = Array.from({ length: count }, (_, index) => createPulledCharacter(state, index))
+    const poolType = String(body.pool_type || 'STATIC_DEMO')
+    const results = Array.from({ length: count }, () => createPulledCharacter(state, poolType))
     const history = {
       timestamp: new Date().toISOString(),
-      pool_type: body.pool_type || 'STATIC_DEMO',
+      pool_type: poolType,
       pull_count: count,
       cost: count * 1000,
-      new_characters: results.length,
-      duplicates: 0,
-      essence_gained: 0,
-      results: results.map((item) => ({ ...item.character, is_duplicate: false, essence_gained: 0 })),
+      new_characters: results.filter((item) => !item.is_duplicate).length,
+      duplicates: results.filter((item) => item.is_duplicate).length,
+      essence_gained: results.reduce((sum, item) => sum + item.essence_gained, 0),
+      results: results.map((item) => ({
+        ...item.character,
+        is_duplicate: item.is_duplicate,
+        essence_gained: item.essence_gained,
+      })),
     }
     state.gachaHistory.unshift(history)
     state.player.gold = Math.max(0, state.player.gold - count * 1000)
@@ -277,8 +288,8 @@ const createDefaultState = (): DemoState => ({
     gold: 100000,
   },
   characters: [
-    { character_id: 'demo_fire_001', name: '试玩火属性角色', profession_type: 'PHYSICAL_MELEE_DPS', attribute_type: 'FIRE', level: 25 },
-    { character_id: 'demo_water_001', name: '试玩水属性角色', profession_type: 'HEALER', attribute_type: 'WATER', level: 18 },
+    { ...toDemoCharacter(CHARACTER_POOL[0], 'owned'), level: 25 },
+    { ...toDemoCharacter(CHARACTER_POOL[6], 'owned'), level: 18 },
   ],
   dungeons: [
     createDungeon('demo_exp_normal', '静态试玩经验本', 'SINGLE', 'FIRE', 'normal', 12),
@@ -332,17 +343,63 @@ const createBattle = (state: DemoState, dungeonId: string, characterIds: string[
   return battle
 }
 
-const createPulledCharacter = (state: DemoState, index: number) => {
-  const id = `demo_gacha_${Date.now()}_${index}`
-  const character = {
-    character_id: id,
-    name: `试玩招募角色 ${state.characters.length + 1}`,
-    profession_type: index % 2 === 0 ? 'MAGICAL_RANGED_DPS' : 'SUPPORT',
-    attribute_type: index % 2 === 0 ? 'LIGHT' : 'DARK',
-    level: 1,
+const toDemoCharacter = (entry: CharacterPoolEntry, idPrefix = 'demo'): DemoCharacter => ({
+  character_id: `${idPrefix}_${entry.id}`,
+  config_id: entry.id,
+  name: entry.name,
+  profession_type: entry.professionType,
+  attribute_type: entry.attributeType,
+  level: 1,
+  rarity: entry.rarity,
+  weapon_name: entry.weaponName,
+  skills: entry.skills,
+})
+
+const getCharactersForPool = (poolType: string): CharacterPoolEntry[] => {
+  if (poolType === 'WATER_EARTH_THUNDER') {
+    return CHARACTER_POOL.filter((item) => ['WATER', 'EARTH', 'THUNDER'].includes(item.attributeType))
   }
+  if (poolType === 'FIRE_WOOD_WIND') {
+    return CHARACTER_POOL.filter((item) => ['FIRE', 'WOOD', 'WIND'].includes(item.attributeType))
+  }
+  if (poolType === 'LIGHT_DARK') {
+    return CHARACTER_POOL.filter((item) => ['LIGHT', 'DARK'].includes(item.attributeType))
+  }
+  if (poolType === 'UP_POOL') {
+    const upIds = new Set(['char_004_water_magic_melee_dps', 'char_035_fire_physical_melee_dps', 'char_052_light_magic_melee_dps'])
+    const upCharacters = CHARACTER_POOL.filter((item) => upIds.has(item.id))
+    return Math.random() < 0.5 ? upCharacters : [...CHARACTER_POOL]
+  }
+  return [...CHARACTER_POOL]
+}
+
+const createPulledCharacter = (state: DemoState, poolType: string) => {
+  const candidates = getCharactersForPool(poolType)
+  const entry = candidates[Math.floor(Math.random() * candidates.length)] || CHARACTER_POOL[0]
+  const existing = state.characters.find((item) => item.config_id === entry.id || item.name === entry.name)
+  if (existing) {
+    return { character: existing, is_duplicate: true, essence_gained: entry.rarity === 'epic' ? 30 : 10 }
+  }
+
+  const character = toDemoCharacter(entry, `demo_gacha_${Date.now()}`)
   state.characters.push(character)
   return { character, is_duplicate: false, essence_gained: 0 }
+}
+
+const buildStaticUpPool = () => {
+  const upIds = new Set(['char_004_water_magic_melee_dps', 'char_035_fire_physical_melee_dps', 'char_052_light_magic_melee_dps'])
+  const upCharacters = CHARACTER_POOL.filter((item) => upIds.has(item.id))
+  return {
+    title: '当期UP角色池',
+    description: 'UP角色约50%概率命中；未命中时从64名角色中抽取。',
+    up_rate: 0.5,
+    up_character_names: upCharacters.map((item) => item.name),
+    up_characters: upCharacters.map((item) => ({
+      name: item.name,
+      attribute_type: item.attributeType,
+      profession_type: item.professionName,
+    })),
+  }
 }
 
 const buildSnapshot = (state: DemoState, battle?: DemoBattle) => {

@@ -70,6 +70,7 @@ room_manager = get_room_manager()
 GACHA_STATE_FILE = Path(__file__).resolve().parents[2] / "data" / "gacha_state.json"
 UP_POOL_CONFIG_FILE = Path(__file__).resolve().parents[2] / "data" / "up_pool_config.json"
 EXCLUSIVE_WEAPON_TEMPLATE_FILE = Path(__file__).resolve().parents[2] / "data" / "exclusive_weapon_skill_templates.json"
+CHARACTER_CONTENT_FILE = Path(__file__).resolve().parents[2] / "data" / "content" / "characters.json"
 GACHA_PITY_THRESHOLD = 50
 GACHA_HISTORY_LIMIT = 30
 EXCLUSIVE_WEAPON_BASE_MAX_LEVEL = 5
@@ -222,6 +223,34 @@ def generate_all_characters(version):
     from ..classes.profession import get_profession, ProfessionType
     from ..attributes.attribute import Attribute, AttributeType
 
+    if CHARACTER_CONTENT_FILE.exists():
+        try:
+            payload = json.loads(CHARACTER_CONTENT_FILE.read_text(encoding="utf-8"))
+            configured_characters = []
+            for config in payload.get("characters", []):
+                attr = AttributeType[str(config["attributeType"])]
+                prof = ProfessionType[str(config["professionType"])]
+                character = Character(
+                    character_id=str(config["id"]),
+                    name=str(config["name"]),
+                    profession=get_profession(prof),
+                    attribute=Attribute(attr),
+                    version=version,
+                    level=1,
+                    exp=0,
+                )
+                character.config_id = str(config["id"])
+                character.rarity = config.get("rarity", "rare")
+                character.weapon_name = config.get("weaponName", "")
+                character.source = config.get("source", "")
+                character.description = config.get("description", "")
+                character.skill_config = config.get("skills", [])
+                configured_characters.append(character)
+            if configured_characters:
+                return configured_characters
+        except Exception:
+            logger.warning("Failed to load configured characters; using generated placeholders.", exc_info=True)
+
     attribute_order = [
         AttributeType.WATER,
         AttributeType.EARTH,
@@ -282,9 +311,16 @@ def _get_generated_character_pool() -> List[Any]:
 def _serialize_generated_character(char: Any) -> Dict[str, Any]:
     return {
         "character_id": char.character_id,
+        "config_id": getattr(char, "config_id", char.character_id),
         "name": char.name,
         "attribute_type": char.attribute.attribute_type.value,
+        "attribute_key": char.attribute.attribute_type.name,
         "profession_type": char.profession.profession_type.value,
+        "profession_key": char.profession.profession_type.name,
+        "rarity": getattr(char, "rarity", "rare"),
+        "weapon_name": getattr(char, "weapon_name", ""),
+        "source": getattr(char, "source", ""),
+        "skills": getattr(char, "skill_config", []),
     }
 
 
@@ -2058,7 +2094,10 @@ def gacha_pull():
         ).all()
         for char_model in owned_char_models:
             char_domain = CharacterSerializer.model_to_domain(char_model)
-            if char_model.name in PREDEFINED_CHARACTER_DESCRIPTIONS:
+            config_id = (char_model.equipment or {}).get("config_id")
+            if config_id:
+                char_domain.character_id = config_id
+            elif char_model.name in PREDEFINED_CHARACTER_DESCRIPTIONS:
                 char_domain.character_id = f"predefined_{char_model.name}"
             # 浣跨敤 character_id 浣滀负閿紙涓?GachaSystem.pull 鐨勯€昏緫涓€鑷达級
             gacha.owned_characters[char_domain.character_id] = char_domain
@@ -2265,24 +2304,22 @@ def gacha_pull():
                     # 鏂拌鑹诧紝淇濆瓨鍒版暟鎹簱
                     char = result.character
                     # 鑾峰彇瑙掕壊鎻忚堪锛堝鏋滄槸棰勫畾涔夎鑹诧級
-                    description = PREDEFINED_CHARACTER_DESCRIPTIONS.get(char.name, None)
+                    description = getattr(char, "description", None) or PREDEFINED_CHARACTER_DESCRIPTIONS.get(char.name, None)
+                    config_id = getattr(char, "config_id", char.character_id)
                     
                     # 瀵逛簬棰勫畾涔夎鑹诧紝闇€瑕佺敓鎴愬熀浜?player_id 鐨勫敮涓€ character_id
                     # 骞舵鏌ユ暟鎹簱涓槸鍚﹀凡瀛樺湪鍚屽悕瑙掕壊锛堥槻姝㈤噸澶嶄繚瀛橈級
+                    existing = db_session.query(CharacterModel).filter(
+                        CharacterModel.player_id == player_id,
+                        CharacterModel.name == char.name
+                    ).first()
+                    if existing:
+                        continue
                     if char.name in PREDEFINED_CHARACTER_DESCRIPTIONS:
-                        # 妫€鏌ユ槸鍚﹀凡瀛樺湪鍚屽悕瑙掕壊
-                        existing = db_session.query(CharacterModel).filter(
-                            CharacterModel.player_id == player_id,
-                            CharacterModel.name == char.name
-                        ).first()
-                        if existing:
-                            # 宸插瓨鍦ㄥ悓鍚嶈鑹诧紝璺宠繃淇濆瓨锛堣繖绉嶆儏鍐电悊璁轰笂涓嶅簲璇ュ彂鐢燂紝鍥犱负搴旇鍦ㄦ娊鍙栨椂灏辫鍒ゆ柇涓洪噸澶嶏級
-                            continue
                         # 鐢熸垚鍞竴鐨?character_id
                         unique_char_id = f"{player_id}_{char.name}_{uuid.uuid4().hex[:8]}"
                     else:
-                        # 鏅€氳鑹诧紝浣跨敤鍘熸湁鐨?character_id
-                        unique_char_id = char.character_id
+                        unique_char_id = f"{player_id}_{config_id}_{uuid.uuid4().hex[:8]}"
                     
                     char_model = CharacterModel(
                         character_id=unique_char_id,
@@ -2300,8 +2337,20 @@ def gacha_pull():
                             'magic_attack': char.magic_attack,
                             'magic_defense': char.magic_defense
                         },
-                        equipment={},
-                        skills={},
+                        equipment={
+                            "config_id": config_id,
+                            "rarity": getattr(char, "rarity", "rare"),
+                            "weapon_name": getattr(char, "weapon_name", "")
+                        },
+                        skills={
+                            "config_id": config_id,
+                            "configured_skills": getattr(char, "skill_config", []),
+                            "skill_slots": {
+                                str(skill.get("slot")): skill
+                                for skill in getattr(char, "skill_config", [])
+                                if isinstance(skill, dict) and skill.get("slot")
+                            }
+                        },
                         description=description
                     )
                     db_session.add(char_model)

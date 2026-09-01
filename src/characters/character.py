@@ -203,9 +203,14 @@ class Character:
         """转换为字典"""
         return {
             "character_id": self.character_id,
+            "config_id": getattr(self, "config_id", self.character_id),
             "name": self.name,
             "profession": self.profession.profession_type.value,
+            "profession_type": self.profession.profession_type.value,
+            "profession_key": self.profession.profession_type.name,
             "attribute": self.attribute.attribute_type.value,
+            "attribute_type": self.attribute.attribute_type.value,
+            "attribute_key": self.attribute.attribute_type.name,
             "version": self.version.version_name,
             "level": self.level,
             "exp": self.exp,
@@ -214,6 +219,9 @@ class Character:
             "defense": self.defense,
             "magic_attack": self.magic_attack,
             "magic_defense": self.magic_defense,
+            "rarity": getattr(self, "rarity", "rare"),
+            "weapon_name": getattr(self, "weapon_name", ""),
+            "skills": getattr(self, "skill_config", []),
             "selected_illustration": self.selected_illustration.gender.value if self.selected_illustration else None,
             "has_exclusive_weapon": self.exclusive_weapon is not None,
             "has_equipment_set": self.equipment_set is not None

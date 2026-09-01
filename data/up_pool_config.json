@@ -2,10 +2,10 @@
   "pool_type": "UP_POOL",
   "up_rate": 0.5,
   "up_character_names": [
-    "寒澈",
-    "光属性法系远程输出",
-    "暗属性物理近战输出"
+    "蔺疏澜",
+    "赤螭",
+    "齐昱思"
   ],
-  "title": "初始UP池",
-  "description": "UP角色占50%抽取权重；未命中UP时从全角色池抽取。"
+  "title": "当期UP角色池",
+  "description": "UP角色有50%概率优先抽取；未命中UP时从当前64名角色中抽取。"
 }
