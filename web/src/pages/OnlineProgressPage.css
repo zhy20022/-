@@ -176,6 +176,73 @@
   align-items: start;
 }
 
+.online-loop-panel {
+  margin-bottom: 16px;
+}
+
+.online-loop-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.online-loop-stats div {
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 12px;
+  min-width: 0;
+}
+
+.online-loop-stats strong,
+.online-loop-stats span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.online-loop-stats strong {
+  color: #0f172a;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.online-loop-stats span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.online-loop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.online-loop-actions button {
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 40px;
+  padding: 10px 14px;
+}
+
+.online-loop-actions button:nth-child(2) {
+  background: #16a34a;
+}
+
+.online-loop-actions button:nth-child(3) {
+  background: #7c3aed;
+}
+
+.online-loop-actions button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
 .online-panel {
   background: white;
   border: 1px solid #d7dee8;
@@ -433,6 +500,7 @@
 
   .online-player-bar,
   .idle-stats,
+  .online-loop-stats,
   .daily-goal-card,
   .trust-check-card {
     grid-template-columns: 1fr;

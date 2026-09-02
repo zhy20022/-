@@ -26,7 +26,7 @@ export class AuthService {
       player = this.players.create({
         userId: user.id,
         displayName: displayName || `Guest_${user.id.slice(0, 8)}`,
-        gold: 1000,
+        gold: 100000,
       });
       await this.players.save(player);
     }

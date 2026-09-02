@@ -33,6 +33,8 @@ import {
 } from './database/entities';
 import { DailyGoalsController } from './daily-goals/daily-goals.controller';
 import { DailyGoalsService } from './daily-goals/daily-goals.service';
+import { DungeonsController } from './dungeons/dungeons.controller';
+import { DungeonsService } from './dungeons/dungeons.service';
 import { FriendsAssistController } from './friends-assist/friends-assist.controller';
 import { FriendsAssistService } from './friends-assist/friends-assist.service';
 import { GachaController } from './gacha/gacha.controller';
@@ -95,6 +97,7 @@ const entities = [
     AuthController,
     BattleSettlementController,
     DailyGoalsController,
+    DungeonsController,
     FriendsAssistController,
     GameConfigsController,
     GachaController,
@@ -111,6 +114,7 @@ const entities = [
     AuthService,
     BattleSettlementService,
     DailyGoalsService,
+    DungeonsService,
     FriendsAssistService,
     GachaService,
     GameConfigsService,

@@ -44,6 +44,16 @@ class SettleBattleDto {
   damageScore?: number;
 
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  singleMonstersKilled?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  groupMonstersKilled?: number;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SettlementRewardDto)

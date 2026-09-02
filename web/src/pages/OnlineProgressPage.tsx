@@ -19,6 +19,8 @@ interface CharacterRow {
   professionType: string
   level: number
   exp: number
+  maxLevel?: number
+  expToNextLevel?: number
 }
 
 interface InventoryGrant {
@@ -90,11 +92,14 @@ const OnlineProgressPage: React.FC = () => {
   const [stages, setStages] = useState<IdleStage[]>([])
   const [selectedStageId, setSelectedStageId] = useState(defaultStageId)
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<string[]>([])
+  const [inventory, setInventory] = useState<InventoryGrant[]>([])
+  const [playerGold, setPlayerGold] = useState(0)
   const [idleSession, setIdleSession] = useState<IdleSession | null>(null)
   const [idlePreview, setIdlePreview] = useState<IdlePreview | null>(null)
   const [dailyGoals, setDailyGoals] = useState<DailyGoalList | null>(null)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [loading, setLoading] = useState(false)
+  const [onlineLoopBusy, setOnlineLoopBusy] = useState(false)
   const [trustStatus, setTrustStatus] = useState<Feedback | null>(null)
 
   const currentPlayerId = onlineSession?.player.id || ''
@@ -103,6 +108,16 @@ const OnlineProgressPage: React.FC = () => {
   const selectedStage = useMemo(
     () => stages.find((stage) => stage.stageId === selectedStageId),
     [selectedStageId, stages],
+  )
+  const selectedLoopCharacter = useMemo(
+    () => characters.find((character) => selectedCharacterIds.includes(character.id)) || characters[0],
+    [characters, selectedCharacterIds],
+  )
+  const expPackageCount = useMemo(
+    () => inventory
+      .filter((item) => item.itemConfigId === 'character_exp_crystal')
+      .reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+    [inventory],
   )
 
   useEffect(() => {
@@ -151,6 +166,8 @@ const OnlineProgressPage: React.FC = () => {
         onlineApi.get(`/daily-goals/${playerId}`),
       ])
       const loadedCharacters = profileResponse.data?.characters || []
+      setPlayerGold(Number(profileResponse.data?.player?.gold || 0))
+      setInventory(profileResponse.data?.inventory || [])
       setCharacters(loadedCharacters)
       setSelectedCharacterIds((previous) => {
         const valid = previous.filter((id) => loadedCharacters.some((character: CharacterRow) => character.id === id))
@@ -229,6 +246,76 @@ const OnlineProgressPage: React.FC = () => {
     setDailyGoals(response.data)
   }
 
+  const drawOnlineCharacters = async () => {
+    if (!currentPlayerId) return
+    try {
+      setOnlineLoopBusy(true)
+      const response = await onlineApi.post(`/gacha/${currentPlayerId}/draw`, { poolKey: 'starter', count: 10 })
+      const characterCount = (response.data?.results || []).filter((item: { type?: string }) => item.type === 'character').length
+      setFeedback({ type: 'success', message: `在线十连完成，消耗金币 ${formatNumber(response.data?.cost?.amount || 0)}，获得角色 ${characterCount} 名` })
+      await refreshPlayerData(currentPlayerId)
+    } catch (error) {
+      setFeedback({ type: 'error', message: getApiErrorMessage(error, '在线抽卡失败') })
+    } finally {
+      setOnlineLoopBusy(false)
+    }
+  }
+
+  const challengeOnlineExperienceDungeon = async () => {
+    if (!currentPlayerId || !selectedLoopCharacter) return
+    const dungeonId = getExperienceDungeonId(selectedLoopCharacter.attributeType)
+    try {
+      setOnlineLoopBusy(true)
+      await onlineApi.post(`/dungeons/${currentPlayerId}/${dungeonId}/start`, {})
+      const response = await onlineApi.post('/battle-settlement', {
+        playerId: currentPlayerId,
+        dungeonId,
+        characterIds: [selectedLoopCharacter.id],
+        success: true,
+        duration: 60,
+        singleMonstersKilled: 10,
+        groupMonstersKilled: 50,
+        clientTrace: { source: 'online-progress-page' },
+      })
+      setFeedback({
+        type: 'success',
+        message: `经验本通关：经验包 +${formatNumber(response.data?.serverRewards?.expCrystals || 0)}，金币 +${formatNumber(response.data?.serverRewards?.gold || 0)}，角色经验 +${formatNumber(response.data?.serverRewards?.directCharacterExp || 0)}`,
+      })
+      await refreshPlayerData(currentPlayerId)
+    } catch (error) {
+      setFeedback({ type: 'error', message: getApiErrorMessage(error, '在线经验本结算失败') })
+    } finally {
+      setOnlineLoopBusy(false)
+    }
+  }
+
+  const upgradeOnlineCharacter = async () => {
+    if (!currentPlayerId || !selectedLoopCharacter) return
+    try {
+      setOnlineLoopBusy(true)
+      const preview = await onlineApi.get(`/players/${currentPlayerId}/characters/${selectedLoopCharacter.id}/exp-preview`, {
+        params: { levelDelta: 1 },
+      })
+      if (!preview.data?.canAfford) {
+        setFeedback({
+          type: 'error',
+          message: `升级资源不足：缺经验包 ${formatNumber(preview.data?.needMoreExpPackages || 0)}，缺金币 ${formatNumber(preview.data?.needMoreGold || 0)}`,
+        })
+        return
+      }
+      const response = await onlineApi.post(`/players/${currentPlayerId}/characters/${selectedLoopCharacter.id}/use-exp`, { levelDelta: 1 })
+      setFeedback({
+        type: 'success',
+        message: `升级成功：Lv.${response.data?.character?.level}，消耗经验包 ${formatNumber(response.data?.consumedExpPackages || 0)}，金币 ${formatNumber(response.data?.consumedGold || 0)}`,
+      })
+      await refreshPlayerData(currentPlayerId)
+    } catch (error) {
+      setFeedback({ type: 'error', message: getApiErrorMessage(error, '在线升级失败') })
+    } finally {
+      setOnlineLoopBusy(false)
+    }
+  }
+
   const claimDailyGoal = async (goalKey: string) => {
     if (!currentPlayerId) return
     try {
@@ -293,6 +380,38 @@ const OnlineProgressPage: React.FC = () => {
         </section>
 
         {feedback && <div className={`online-feedback ${feedback.type}`}>{feedback.message}</div>}
+
+        <section className="online-panel online-loop-panel">
+          <div className="panel-title-row">
+            <h2>正式在线闭环</h2>
+            <span>金币 + 经验包</span>
+          </div>
+          <div className="online-loop-stats">
+            <div>
+              <strong>{formatNumber(playerGold)}</strong>
+              <span>金币</span>
+            </div>
+            <div>
+              <strong>{formatNumber(expPackageCount)}</strong>
+              <span>经验包</span>
+            </div>
+            <div>
+              <strong>{selectedLoopCharacter ? `Lv.${selectedLoopCharacter.level}` : '-'}</strong>
+              <span>{selectedLoopCharacter?.characterConfigId || '未拥有角色'}</span>
+            </div>
+          </div>
+          <div className="online-loop-actions">
+            <button disabled={!currentPlayerId || onlineLoopBusy} onClick={() => void drawOnlineCharacters()}>
+              在线金币十连
+            </button>
+            <button disabled={!currentPlayerId || !selectedLoopCharacter || onlineLoopBusy} onClick={() => void challengeOnlineExperienceDungeon()}>
+              挑战同属性经验本
+            </button>
+            <button disabled={!currentPlayerId || !selectedLoopCharacter || onlineLoopBusy} onClick={() => void upgradeOnlineCharacter()}>
+              消耗经验包和金币升1级
+            </button>
+          </div>
+        </section>
 
         <main className="online-progress-grid">
           <section className="online-panel idle-panel">
@@ -444,6 +563,20 @@ const formatDailyRewards = (goal: DailyGoal) => {
   const goldText = goal.rewards.gold ? `金币 x${formatNumber(goal.rewards.gold)}` : ''
   const itemText = formatItems(goal.rewards.items || [])
   return [goldText, itemText].filter(Boolean).join('，') || '无奖励'
+}
+
+const getExperienceDungeonId = (attributeType: string) => {
+  const map: Record<string, string> = {
+    FIRE: 'fire_type_single_001',
+    WOOD: 'wood_type_single_001',
+    WIND: 'wind_type_single_001',
+    WATER: 'water_type_single_001',
+    EARTH: 'earth_type_single_001',
+    THUNDER: 'lightning_type_single_001',
+    LIGHT: 'holy_type_single_001',
+    DARK: 'shadow_type_single_001',
+  }
+  return map[String(attributeType || '').toUpperCase()] || 'fire_type_single_001'
 }
 
 const translateTrustError = (message: string) => {

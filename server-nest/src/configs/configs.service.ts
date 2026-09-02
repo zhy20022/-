@@ -30,7 +30,8 @@ export class GameConfigsService {
     if (!existsSync(filePath)) {
       return { source: 'missing', key, payload: null };
     }
-    return { source: 'file', key, payload: JSON.parse(readFileSync(filePath, 'utf-8')) };
+    const raw = readFileSync(filePath, 'utf-8').replace(/^\uFEFF/, '');
+    return { source: 'file', key, payload: JSON.parse(raw) };
   }
 
   async upsert(key: string, payload: Record<string, unknown>, version = 1) {

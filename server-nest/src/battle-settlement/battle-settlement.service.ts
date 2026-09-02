@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { applyCharacterExp } from '../common/leveling';
 import { GameConfigsService } from '../configs/configs.service';
 import { DailyGoalsService } from '../daily-goals/daily-goals.service';
-import { BattleRecordEntity, DungeonProgressEntity, PlayerEntity } from '../database/entities';
+import { BattleRecordEntity, DungeonProgressEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
+import { DungeonsService } from '../dungeons/dungeons.service';
 import { InventoryGrantItem, InventoryService } from '../inventory/inventory.service';
 import { RankingService } from '../ranking/ranking.service';
 
@@ -14,6 +16,8 @@ export interface BattleSettlementInput {
   success: boolean;
   duration: number;
   damageScore?: number;
+  singleMonstersKilled?: number;
+  groupMonstersKilled?: number;
   rewards?: InventoryGrantItem[];
   clientTrace?: Record<string, unknown>;
 }
@@ -25,7 +29,9 @@ export class BattleSettlementService {
     private readonly configs: GameConfigsService,
     private readonly dailyGoals: DailyGoalsService,
     private readonly ranking: RankingService,
+    private readonly dungeons: DungeonsService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
+    @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
     @InjectRepository(BattleRecordEntity) private readonly battles: Repository<BattleRecordEntity>,
     @InjectRepository(DungeonProgressEntity) private readonly progress: Repository<DungeonProgressEntity>,
   ) {}
@@ -38,25 +44,58 @@ export class BattleSettlementService {
     }
     if (input.duration < 0) throw new BadRequestException('duration must be non-negative');
 
-    const normalizedRewards = await this.normalizeRewards(input);
+    const ownedCharacters = await this.characters.find({ where: { id: In(input.characterIds), playerId: input.playerId } });
+    if (ownedCharacters.length !== input.characterIds.length) {
+      throw new BadRequestException('all battle characters must belong to player');
+    }
+
+    const onlineDungeon = this.dungeons.getOptional(input.dungeonId);
+    const experienceResult = onlineDungeon
+      ? this.dungeons.calculateExperienceRewards(
+        this.dungeons.assertCanEnter(input.dungeonId, ownedCharacters),
+        input.duration,
+        input.singleMonstersKilled,
+        input.groupMonstersKilled,
+      )
+      : null;
+    const effectiveInput = {
+      ...input,
+      success: experienceResult ? experienceResult.success : input.success,
+      duration: experienceResult ? experienceResult.cappedDuration : input.duration,
+    };
+
+    const normalizedRewards = experienceResult
+      ? this.buildExperienceRewards(experienceResult.expCrystals)
+      : await this.normalizeRewards(input);
     const granted = normalizedRewards.length > 0
       ? await this.inventory.grant(input.playerId, normalizedRewards, 'battle_settlement')
       : [];
-    const progress = await this.updateProgress(input);
+    let updatedCharacters: PlayerCharacterEntity[] = [];
+    if (experienceResult) {
+      if (experienceResult.gold > 0) {
+        player.gold += experienceResult.gold;
+        await this.players.save(player);
+      }
+      if (experienceResult.directCharacterExp > 0) {
+        updatedCharacters = await this.applyDirectCharacterExp(ownedCharacters, experienceResult.directCharacterExp);
+      }
+    }
+    const progress = await this.updateProgress(effectiveInput);
     const record = await this.battles.save(this.battles.create({
       playerId: input.playerId,
       dungeonId: input.dungeonId,
-      success: input.success,
-      duration: input.duration,
+      success: effectiveInput.success,
+      duration: effectiveInput.duration,
       damageScore: Number(input.damageScore || 0),
       characterIds: input.characterIds,
-      rewards: { granted: normalizedRewards },
+      rewards: { granted: normalizedRewards, gold: experienceResult?.gold || 0, directCharacterExp: experienceResult?.directCharacterExp || 0 },
       resultPayload: {
         clientTrace: input.clientTrace || {},
+        serverRewards: experienceResult || null,
         progressId: progress.id,
       },
     }));
-    if (input.success) {
+    if (effectiveInput.success) {
       await this.dailyGoals.recordEvent(input.playerId, 'battle_clear', 1, {
         battleRecordId: record.id,
         dungeonId: input.dungeonId,
@@ -74,7 +113,10 @@ export class BattleSettlementService {
       record,
       progress,
       rewards: granted,
-      outcome: input.success ? 'success' : 'failed',
+      player,
+      characters: updatedCharacters,
+      serverRewards: experienceResult,
+      outcome: effectiveInput.success ? 'success' : 'failed',
     };
   }
 
@@ -143,6 +185,32 @@ export class BattleSettlementService {
       };
     }
     return this.progress.save(row);
+  }
+
+  private buildExperienceRewards(expCrystals: number): InventoryGrantItem[] {
+    if (expCrystals <= 0) return [];
+    return [{
+      itemConfigId: 'character_exp_crystal',
+      itemType: 'material',
+      quantity: Math.min(999_999_999, Math.floor(expCrystals)),
+      payload: {
+        materialType: 'CHARACTER_EXP',
+        name: '通用角色经验结晶',
+        source: 'experience_dungeon',
+      },
+    }];
+  }
+
+  private async applyDirectCharacterExp(characters: PlayerCharacterEntity[], amount: number) {
+    const updated: PlayerCharacterEntity[] = [];
+    for (const character of characters) {
+      const growth = applyCharacterExp(character.level, character.exp, amount);
+      character.level = growth.afterLevel;
+      character.exp = growth.afterExp;
+      character.skillSlots = { ...(character.skillSlots || {}), lastBattleGrowth: growth };
+      updated.push(await this.characters.save(character));
+    }
+    return updated;
   }
 
   private async assertPlayer(playerId: string) {

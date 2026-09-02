@@ -41,7 +41,7 @@ export interface CharacterConfig {
 const DEFAULT_POOL: GachaPool = {
   key: 'starter',
   name: 'Starter Recruitment',
-  cost: { currency: 'premiumCurrency', amount: 160 },
+  cost: { currency: 'gold', amount: 160 },
   entries: [
     {
       entryId: 'default_fire_dps',
@@ -91,12 +91,12 @@ export class GachaService {
     if (!pool) throw new NotFoundException('gacha pool not found');
 
     const costAmount = Number(pool.cost?.amount || 0) * count;
-    const costCurrency = pool.cost?.currency || 'premiumCurrency';
-    if (costCurrency === 'premiumCurrency') {
-      if (player.premiumCurrency < costAmount) {
-        throw new BadRequestException('not enough premium currency');
+    const costCurrency = this.normalizeCurrency(pool.cost?.currency || 'gold');
+    if (costCurrency === 'gold') {
+      if (player.gold < costAmount) {
+        throw new BadRequestException('not enough gold');
       }
-      player.premiumCurrency -= costAmount;
+      player.gold -= costAmount;
       await this.players.save(player);
     }
 
@@ -168,6 +168,10 @@ export class GachaService {
       if (roll <= 0) return entry;
     }
     return valid[valid.length - 1];
+  }
+
+  private normalizeCurrency(currency: string) {
+    return currency === 'premiumCurrency' ? 'gold' : currency;
   }
 
   private async loadPools(): Promise<GachaPool[]> {

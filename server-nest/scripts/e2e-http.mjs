@@ -26,8 +26,7 @@ async function main() {
     const authA = authHeader(playerA.accessToken);
     const authB = authHeader(playerB.accessToken);
 
-    await db.query('update players set "premiumCurrency" = $1, gold = $2 where id = any($3::uuid[])', [
-      100000,
+    await db.query('update players set gold = $1 where id = any($2::uuid[])', [
       10000,
       [playerA.id, playerB.id],
     ]);

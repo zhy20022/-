@@ -7,7 +7,7 @@
       "name": "全属性角色池",
       "description": "包含当前64名角色，适合静态试玩和新后端默认抽取。",
       "cost": {
-        "currency": "premiumCurrency",
+        "currency": "gold",
         "amount": 160
       },
       "entries": [
@@ -658,7 +658,7 @@
       "name": "水土雷角色池",
       "description": "包含水、土、雷三个属性的24名角色。",
       "cost": {
-        "currency": "premiumCurrency",
+        "currency": "gold",
         "amount": 160
       },
       "entries": [
@@ -909,7 +909,7 @@
       "name": "火木风角色池",
       "description": "包含火、木、风三个属性的24名角色。",
       "cost": {
-        "currency": "premiumCurrency",
+        "currency": "gold",
         "amount": 160
       },
       "entries": [
@@ -1160,7 +1160,7 @@
       "name": "光暗角色池",
       "description": "包含光、暗两个属性的16名角色。",
       "cost": {
-        "currency": "premiumCurrency",
+        "currency": "gold",
         "amount": 160
       },
       "entries": [
@@ -1331,7 +1331,7 @@
       "name": "当期UP角色池",
       "description": "UP角色权重更高，未命中时从64名角色中抽取。",
       "cost": {
-        "currency": "premiumCurrency",
+        "currency": "gold",
         "amount": 160
       },
       "entries": [

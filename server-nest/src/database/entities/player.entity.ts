@@ -22,9 +22,6 @@ export class PlayerEntity {
   @Column({ default: 0 })
   gold: number;
 
-  @Column({ default: 0 })
-  premiumCurrency: number;
-
   @Column({ type: 'jsonb', default: {} })
   flags: Record<string, unknown>;
 
