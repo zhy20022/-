@@ -499,10 +499,7 @@ def _apply_reward_to_player(
 
     if reward_type == "experience":
         total_exp = int(round(float(reward_detail.get("exp", 0) or 0)))
-        raw_direct_character_exp = float(reward_detail.get("kill_character_exp", 0) or 0)
-        direct_character_exp = int(round(raw_direct_character_exp))
-        if raw_direct_character_exp > 0 and direct_character_exp <= 0:
-            direct_character_exp = 1
+        direct_character_exp = int(round(float(reward_detail.get("kill_character_exp", 0) or 0)))
         if direct_character_exp > 0 and character_ids:
             selected_models = db_session.query(CharacterModel).filter(
                 CharacterModel.player_id == player_id,

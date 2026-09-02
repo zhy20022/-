@@ -97,7 +97,7 @@ class RewardCalculator:
         single_kill_exp = float(
             reward_config.get("character_exp_per_single_kill", reward_config.get("character_exp_per_kill", 0))
         )
-        group_kill_exp = float(reward_config.get("character_exp_per_five_group_kills", 0.1))
+        group_kill_exp = float(reward_config.get("character_exp_per_five_group_kills", 1))
         gold = int(reward_config.get("gold", 0) or 0)
 
         threshold_ratio = 0.0
@@ -118,7 +118,7 @@ class RewardCalculator:
         time_exp = round(full_exp * threshold_ratio, 2)
         single_kill_character_exp = monsters_killed * single_kill_exp
         group_kill_character_exp = (groups_killed // 5) * group_kill_exp
-        kill_character_exp = round(single_kill_character_exp + group_kill_character_exp, 2)
+        kill_character_exp = int(round(single_kill_character_exp + group_kill_character_exp))
 
         return DungeonReward("experience", {
             "exp": time_exp,

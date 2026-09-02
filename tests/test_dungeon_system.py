@@ -87,8 +87,8 @@ def test_eight_attribute_experience_dungeon_rules():
         assert dungeon.duration == 60.0
         assert dungeon.reward_config["type"] == "experience"
         assert dungeon.reward_config["target_full_clear_exp"] == EXPERIENCE_REWARD_BY_DIFFICULTY[DungeonDifficulty.NORMAL]
-        assert dungeon.reward_config["character_exp_per_single_kill"] == 0.1
-        assert dungeon.reward_config["character_exp_per_five_group_kills"] == 0.1
+        assert dungeon.reward_config["character_exp_per_single_kill"] == 1
+        assert dungeon.reward_config["character_exp_per_five_group_kills"] == 1
         assert dungeon.monster_config["spawn_interval"] == 3.0
         assert dungeon.monster_config["spawn_wave_count"] == 20
         assert dungeon.monster_config["allowed_monster_types"] == ["SINGLE", "GROUP_5"]
@@ -203,6 +203,21 @@ def test_dungeon_reward():
     assert reward.reward_type == "equipment_material", "20人本应该奖励装备材料"
     assert reward.rewards["material_count"] >= 1, "应该获得至少1个装备材料"
     print("[OK] 20人本奖励测试通过")
+
+
+def test_experience_dungeon_integer_kill_exp():
+    dungeon = get_dungeon_by_id("fire_type_single_001")
+    reward = RewardCalculator.calculate_reward(
+        dungeon=dungeon,
+        duration=60.0,
+        monsters_killed=3,
+        groups_killed=10,
+        bosses_killed=0,
+        is_completed=True,
+    )
+
+    assert reward.reward_type == "experience"
+    assert reward.rewards["kill_character_exp"] == 5
 
 
 def test_distribute_quantity_evenly():

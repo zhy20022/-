@@ -2869,7 +2869,7 @@ def _build_reward_preview_payload(dungeon) -> Dict[str, Any]:
             "main": f"满60秒获得 {full_exp} 经验结晶 + {gold} 金币",
             "details": [
                 "经验本持续60秒，从0秒开始每3秒刷新一波小怪，共20波。",
-                "角色每击杀1个单体小怪获得0.1经验；每击杀5个群体小怪获得0.1经验。",
+                "角色每击杀1个单体小怪获得1经验；每击杀5个群体小怪获得1经验。",
             ],
             "thresholds": [
                 {"label": "15秒", "amount": int(round(full_exp * 0.15))},

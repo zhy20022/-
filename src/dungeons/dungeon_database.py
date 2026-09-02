@@ -77,8 +77,8 @@ class DungeonDatabase:
                 reward_config={
                     "type": "experience",
                     "base_exp": 531,
-                    "character_exp_per_single_kill": 0.1,
-                    "character_exp_per_five_group_kills": 0.1,
+                    "character_exp_per_single_kill": 1,
+                    "character_exp_per_five_group_kills": 1,
                     "gold": 100,
                 },
                 monster_config={
@@ -161,8 +161,8 @@ class DungeonDatabase:
                 variant_reward["base_exp"] = round(final_exp / config["reward_multiplier"], 2)
                 variant_reward.pop("half_exp", None)
                 variant_reward.pop("kill_exp", None)
-                variant_reward["character_exp_per_single_kill"] = 0.1
-                variant_reward["character_exp_per_five_group_kills"] = 0.1
+                variant_reward["character_exp_per_single_kill"] = 1
+                variant_reward["character_exp_per_five_group_kills"] = 1
                 variant_reward["target_full_clear_exp"] = final_exp
                 variant_reward["gold"] = {
                     DungeonDifficulty.NORMAL: 100,

@@ -671,20 +671,29 @@ const settleBattle = (state: DemoState, battle?: DemoBattle) => {
   if (expCrystals > 0) {
     addMaterial(state, 'CHARACTER_EXP', '通用角色经验结晶', expCrystals)
   }
+  const goldAwarded = dungeon?.reward_config?.type === 'experience'
+    ? Number(dungeon.reward_config.gold || 0)
+    : 0
+  if (goldAwarded > 0) {
+    state.player.gold = Math.min(999999999, state.player.gold + goldAwarded)
+  }
+
   if (dungeon) {
     dungeon.progress.total_attempts += 1
     dungeon.progress.completion_count += 1
     dungeon.progress.sweep_unlocked = dungeon.progress.completion_count >= 50
     dungeon.progress.best_record = {
       duration: battle.duration,
-      rewards: { exp_crystal: expCrystals }
+      rewards: { exp_crystal: expCrystals, gold: goldAwarded }
     }
   }
 
   const characterRewards: DemoBattle['character_rewards'] = {}
   state.characters = state.characters.map((character) => {
     if (!battle.character_ids.includes(character.character_id)) return character
-    const battleExp = dungeon?.reward_config?.type === 'experience' ? 120 : 45
+    const battleExp = dungeon?.reward_config?.type === 'experience'
+      ? Number(dungeon.reward_config.spawn_wave_count || 20)
+      : 45
     const { updated, reward } = applyBattleExpToCharacter(character, battleExp)
     characterRewards[character.character_id] = reward
     return updated
@@ -745,7 +754,15 @@ const createDungeon = (
     monster_multiplier: difficulty === 'nightmare' ? 2.2 : difficulty === 'hard' ? 1.45 : 1,
     reward_multiplier: difficulty === 'nightmare' ? 2.96 : difficulty === 'hard' ? 1.38 : 1,
     reward_config: isExperience
-      ? { type: 'experience', base_exp: reward, material_type: 'CHARACTER_EXP' }
+      ? {
+        type: 'experience',
+        base_exp: reward,
+        material_type: 'CHARACTER_EXP',
+        gold: difficulty === 'nightmare' ? 600 : difficulty === 'hard' ? 250 : 100,
+        spawn_wave_count: 20,
+        character_exp_per_single_kill: 1,
+        character_exp_per_five_group_kills: 1,
+      }
       : { type: dungeonType === 'TEAM' ? 'equipment_material' : 'exclusive_material', base_material: dungeonType === 'TEAM' ? 20 : 8 },
     reward_preview: isExperience
       ? {
@@ -904,27 +921,29 @@ const createUnit = (characterId: string, name: string, health: number, maxHealth
 const buildResult = (state: DemoState, battle?: DemoBattle) => ({
   battle_id: battle?.battle_id || 'demo-battle',
   player_id: state.player.player_id,
-  dungeon_id: battle?.dungeon_id || 'demo_exp_fire_normal',
+  dungeon_id: battle?.dungeon_id || 'fire_type_single_001',
   state: { code: 'finished', label: 'Finished' },
   outcome: { success: true, code: 'success', label: 'Success' },
-  duration: battle?.duration || 10,
+  duration: battle?.duration || 60,
   rewards: {
     reward_type: 'experience',
     rewards: {
-      gold: 500,
+      gold: Number(state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.reward_config?.gold || 0),
       exp_crystal: battle?.exp_crystals_awarded || getDungeonExpReward(state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id))
     }
   },
   characters: battle?.character_rewards || {},
   materials: [{ material_type: 'CHARACTER_EXP', attribute_type: null, count: battle?.exp_crystals_awarded || 0 }],
   progress_summary: {
-    completion_count: 1,
-    total_attempts: 1,
-    successful_attempts: 1,
+    completion_count: state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.completion_count || 0,
+    total_attempts: state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.total_attempts || 0,
+    successful_attempts: state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.completion_count || 0,
     failed_attempts: 0,
-    sweep_unlocked: true,
-    sweep_unlock_count: 1,
-    sweep_text: '静态试玩已解锁扫荡',
+    sweep_unlocked: Boolean(state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.sweep_unlocked),
+    sweep_unlock_count: 50,
+    sweep_text: Boolean(state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.sweep_unlocked)
+      ? '已解锁扫荡'
+      : '需通关50次',
   },
   drops: {
     events: [],
