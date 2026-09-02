@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
+import NewPlayerGuide from '../components/NewPlayerGuide'
+import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import './GachaPage.css'
 
 interface GachaResultItem {
@@ -106,6 +108,7 @@ const GachaPage: React.FC = () => {
       })
 
       if (response.data.success) {
+        completeNewPlayerGuideStep('draw_character')
         setResult(response.data)
         setHistory(response.data.history || [])
         setPity(response.data.pity || null)
@@ -148,6 +151,8 @@ const GachaPage: React.FC = () => {
             <small>单抽 / 10连 / 100连</small>
           </div>
         </div>
+
+        <NewPlayerGuide page="gacha" ownedCharacterCount={result?.summary?.new_characters || results.length} />
 
         <div className="pool-selector">
           {poolOptions.map((pool) => (

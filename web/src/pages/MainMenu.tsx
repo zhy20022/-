@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { ensureOnlineSession, onlineApi } from '../services/onlineApi'
+import NewPlayerGuide from '../components/NewPlayerGuide'
 import './MainMenu.css'
 
 const MainMenu: React.FC = () => {
@@ -44,6 +45,8 @@ const MainMenu: React.FC = () => {
           <p>欢迎，{player?.username || '玩家'}</p>
           <p>等级：{player?.level || 1} | 金币：{player?.gold || 0}</p>
         </div>
+
+        <NewPlayerGuide page="home" />
 
         <div className="menu-buttons">
           <button onClick={() => navigate('/characters')}>角色管理</button>

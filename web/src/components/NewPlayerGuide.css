@@ -1,0 +1,146 @@
+.new-player-guide,
+.new-player-guide-tab {
+  border: 1px solid #b8d4dc;
+  background: #f3fbfd;
+  color: #1f3f4a;
+}
+
+.new-player-guide {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(39, 91, 105, 0.1);
+}
+
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guide-header > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.guide-header span {
+  color: #4d7280;
+  font-size: 13px;
+}
+
+.guide-header strong {
+  color: #173642;
+  font-size: 20px;
+}
+
+.guide-progress {
+  min-width: 54px;
+  text-align: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #dff3f8;
+  font-weight: 700;
+}
+
+.new-player-guide p {
+  margin: 0;
+  color: #315463;
+  line-height: 1.55;
+}
+
+.guide-page-tip {
+  font-size: 13px;
+}
+
+.element-counter-strip,
+.guide-steps,
+.guide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.element-counter-strip span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #c9e6ed;
+  color: #23576a;
+  font-size: 12px;
+}
+
+.guide-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #d4e9ee;
+  color: #536b75;
+}
+
+.guide-step span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #edf7fa;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.guide-step em {
+  font-style: normal;
+  font-size: 13px;
+}
+
+.guide-step.done {
+  border-color: #9ed3b6;
+  color: #236244;
+}
+
+.guide-step.done span {
+  background: #dff5e8;
+}
+
+.guide-step.active {
+  border-color: #3c91a7;
+  color: #173642;
+}
+
+.guide-actions button,
+.new-player-guide-tab {
+  padding: 9px 13px;
+  border-radius: 8px;
+  border: none;
+  background: #27677b;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.guide-actions button.secondary {
+  background: #e6f3f6;
+  color: #27677b;
+}
+
+.new-player-guide-tab {
+  margin: 0 0 16px;
+  border: 1px solid #b8d4dc;
+}
+
+@media (max-width: 640px) {
+  .guide-header {
+    align-items: flex-start;
+  }
+
+  .guide-actions button {
+    flex: 1 1 150px;
+  }
+}

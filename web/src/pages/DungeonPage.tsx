@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import NewPlayerGuide from '../components/NewPlayerGuide'
+import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import './DungeonPage.css'
 
 interface DungeonProgress {
@@ -222,6 +224,10 @@ const DungeonPage: React.FC = () => {
     loadCharacters()
   }, [])
 
+  const firstCharacterAttribute = useMemo(() => (
+    characters.length > 0 ? normalizeAttribute(characters[0].attribute_type) : undefined
+  ), [characters])
+
   const loadDungeons = async () => {
     try {
       const response = await axios.get('/api/dungeons')
@@ -268,6 +274,11 @@ const DungeonPage: React.FC = () => {
         character_ids: selectedCharacters
       })
       if (response.data.success) {
+        completeNewPlayerGuideStep('learn_dungeons')
+        const isExperienceDungeon = selectedDungeon.reward_config?.type === 'experience' || selectedDungeon.dungeon_id.toLowerCase().includes('exp')
+        if (normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE' && isExperienceDungeon) {
+          completeNewPlayerGuideStep('run_exp_dungeon')
+        }
         navigate('/battle', {
           state: {
             battle_id: response.data.battle_id,
@@ -397,6 +408,9 @@ const DungeonPage: React.FC = () => {
         count: count
       })
       if (response.data.success) {
+        if (dungeon.reward_config?.type === 'experience' || dungeon.dungeon_id.toLowerCase().includes('exp')) {
+          completeNewPlayerGuideStep('run_exp_dungeon')
+        }
         const rewards = response.data.materials_awarded || []
         const rewardText = rewards.length > 0
           ? rewards.map((item: any) => `${item.name || item.material_type} x${item.count}`).join('，')
@@ -448,6 +462,12 @@ const DungeonPage: React.FC = () => {
         </div>
 
         {/* 标签页切换 */}
+        <NewPlayerGuide
+          page="dungeons"
+          ownedCharacterCount={characters.length}
+          selectedCharacterAttribute={firstCharacterAttribute}
+        />
+
         <div className="dungeon-tabs">
           <button
             className={`tab-btn ${activeTab === 'ALL' ? 'active' : ''}`}

@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import NewPlayerGuide from '../components/NewPlayerGuide'
+import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import './CharacterPage.css'
 
 interface CharacterStats {
@@ -330,6 +332,12 @@ const CharacterPage: React.FC = () => {
         </div>
         
         {/* 筛选和搜索栏 */}
+        <NewPlayerGuide
+          page="characters"
+          ownedCharacterCount={characters.length}
+          selectedCharacterAttribute={characters[0]?.attribute_type}
+        />
+
         <div className="filter-bar">
           <div className="search-section">
             <input
@@ -883,6 +891,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
       setExpShortage(null)
       const response = await axios.post(`/api/characters/${character.character_id}/use-exp`, { amount })
       if (response.data.success) {
+        completeNewPlayerGuideStep('level_character')
         onCharacterUpdated(response.data.character)
         setMaterials(response.data.materials || {})
         setExpFeedback(`已消耗 ${amount} 个经验结晶`)
@@ -911,6 +920,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         level_delta: normalizedLevelDelta
       })
       if (response.data.success) {
+        completeNewPlayerGuideStep('level_character')
         onCharacterUpdated(response.data.character)
         setMaterials(response.data.materials || {})
         setExpShortage(null)
