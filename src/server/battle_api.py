@@ -17,6 +17,7 @@ from ..database.models.character import CharacterModel
 from ..database.models.dungeon_progress import DungeonProgressModel
 from ..database.models.material import MaterialModel
 from ..database.models.material_transaction import MaterialTransactionModel
+from ..database.models.player import PlayerModel
 from ..database.models.multiplayer import (
     MultiplayerRewardSettlementModel,
     TeamDungeonClearRecordModel,
@@ -120,7 +121,29 @@ def _get_or_create_progress(db_session, player_id: str, dungeon_id: str) -> Dung
 
 
 def _get_sweep_unlock_count(dungeon) -> int:
-    return 100 if dungeon.reward_config.get("type") == "experience" else 50
+    return 50
+
+
+def _get_attribute_value(value: Any) -> str:
+    if isinstance(value, AttributeType):
+        return value.value
+    return str(value or "")
+
+
+def _is_experience_dungeon(dungeon) -> bool:
+    return bool(dungeon and dungeon.dungeon_type == DungeonType.SINGLE and dungeon.reward_config.get("type") == "experience")
+
+
+def _validate_single_experience_roster(dungeon, characters: List[CharacterModel]) -> Optional[str]:
+    if not _is_experience_dungeon(dungeon):
+        return None
+    if len(characters) != 1:
+        return "经验副本只能选择1名角色进入"
+    dungeon_attribute = _get_attribute_value(dungeon.attribute_type)
+    character_attribute = _get_attribute_value(characters[0].attribute_type)
+    if character_attribute != dungeon_attribute:
+        return f"{dungeon_attribute}系经验本只能由{dungeon_attribute}系角色进入"
+    return None
 
 
 def _distribute_experience(
@@ -269,6 +292,10 @@ def create_single_battle_for_player(
     characters = _load_player_characters(player_id, character_ids)
     if len(characters) != len(character_ids):
         return {"success": False, "message": "invalid characters"}, 400
+
+    roster_error = _validate_single_experience_roster(dungeon, characters)
+    if roster_error:
+        return {"success": False, "message": roster_error}, 400
 
     if not dungeon.check_unlock_condition(_build_player_data(player_id, characters, is_solo=True)):
         return {"success": False, "message": "dungeon locked"}, 403
@@ -472,7 +499,10 @@ def _apply_reward_to_player(
 
     if reward_type == "experience":
         total_exp = int(round(float(reward_detail.get("exp", 0) or 0)))
-        direct_character_exp = int(round(float(reward_detail.get("kill_character_exp", 0) or 0)))
+        raw_direct_character_exp = float(reward_detail.get("kill_character_exp", 0) or 0)
+        direct_character_exp = int(round(raw_direct_character_exp))
+        if raw_direct_character_exp > 0 and direct_character_exp <= 0:
+            direct_character_exp = 1
         if direct_character_exp > 0 and character_ids:
             selected_models = db_session.query(CharacterModel).filter(
                 CharacterModel.player_id == player_id,
@@ -482,6 +512,11 @@ def _apply_reward_to_player(
         material = _add_material(db_session, player_id, MaterialType.CHARACTER_EXP, None, total_exp)
         if material:
             materials_awarded.append(material)
+        gold = int(round(float(reward_detail.get("gold", 0) or 0)))
+        if gold > 0:
+            player_model = db_session.query(PlayerModel).filter(PlayerModel.player_id == player_id).first()
+            if player_model:
+                player_model.gold = int(player_model.gold or 0) + gold
     elif use_drop_share:
         for material_drop in _extract_player_material_drops(drop_summary, player_id):
             material = _award_material_drop(db_session, player_id, dungeon_attribute, material_drop)

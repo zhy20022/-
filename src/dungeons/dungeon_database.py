@@ -76,9 +76,16 @@ class DungeonDatabase:
                 duration=60.0,
                 reward_config={
                     "type": "experience",
-                    "base_exp": 10,
-                    "half_exp": 5,
-                    "kill_exp": 0.1,
+                    "base_exp": 531,
+                    "character_exp_per_single_kill": 0.1,
+                    "character_exp_per_five_group_kills": 0.1,
+                    "gold": 100,
+                },
+                monster_config={
+                    "spawn_interval": 3.0,
+                    "spawn_wave_count": 20,
+                    "spawn_start_time": 0.0,
+                    "allowed_monster_types": ["SINGLE", "GROUP_5"],
                 },
             )
 
@@ -154,8 +161,14 @@ class DungeonDatabase:
                 variant_reward["base_exp"] = round(final_exp / config["reward_multiplier"], 2)
                 variant_reward.pop("half_exp", None)
                 variant_reward.pop("kill_exp", None)
-                variant_reward["character_exp_per_kill"] = round((final_exp * 0.003) / config["reward_multiplier"], 2)
+                variant_reward["character_exp_per_single_kill"] = 0.1
+                variant_reward["character_exp_per_five_group_kills"] = 0.1
                 variant_reward["target_full_clear_exp"] = final_exp
+                variant_reward["gold"] = {
+                    DungeonDifficulty.NORMAL: 100,
+                    DungeonDifficulty.HARD: 250,
+                    DungeonDifficulty.NIGHTMARE: 600,
+                }[difficulty]
             variant_reward["reward_multiplier"] = config["reward_multiplier"]
             variant_monster = deepcopy(monster_config or {})
             variant_monster["stat_multiplier"] = config["monster_multiplier"]

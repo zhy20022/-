@@ -666,6 +666,7 @@ const DungeonPage: React.FC = () => {
         {showCharacterSelect && selectedDungeon && (
           <CharacterSelectModal
             characters={characters}
+            dungeon={selectedDungeon}
             selectedCharacters={selectedCharacters}
             onToggle={handleCharacterToggle}
             onConfirm={handleConfirmStart}
@@ -702,6 +703,7 @@ const DungeonPage: React.FC = () => {
 
 interface CharacterSelectModalProps {
   characters: Character[]
+  dungeon: Dungeon
   selectedCharacters: string[]
   onToggle: (characterId: string) => void
   onConfirm: () => void
@@ -711,12 +713,19 @@ interface CharacterSelectModalProps {
 
 const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
   characters,
+  dungeon,
   selectedCharacters,
   onToggle,
   onConfirm,
   onClose,
   maxSelect
 }) => {
+  const isExperienceDungeon = normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE' && dungeon.reward_config?.type === 'experience'
+  const requiredAttribute = normalizeAttribute(dungeon.attribute_type)
+  const canSelectCharacter = (character: Character) => (
+    !isExperienceDungeon || normalizeAttribute(character.attribute_type) === requiredAttribute
+  )
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -729,9 +738,9 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
             {characters.map((char) => (
               <div
                 key={char.character_id}
-                className={`character-select-card ${selectedCharacters.includes(char.character_id) ? 'selected' : ''} ${selectedCharacters.length >= maxSelect && !selectedCharacters.includes(char.character_id) ? 'disabled' : ''}`}
+                className={`character-select-card ${selectedCharacters.includes(char.character_id) ? 'selected' : ''} ${(selectedCharacters.length >= maxSelect && !selectedCharacters.includes(char.character_id)) || !canSelectCharacter(char) ? 'disabled' : ''}`}
                 onClick={() => {
-                  if (selectedCharacters.length < maxSelect || selectedCharacters.includes(char.character_id)) {
+                  if (canSelectCharacter(char) && (selectedCharacters.length < maxSelect || selectedCharacters.includes(char.character_id))) {
                     onToggle(char.character_id)
                   }
                 }}
@@ -742,6 +751,9 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
                 <div className="character-select-info">
                   <h4>{char.name}</h4>
                   <p>{char.profession_type}</p>
+                  {isExperienceDungeon && !canSelectCharacter(char) && (
+                    <small>只能进入同属性经验本</small>
+                  )}
                 </div>
                 {selectedCharacters.includes(char.character_id) && (
                   <div className="select-checkmark">✓</div>

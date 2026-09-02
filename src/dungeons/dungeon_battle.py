@@ -95,6 +95,8 @@ class DungeonBattleFlow:
         
         # 战斗统计
         self.monsters_killed = 0
+        self.single_monsters_killed = 0
+        self.group_monsters_killed = 0
         self.groups_killed = 0
         self.bosses_killed = 0
         self.duration = 0.0
@@ -564,11 +566,11 @@ class DungeonBattleFlow:
         
         # 获取怪物类型
         monster_type_str = spawn_info.get("monster_type", "SINGLE")
-        if monster_type_str == "SINGLE" or monster_type_str == EnemyType.SINGLE:
+        if monster_type_str in {"SINGLE", EnemyType.SINGLE, EnemyType.SINGLE.value}:
             enemy_type = EnemyType.SINGLE
-        elif monster_type_str == "GROUP_3" or monster_type_str == EnemyType.GROUP_3:
+        elif monster_type_str in {"GROUP_3", EnemyType.GROUP_3, EnemyType.GROUP_3.value}:
             enemy_type = EnemyType.GROUP_3
-        elif monster_type_str == "GROUP_5" or monster_type_str == EnemyType.GROUP_5:
+        elif monster_type_str in {"GROUP_5", EnemyType.GROUP_5, EnemyType.GROUP_5.value}:
             enemy_type = EnemyType.GROUP_5
         else:
             enemy_type = EnemyType.SINGLE
@@ -586,6 +588,8 @@ class DungeonBattleFlow:
             if self.battle:
                 enemy.battle_unit.spawn_category = "monster"
                 enemy.battle_unit.spawn_name = enemy.name
+                enemy.battle_unit.exp_kill_unit_type = "single" if enemy_type == EnemyType.SINGLE else "group"
+                enemy.battle_unit.exp_group_size = 1 if enemy_type == EnemyType.SINGLE else (3 if enemy_type == EnemyType.GROUP_3 else 5)
                 self.battle.add_enemy_unit(enemy.battle_unit)
                 print(f"生成怪物: {enemy.name}")
         
@@ -814,8 +818,8 @@ class DungeonBattleFlow:
         self.rewards = self.reward_calculator.calculate_reward(
             dungeon=self.dungeon,
             duration=self.duration,
-            monsters_killed=self.monsters_killed,
-            groups_killed=self.groups_killed,
+            monsters_killed=self.single_monsters_killed,
+            groups_killed=self.group_monsters_killed,
             bosses_killed=self.bosses_killed,
             is_completed=is_completed,
             team_performance=self.get_team_performance()
@@ -872,12 +876,12 @@ class DungeonBattleFlow:
             self.bosses_killed += 1
             print(f"Boss被击杀！当前Boss击杀数: {self.bosses_killed}")
         elif "群体" in character_name:
-            # 群体小怪被击杀（暂时只统计个体，不统计整组）
-            # TODO: 后续可以优化为统计整组击杀
             self.monsters_killed += 1
+            self.group_monsters_killed += 1
         else:
             # 单体小怪被击杀
             self.monsters_killed += 1
+            self.single_monsters_killed += 1
         
         self._maybe_generate_runtime_drop(enemy_unit)
     
@@ -896,6 +900,8 @@ class DungeonBattleFlow:
             "state": self.state.value,
             "duration": self.duration,
             "monsters_killed": self.monsters_killed,
+            "single_monsters_killed": self.single_monsters_killed,
+            "group_monsters_killed": self.group_monsters_killed,
             "bosses_killed": self.bosses_killed,
             "rewards": self.rewards.to_dict() if self.rewards else {},
             "is_completed": self.state == DungeonBattleState.COMPLETED,

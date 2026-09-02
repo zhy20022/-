@@ -2730,7 +2730,7 @@ def _calculate_sweep_reward(dungeon, progress: Optional[Any]) -> Dict[str, Any]:
 
 
 def _get_sweep_unlock_count(dungeon) -> int:
-    return 100 if dungeon.reward_config.get('type') == 'experience' else 50
+    return 50
 
 
 def _build_dungeon_boss_config_payload(dungeon) -> Dict[str, Any]:
@@ -2862,19 +2862,20 @@ def _build_reward_preview_payload(dungeon) -> Dict[str, Any]:
     multiplier = dungeon.get_reward_multiplier()
     if reward_type == "experience":
         full_exp = int(round(float(reward_config.get("base_exp", 0)) * multiplier))
+        gold = int(round(float(reward_config.get("gold", 0) or 0)))
         return {
             "reward_type": reward_type,
-            "title": "閫氱敤缁忛獙缁撴櫠",
-            "main": f"婊℃椂闀?{full_exp} 缁忛獙缁撴櫠",
+            "title": "通用角色经验结晶",
+            "main": f"满60秒获得 {full_exp} 经验结晶 + {gold} 金币",
             "details": [
-                "Text pending.",
-                "Text pending.",
+                "经验本持续60秒，从0秒开始每3秒刷新一波小怪，共20波。",
+                "角色每击杀1个单体小怪获得0.1经验；每击杀5个群体小怪获得0.1经验。",
             ],
             "thresholds": [
-                {"label": "Time", "amount": int(round(full_exp * 0.15))},
-                {"label": "Time", "amount": int(round(full_exp * 0.40))},
-                {"label": "Time", "amount": int(round(full_exp * 0.65))},
-                {"label": "Time", "amount": full_exp},
+                {"label": "15秒", "amount": int(round(full_exp * 0.15))},
+                {"label": "30秒", "amount": int(round(full_exp * 0.40))},
+                {"label": "45秒", "amount": int(round(full_exp * 0.65))},
+                {"label": "60秒", "amount": full_exp},
             ],
         }
     if reward_type == "exclusive_material":
@@ -3038,6 +3039,7 @@ def _grant_sweep_rewards(
     materials_awarded: List[Dict[str, Any]] = []
     if reward_type == 'experience':
         total_exp = int(round(float(reward_detail.get('exp', 0)) * sweep_count))
+        total_gold = int(round(float(reward_detail.get('gold', 0) or 0) * sweep_count))
         material = _add_material_with_session(
             db_session,
             player_id,
@@ -3050,6 +3052,16 @@ def _grant_sweep_rewards(
         if material:
             material['name'] = "閫氱敤瑙掕壊缁忛獙缁撴櫠"
             materials_awarded.append(material)
+        if total_gold > 0:
+            player = db_session.query(PlayerModel).filter(PlayerModel.player_id == player_id).first()
+            if player:
+                player.gold = int(player.gold or 0) + total_gold
+                materials_awarded.append({
+                    "material_type": "gold",
+                    "attribute_type": None,
+                    "count": total_gold,
+                    "name": "金币",
+                })
     elif reward_type == 'exclusive_material':
         material_count = int(reward_detail.get('material_count', 0)) * sweep_count
         material = _add_material_with_session(

@@ -76,7 +76,10 @@ class MonsterSpawner:
         """配置怪物生成时间"""
         if self.dungeon.dungeon_type == DungeonType.SINGLE:
             # 1人本：从第0s开始每3s随机刷新一波小怪，共持续20波
-            self.spawn_times = [i * 3.0 for i in range(20)]  # 0, 3, 6, ..., 57秒
+            interval = float(self.dungeon.monster_config.get("spawn_interval", 3.0))
+            wave_count = int(self.dungeon.monster_config.get("spawn_wave_count", 20))
+            start_time = float(self.dungeon.monster_config.get("spawn_start_time", 0.0))
+            self.spawn_times = [start_time + i * interval for i in range(wave_count)]
             self.boss_spawn_times = []
         
         elif self.dungeon.dungeon_type == DungeonType.SQUAD:
@@ -135,6 +138,16 @@ class MonsterSpawner:
     
     def _get_random_monster_type(self) -> MonsterType:
         """随机获取怪物类型"""
+        allowed = (self.dungeon.monster_config or {}).get("allowed_monster_types")
+        if allowed:
+            candidates = []
+            for value in allowed:
+                if isinstance(value, MonsterType):
+                    candidates.append(value)
+                elif str(value) in MonsterType.__members__:
+                    candidates.append(MonsterType[str(value)])
+            if candidates:
+                return random.choice(candidates)
         # 随机选择：单体小怪、3个小怪一组、5个小怪一组
         return random.choice([
             MonsterType.SINGLE,
@@ -193,4 +206,3 @@ class MonsterSpawner:
             return 1
         
         return 0
-

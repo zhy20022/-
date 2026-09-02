@@ -63,7 +63,14 @@ class RewardCalculator:
             return reward
 
         scaled = {}
-        unscaled_keys = {"time_ratio", "duration_threshold"}
+        unscaled_keys = {
+            "time_ratio",
+            "duration_threshold",
+            "gold",
+            "kill_character_exp",
+            "character_exp_per_single_kill",
+            "character_exp_per_five_group_kills",
+        }
         for key, value in reward.rewards.items():
             if key in unscaled_keys:
                 scaled[key] = value
@@ -87,7 +94,11 @@ class RewardCalculator:
         is_completed: bool = False
     ) -> DungeonReward:
         full_exp = reward_config.get("base_exp", 531)
-        character_exp_per_kill = reward_config.get("character_exp_per_kill", 0)
+        single_kill_exp = float(
+            reward_config.get("character_exp_per_single_kill", reward_config.get("character_exp_per_kill", 0))
+        )
+        group_kill_exp = float(reward_config.get("character_exp_per_five_group_kills", 0.1))
+        gold = int(reward_config.get("gold", 0) or 0)
 
         threshold_ratio = 0.0
         threshold_seconds = 0
@@ -105,18 +116,23 @@ class RewardCalculator:
             threshold_seconds = 15
 
         time_exp = round(full_exp * threshold_ratio, 2)
-        kill_units = monsters_killed + (groups_killed // 5)
-        kill_character_exp = round(kill_units * character_exp_per_kill, 2)
+        single_kill_character_exp = monsters_killed * single_kill_exp
+        group_kill_character_exp = (groups_killed // 5) * group_kill_exp
+        kill_character_exp = round(single_kill_character_exp + group_kill_character_exp, 2)
 
         return DungeonReward("experience", {
             "exp": time_exp,
+            "gold": gold if threshold_ratio >= 1.0 else 0,
             "time_exp": time_exp,
             "base_exp": full_exp,
             "full_exp": full_exp,
             "time_ratio": threshold_ratio,
             "duration_threshold": threshold_seconds,
             "kill_character_exp": kill_character_exp,
-            "character_exp_per_kill": character_exp_per_kill
+            "single_monsters_killed": monsters_killed,
+            "group_monsters_killed": groups_killed,
+            "character_exp_per_single_kill": single_kill_exp,
+            "character_exp_per_five_group_kills": group_kill_exp,
         })
 
     @staticmethod

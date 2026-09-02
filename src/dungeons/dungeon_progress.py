@@ -38,7 +38,7 @@ class DungeonProgress:
         
         # 扫荡模式解锁
         self.sweep_unlocked = False
-        self.sweep_unlock_count = 50  # 经验本在接口层使用100次，其余可扫荡副本默认50次
+        self.sweep_unlock_count = 50
         
         # 连续战斗
         self.continuous_battle_count = 0
@@ -160,7 +160,6 @@ class DungeonProgressManager:
             如果可以扫荡返回True
         """
         if dungeon.dungeon_type == DungeonType.SINGLE:
-            # 1人本：经验本由接口层按100次解锁
             progress = self.get_progress(dungeon.dungeon_id)
             return progress.can_sweep()
         

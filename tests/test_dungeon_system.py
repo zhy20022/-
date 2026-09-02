@@ -9,7 +9,8 @@ import os
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from src.dungeons.dungeon_database import get_dungeon_database, get_dungeon_by_id
+from src.dungeons.dungeon_database import EXPERIENCE_REWARD_BY_DIFFICULTY, get_dungeon_database, get_dungeon_by_id
+from src.dungeons.dungeon import DungeonDifficulty
 from src.dungeons.dungeon import DungeonType
 from src.dungeons.dungeon_progress import DungeonProgressManager
 from src.dungeons.dungeon_reward import RewardCalculator
@@ -64,6 +65,33 @@ def test_dungeon_database():
         print(f"    时长: {dungeon.duration}秒")
     
     print("\n[OK] 副本数据库测试通过")
+
+
+def test_eight_attribute_experience_dungeon_rules():
+    """测试8系经验本配置规则"""
+    expected = {
+        "fire_type_single_001": AttributeType.FIRE,
+        "wood_type_single_001": AttributeType.WOOD,
+        "wind_type_single_001": AttributeType.WIND,
+        "water_type_single_001": AttributeType.WATER,
+        "earth_type_single_001": AttributeType.EARTH,
+        "lightning_type_single_001": AttributeType.THUNDER,
+        "holy_type_single_001": AttributeType.LIGHT,
+        "shadow_type_single_001": AttributeType.DARK,
+    }
+    for dungeon_id, attribute in expected.items():
+        dungeon = get_dungeon_by_id(dungeon_id)
+        assert dungeon is not None, f"{dungeon_id} 应该存在"
+        assert dungeon.dungeon_type == DungeonType.SINGLE
+        assert dungeon.attribute_type == attribute
+        assert dungeon.duration == 60.0
+        assert dungeon.reward_config["type"] == "experience"
+        assert dungeon.reward_config["target_full_clear_exp"] == EXPERIENCE_REWARD_BY_DIFFICULTY[DungeonDifficulty.NORMAL]
+        assert dungeon.reward_config["character_exp_per_single_kill"] == 0.1
+        assert dungeon.reward_config["character_exp_per_five_group_kills"] == 0.1
+        assert dungeon.monster_config["spawn_interval"] == 3.0
+        assert dungeon.monster_config["spawn_wave_count"] == 20
+        assert dungeon.monster_config["allowed_monster_types"] == ["SINGLE", "GROUP_5"]
 
 
 def test_dungeon_unlock():
@@ -237,6 +265,11 @@ def test_dungeon_monster_spawner():
     # 检查生成时间
     print(f"\n1人本怪物生成时间: {len(spawner.spawn_times)}波")
     assert len(spawner.spawn_times) == 20, "1人本应该有20波怪物"
+    assert spawner.spawn_times[0] == 0.0, "1人本应该从0秒开始刷新"
+    assert spawner.spawn_times[-1] == 57.0, "1人本应该每3秒刷新一波并在57秒刷新最后一波"
+    first_wave = spawner.get_monster_spawns(0.0, -0.001)
+    assert len(first_wave) == 1, "0秒应该生成首波怪物"
+    assert first_wave[0]["monster_type"] in {"单体小怪", "群体小怪5个"}, "1人本只应该出现单体或5只群体小怪"
     
     # 测试5人本怪物生成
     dungeon = get_dungeon_by_id("fire_type_squad_001")
@@ -254,6 +287,7 @@ def run_all_tests():
     """运行所有测试"""
     try:
         test_dungeon_database()
+        test_eight_attribute_experience_dungeon_rules()
         test_dungeon_unlock()
         test_dungeon_reward()
         test_dungeon_progress()

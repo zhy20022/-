@@ -188,6 +188,8 @@ const handleDemoRequest = (config: InternalAxiosRequestConfig, url: string) => {
 
   const dungeonStart = url.match(/^\/api\/dungeons\/([^/]+)\/start$/)
   if (dungeonStart && method === 'post') {
+    const validation = validateDungeonEntry(state, dungeonStart[1], body.character_ids || [])
+    if (!validation.success) return validation
     const battle = createBattle(state, dungeonStart[1], body.character_ids || [])
     saveState(state)
     return { success: true, battle_id: battle.battle_id }
@@ -201,6 +203,9 @@ const handleDemoRequest = (config: InternalAxiosRequestConfig, url: string) => {
   const dungeonSweep = url.match(/^\/api\/dungeons\/([^/]+)\/sweep$/)
   if (dungeonSweep && method === 'post') {
     const dungeon = state.dungeons.find((item) => item.dungeon_id === dungeonSweep[1])
+    if (!dungeon || !dungeon.progress.sweep_unlocked) {
+      return { success: false, message: `扫荡功能未解锁，需要通关${dungeon?.progress.sweep_unlock_count || 50}次` }
+    }
     const count = Math.min(Math.max(Number(body.count || 1), 1), 10)
     const expCrystals = getDungeonExpReward(dungeon) * count
     if (expCrystals > 0) {
@@ -222,6 +227,8 @@ const handleDemoRequest = (config: InternalAxiosRequestConfig, url: string) => {
   }
 
   if (url === '/api/battle/create' && method === 'post') {
+    const validation = validateDungeonEntry(state, String(body.dungeon_id || ''), body.character_ids || [])
+    if (!validation.success) return validation
     const battle = createBattle(state, body.dungeon_id, body.character_ids || [])
     saveState(state)
     return { success: true, battle_id: battle.battle_id }
@@ -362,13 +369,22 @@ const difficultyNameMap: Record<string, string> = {
   nightmare: '噩梦'
 }
 
-const experienceDungeonAttributes = ['WATER', 'EARTH', 'THUNDER', 'WIND', 'FIRE', 'WOOD', 'LIGHT', 'DARK']
+const experienceDungeonAttributes = [
+  { attribute: 'FIRE', idPrefix: 'fire' },
+  { attribute: 'WOOD', idPrefix: 'wood' },
+  { attribute: 'WIND', idPrefix: 'wind' },
+  { attribute: 'WATER', idPrefix: 'water' },
+  { attribute: 'EARTH', idPrefix: 'earth' },
+  { attribute: 'THUNDER', idPrefix: 'lightning' },
+  { attribute: 'LIGHT', idPrefix: 'holy' },
+  { attribute: 'DARK', idPrefix: 'shadow' }
+]
 const experienceDungeonDifficulties = ['normal', 'hard', 'nightmare']
 
 const createExperienceDungeons = () => (
-  experienceDungeonAttributes.flatMap((attribute) => experienceDungeonDifficulties.map((difficulty) => (
+  experienceDungeonAttributes.flatMap(({ attribute, idPrefix }) => experienceDungeonDifficulties.map((difficulty) => (
     createDungeon(
-      `demo_exp_${attribute.toLowerCase()}_${difficulty}`,
+      difficulty === 'normal' ? `${idPrefix}_type_single_001` : `${idPrefix}_type_single_001_${difficulty}`,
       `${attributeNames[attribute]}属性经验本·${difficultyNameMap[difficulty]}`,
       'SINGLE',
       attribute,
@@ -394,8 +410,20 @@ const mergeDungeons = (current: DemoDungeon[], required: DemoDungeon[]) => {
   const byId = new Map(current.map((dungeon) => [dungeon.dungeon_id, dungeon]))
   return required.map((dungeon) => ({
     ...dungeon,
-    progress: byId.get(dungeon.dungeon_id)?.progress || dungeon.progress
+    progress: normalizeDungeonProgress(byId.get(dungeon.dungeon_id)?.progress || dungeon.progress)
   }))
+}
+
+const normalizeDungeonProgress = (progress: DemoDungeon['progress']) => {
+  const completionCount = Number(progress.completion_count || 0)
+  const sweepUnlockCount = 50
+  return {
+    ...progress,
+    completion_count: completionCount,
+    total_attempts: Number(progress.total_attempts || 0),
+    sweep_unlock_count: sweepUnlockCount,
+    sweep_unlocked: completionCount >= sweepUnlockCount || Boolean(progress.sweep_unlocked && completionCount >= sweepUnlockCount)
+  }
 }
 
 const normalizeInventory = (inventory: Array<Record<string, unknown>>) => {
@@ -424,6 +452,37 @@ const normalizeInventory = (inventory: Array<Record<string, unknown>>) => {
     })
   }
   return normalized
+}
+
+const normalizeAttributeValue = (attribute?: unknown) => {
+  const text = String(attribute || '')
+  const byName: Record<string, string> = {
+    火: 'FIRE',
+    木: 'WOOD',
+    风: 'WIND',
+    水: 'WATER',
+    土: 'EARTH',
+    雷: 'THUNDER',
+    光: 'LIGHT',
+    暗: 'DARK'
+  }
+  return byName[text] || text
+}
+
+const validateDungeonEntry = (state: DemoState, dungeonId: string, characterIds: unknown) => {
+  const ids = Array.isArray(characterIds) ? characterIds.map(String) : []
+  const dungeon = state.dungeons.find((item) => item.dungeon_id === dungeonId)
+  if (!dungeon) return { success: false, message: '副本不存在' }
+  const isExperienceDungeon = dungeon.dungeon_type === 'SINGLE' && dungeon.reward_config?.type === 'experience'
+  if (!isExperienceDungeon) return { success: true }
+  if (ids.length !== 1) return { success: false, message: '经验副本只能选择1名角色进入' }
+  const character = state.characters.find((item) => item.character_id === ids[0])
+  if (!character) return { success: false, message: '角色不存在' }
+  if (normalizeAttributeValue(character.attribute_type) !== normalizeAttributeValue(dungeon.attribute_type)) {
+    const attributeName = attributeNames[normalizeAttributeValue(dungeon.attribute_type)] || dungeon.attribute_type
+    return { success: false, message: `${attributeName}属性经验本只能由${attributeName}属性角色进入` }
+  }
+  return { success: true }
 }
 
 const normalizeCharacter = (character: DemoCharacter): DemoCharacter => {
@@ -615,6 +674,7 @@ const settleBattle = (state: DemoState, battle?: DemoBattle) => {
   if (dungeon) {
     dungeon.progress.total_attempts += 1
     dungeon.progress.completion_count += 1
+    dungeon.progress.sweep_unlocked = dungeon.progress.completion_count >= 50
     dungeon.progress.best_record = {
       duration: battle.duration,
       rewards: { exp_crystal: expCrystals }
@@ -717,8 +777,8 @@ const createDungeon = (
     progress: {
       completion_count: 0,
       total_attempts: 0,
-      sweep_unlocked: true,
-      sweep_unlock_count: 1,
+      sweep_unlocked: false,
+      sweep_unlock_count: 50,
       best_record: {},
     },
   }
@@ -726,12 +786,13 @@ const createDungeon = (
 
 const createBattle = (state: DemoState, dungeonId: string, characterIds: string[]): DemoBattle => {
   const battleId = `demo-battle-${Date.now()}`
+  const dungeon = state.dungeons.find((item) => item.dungeon_id === dungeonId)
   const battle = {
     battle_id: battleId,
     dungeon_id: dungeonId,
     character_ids: characterIds.length ? characterIds : [state.characters[0]?.character_id].filter(Boolean),
     started_at: Date.now(),
-    duration: 10,
+    duration: Number(dungeon?.duration || 60),
     battle_speed: 1,
   }
   state.battles[battleId] = battle
