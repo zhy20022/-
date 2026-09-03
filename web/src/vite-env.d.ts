@@ -7,3 +7,12 @@ interface ImportMetaEnv {
   readonly VITE_STATIC_DEMO?: string
   readonly VITE_PUBLIC_BASE?: string
 }
+
+interface Window {
+  __GAMER_RUNTIME_CONFIG__?: {
+    formalOnline?: boolean
+    staticDemo?: boolean
+    apiBase?: string
+    socketUrl?: string
+  }
+}

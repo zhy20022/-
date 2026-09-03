@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import axios from 'axios'
 import { isFormalOnlineMode } from '../config'
-import { clearOnlineSession, ensureOnlineSession, getApiErrorMessage } from '../services/onlineApi'
+import { clearOnlineSession, getApiErrorMessage, onlineApi, persistOnlineSession, restoreOnlineSession } from '../services/onlineApi'
 
 interface Player {
   player_id: string
@@ -29,7 +29,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (username: string, password: string) => {
     try {
       if (isFormalOnlineMode()) {
-        const session = await ensureOnlineSession({ username, displayName: username })
+        const response = await onlineApi.post('/auth/login', { username, password })
+        const session = response.data
+        persistOnlineSession(session, username)
         set({
           isAuthenticated: true,
           player: {
@@ -70,7 +72,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (username: string, password: string, email?: string) => {
     try {
       if (isFormalOnlineMode()) {
-        const session = await ensureOnlineSession({ username, displayName: username }, { forceRefresh: true })
+        const response = await onlineApi.post('/auth/register', { username, password, email })
+        const session = response.data
+        persistOnlineSession(session, username)
         set({
           isAuthenticated: true,
           player: {
@@ -124,9 +128,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   loadPlayer: async () => {
     try {
       if (isFormalOnlineMode()) {
-        const session = await ensureOnlineSession({
-          player_id: localStorage.getItem('gamer_online_player_id') || 'local-player',
-        })
+        const session = restoreOnlineSession()
+        if (!session) throw new Error('online session is missing or expired')
         set({
           isAuthenticated: true,
           player: {

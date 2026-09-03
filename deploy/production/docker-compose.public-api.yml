@@ -1,0 +1,109 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - public_postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [backend]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - public_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks: [backend]
+
+  schema:
+    build:
+      context: ../../server-nest
+    restart: "no"
+    command: ["node", "dist/database/bootstrap-schema.js"]
+    environment: &api-environment
+      NODE_ENV: production
+      PORT: 4100
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      ALLOW_GUEST_LOGIN: ${ALLOW_GUEST_LOGIN:-false}
+      CONTENT_DIR: /workspace/data/content
+      CORS_ORIGIN: ${PUBLIC_WEB_ORIGINS}
+      TYPEORM_SYNCHRONIZE: "false"
+      TYPEORM_LOGGING: "false"
+      DB_SSL: "false"
+      DB_POOL_MAX: ${DB_POOL_MAX:-20}
+      DB_CONNECT_TIMEOUT_MS: ${DB_CONNECT_TIMEOUT_MS:-10000}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+      REQUEST_BODY_LIMIT: ${REQUEST_BODY_LIMIT:-256kb}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-180}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [backend]
+
+  api:
+    build:
+      context: ../../server-nest
+    restart: unless-stopped
+    environment: *api-environment
+    depends_on:
+      schema:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../../data/content:/workspace/data/content:ro
+    expose:
+      - "4100"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4100/api/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks: [backend]
+
+  gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      API_DOMAIN_NAME: ${API_DOMAIN_NAME}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - public_caddy_data:/data
+      - public_caddy_config:/config
+    networks: [backend]
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  public_postgres_data:
+  public_redis_data:
+  public_caddy_data:
+  public_caddy_config:

@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { createHmac, randomUUID } from 'crypto';
+import { compare, hash } from 'bcryptjs';
+import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
 import { Repository } from 'typeorm';
 import { PlayerEntity, UserEntity } from '../database/entities';
 
@@ -14,6 +15,9 @@ export class AuthService {
   ) {}
 
   async guestLogin(deviceId?: string, displayName?: string) {
+    if (this.config.get<string>('NODE_ENV') === 'production' && this.config.get<string>('ALLOW_GUEST_LOGIN') !== 'true') {
+      throw new ForbiddenException('guest login is disabled');
+    }
     const accountId = `guest:${deviceId || randomUUID()}`;
     let user = await this.users.findOne({ where: { accountId } });
     if (!user) {
@@ -31,11 +35,49 @@ export class AuthService {
       await this.players.save(player);
     }
 
-    return {
-      accessToken: this.signToken(user.id, player.id),
-      user,
-      player,
-    };
+    return this.buildSession(user, player);
+  }
+
+  async register(username: string, password: string, email?: string) {
+    const normalized = username.trim().toLowerCase();
+    const accountId = `password:${normalized}`;
+    if (await this.users.findOne({ where: { accountId } })) {
+      throw new ConflictException('username already exists');
+    }
+    if (await this.players.findOne({ where: { displayName: username.trim() } })) {
+      throw new ConflictException('display name already exists');
+    }
+
+    const user = this.users.create({
+      accountId,
+      provider: 'password',
+      passwordHash: await hash(password, 12),
+      metadata: email ? { email: email.trim().toLowerCase() } : {},
+    });
+    await this.users.save(user);
+    try {
+      const player = await this.players.save(this.players.create({
+        userId: user.id,
+        displayName: username.trim(),
+        gold: 100000,
+      }));
+      return this.buildSession(user, player);
+    } catch (error) {
+      await this.users.delete(user.id);
+      throw error;
+    }
+  }
+
+  async login(username: string, password: string) {
+    const accountId = `password:${username.trim().toLowerCase()}`;
+    const user = await this.users.findOne({ where: { accountId } });
+    if (!user?.passwordHash || !(await compare(password, user.passwordHash))) {
+      throw new UnauthorizedException('invalid username or password');
+    }
+    if (user.status !== 'active') throw new ForbiddenException('account is unavailable');
+    const player = await this.players.findOne({ where: { userId: user.id } });
+    if (!player) throw new UnauthorizedException('player profile is missing');
+    return this.buildSession(user, player);
   }
 
   assertPlayerAccess(authorization: string | undefined, playerId: string) {
@@ -54,7 +96,9 @@ export class AuthService {
       throw new UnauthorizedException('invalid authorization token');
     }
     const [, payload, signature] = parts;
-    if (this.signPayload(payload) !== signature) {
+    const expected = Buffer.from(this.signPayload(payload));
+    const actual = Buffer.from(signature);
+    if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
       throw new UnauthorizedException('invalid authorization signature');
     }
     try {
@@ -80,6 +124,14 @@ export class AuthService {
       exp: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
     })).toString('base64url');
     return `online.${payload}.${this.signPayload(payload)}`;
+  }
+
+  private buildSession(user: UserEntity, player: PlayerEntity) {
+    return {
+      accessToken: this.signToken(user.id, player.id),
+      user: { id: user.id, provider: user.provider, status: user.status },
+      player,
+    };
   }
 
   private signPayload(payload: string) {

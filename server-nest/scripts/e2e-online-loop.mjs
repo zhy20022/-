@@ -15,10 +15,14 @@ async function main() {
   try {
     await ensureApi();
     const stamp = Date.now();
-    const session = await postJson('/auth/guest', {
-      deviceId: `online-loop-${stamp}`,
-      displayName: `Loop_${stamp}`,
+    const username = `Loop_${stamp}`;
+    const password = `Loop-${stamp}-secure`;
+    const registered = await postJson('/auth/register', {
+      username,
+      password,
     });
+    const session = await postJson('/auth/login', { username, password });
+    assert(session.player.id === registered.player.id, 'password login should restore the registered player');
     const playerId = session.player.id;
     const auth = authHeader(session.accessToken);
     assert(session.player.gold >= 100000, 'new online player should start with gold for first loop');

@@ -55,10 +55,22 @@ function decodeBase64(value) {
   return bytes;
 }
 
-function responseFor(pathname) {
+function responseFor(pathname, request, env) {
   const file = FILES[pathname] || (pathname.includes('.') ? null : FILES['/index.html']);
   if (!file) return new Response('Not found', { status: 404 });
-  const body = file.base64 ? decodeBase64(file.base64) : file.body;
+  let body = file.base64 ? decodeBase64(file.base64) : file.body;
+  if (pathname === '/index.html' && typeof body === 'string') {
+    const online = Boolean(env && env.GAME_API_ORIGIN);
+    const sameOrigin = new URL(request.url).origin;
+    const runtimeConfig = {
+      formalOnline: online,
+      staticDemo: !online,
+      apiBase: online ? sameOrigin : '',
+      socketUrl: online ? sameOrigin : '',
+    };
+    const runtimeScript = '<script>window.__GAMER_RUNTIME_CONFIG__=' + JSON.stringify(runtimeConfig).replace(/</g, '\\u003c') + ';<\\/script>';
+    body = body.replace('</head>', runtimeScript + '</head>');
+  }
   return new Response(body, {
     headers: {
       'content-type': file.contentType,
@@ -67,10 +79,30 @@ function responseFor(pathname) {
   });
 }
 
+async function proxyOnlineRequest(request, env) {
+  const origin = env && env.GAME_API_ORIGIN ? String(env.GAME_API_ORIGIN).replace(/\\\/$/, '') : '';
+  if (!origin) {
+    return Response.json({ statusCode: 503, message: 'The formal online API is not configured.' }, { status: 503 });
+  }
+  const incoming = new URL(request.url);
+  const target = new URL(incoming.pathname + incoming.search, origin + '/');
+  const headers = new Headers(request.headers);
+  headers.delete('host');
+  return fetch(target, {
+    method: request.method,
+    headers,
+    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
+    redirect: 'manual',
+  });
+}
+
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
-    return responseFor(url.pathname === '/' ? '/index.html' : url.pathname);
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/socket.io/')) {
+      return proxyOnlineRequest(request, env);
+    }
+    return responseFor(url.pathname === '/' ? '/index.html' : url.pathname, request, env);
   },
 };
 `,

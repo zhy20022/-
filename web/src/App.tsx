@@ -4,6 +4,7 @@ import { useAuthStore } from './stores/authStore'
 import { useOrientation } from './hooks/useOrientation'
 import OrientationToggle from './components/OrientationToggle'
 import MobileGameShell from './components/MobileGameShell'
+import { isFormalOnlineMode } from './config'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import MainMenu from './pages/MainMenu'
@@ -27,13 +28,17 @@ import OnlineAdminPage from './pages/OnlineAdminPage'
 import './App.css'
 
 function App() {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, loadPlayer } = useAuthStore()
   const location = useLocation()
   const { isPortrait, isMobile } = useOrientation()
   const [isTransitioning, setIsTransitioning] = useState(false)
 
   const shellHiddenRoutes = ['/login', '/register', '/battle', '/dungeons/multiplayer']
   const showMobileShell = isAuthenticated && !shellHiddenRoutes.some((path) => location.pathname.startsWith(path))
+
+  useEffect(() => {
+    if (isFormalOnlineMode() && !isAuthenticated) void loadPlayer()
+  }, [])
 
   // 监听方向变化，添加过渡动画
   useEffect(() => {

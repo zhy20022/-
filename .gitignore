@@ -54,6 +54,7 @@ data/saves/
 .env.*
 !.env.example
 !.env.production.example
+!.env.public-api.example
 .local-postgres-data/
 
 

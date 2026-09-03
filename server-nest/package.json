@@ -5,6 +5,7 @@
   "description": "NestJS online-game backend skeleton for Gamer.",
   "scripts": {
     "build": "nest build",
+    "schema:init": "node dist/database/bootstrap-schema.js",
     "e2e:http": "node scripts/e2e-http.mjs",
     "e2e:online-loop": "node scripts/e2e-online-loop.mjs",
     "start": "node dist/main.js",

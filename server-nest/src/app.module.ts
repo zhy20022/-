@@ -51,6 +51,7 @@ import { PlayersController } from './players/players.controller';
 import { PlayersService } from './players/players.service';
 import { RankingController } from './ranking/ranking.controller';
 import { RankingService } from './ranking/ranking.service';
+import { validateEnvironment } from './config/environment';
 
 const entities = [
   AdminLogEntity,
@@ -76,7 +77,7 @@ const entities = [
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -88,6 +89,13 @@ const entities = [
           config.get<string>('TYPEORM_SYNCHRONIZE') === 'true' ||
           (config.get<string>('NODE_ENV') !== 'production' && config.get<string>('TYPEORM_SYNCHRONIZE') !== 'false'),
         logging: config.get<string>('TYPEORM_LOGGING') === 'true',
+        ssl: config.get<string>('DB_SSL') === 'true'
+          ? { rejectUnauthorized: config.get<string>('DB_SSL_REJECT_UNAUTHORIZED') !== 'false' }
+          : false,
+        extra: {
+          max: Number(config.get<string>('DB_POOL_MAX', '20')),
+          connectionTimeoutMillis: Number(config.get<string>('DB_CONNECT_TIMEOUT_MS', '10000')),
+        },
       }),
     }),
     TypeOrmModule.forFeature(entities),

@@ -21,6 +21,7 @@ export interface LegacyPlayerRef {
 }
 
 const base = getOnlineApiBase()
+const currentSessionKey = 'gamer_online_current_session'
 
 export const onlineApi = axios.create({
   baseURL: base.endsWith('/api') ? base : `${base}/api`,
@@ -41,13 +42,17 @@ export const ensureOnlineSession = async (
 ): Promise<OnlineSession> => {
   const stableId = legacyPlayer?.id || legacyPlayer?.player_id || legacyPlayer?.username || 'local-player'
   const sessionKey = `gamer_online_session_${stableId}`
+  const current = readSession(currentSessionKey)
+  if (current && (!options.forceRefresh || current.player.id === legacyPlayer?.id || current.player.id === legacyPlayer?.player_id)) {
+    activateSession(current)
+    return current
+  }
   const cached = localStorage.getItem(sessionKey)
   if (cached && !options.forceRefresh) {
     try {
       const session = JSON.parse(cached) as OnlineSession
       if (isSessionUsable(session)) {
-        localStorage.setItem('gamer_online_access_token', session.accessToken)
-        localStorage.setItem('gamer_online_player_id', session.player.id)
+        activateSession(session)
         return session
       }
     } catch {
@@ -63,18 +68,47 @@ export const ensureOnlineSession = async (
     accessToken: response.data.accessToken,
     player: response.data.player,
   }
-  localStorage.setItem(sessionKey, JSON.stringify(session))
-  localStorage.setItem('gamer_online_access_token', session.accessToken)
-  localStorage.setItem('gamer_online_player_id', session.player.id)
+  persistOnlineSession(session, stableId)
+  return session
+}
+
+export const persistOnlineSession = (session: OnlineSession, identity?: string) => {
+  localStorage.setItem(currentSessionKey, JSON.stringify(session))
+  localStorage.setItem(`gamer_online_session_${session.player.id}`, JSON.stringify(session))
+  if (identity) localStorage.setItem(`gamer_online_session_${identity}`, JSON.stringify(session))
+  activateSession(session)
+}
+
+export const restoreOnlineSession = () => {
+  const session = readSession(currentSessionKey)
+  if (session) activateSession(session)
   return session
 }
 
 export const clearOnlineSession = () => {
   localStorage.removeItem('gamer_online_access_token')
   localStorage.removeItem('gamer_online_player_id')
+  localStorage.removeItem(currentSessionKey)
   Object.keys(localStorage)
     .filter((key) => key.startsWith('gamer_online_session_'))
     .forEach((key) => localStorage.removeItem(key))
+}
+
+const readSession = (key: string) => {
+  const raw = localStorage.getItem(key)
+  if (!raw) return null
+  try {
+    const session = JSON.parse(raw) as OnlineSession
+    return isSessionUsable(session) ? session : null
+  } catch {
+    localStorage.removeItem(key)
+    return null
+  }
+}
+
+const activateSession = (session: OnlineSession) => {
+  localStorage.setItem('gamer_online_access_token', session.accessToken)
+  localStorage.setItem('gamer_online_player_id', session.player.id)
 }
 
 export const getApiErrorMessage = (error: unknown, fallback = '请求失败，请稍后重试') => {

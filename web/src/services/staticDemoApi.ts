@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { CHARACTER_POOL, CharacterPoolEntry } from '../data/characterPool'
+import { isStaticDemoMode } from '../config'
 
 interface DemoCharacter {
   character_id: string
@@ -88,7 +89,7 @@ interface DemoState {
 const demoKey = 'gamer_static_demo_state'
 
 export const installStaticDemoApi = () => {
-  if (import.meta.env.VITE_STATIC_DEMO !== 'true') return
+  if (!isStaticDemoMode()) return
 
   axios.defaults.adapter = async (config) => {
     const url = normalizeUrl(config)
