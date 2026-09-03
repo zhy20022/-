@@ -52,6 +52,8 @@ import { PlayersService } from './players/players.service';
 import { RankingController } from './ranking/ranking.controller';
 import { RankingService } from './ranking/ranking.service';
 import { validateEnvironment } from './config/environment';
+import { WorkshopController } from './workshop/workshop.controller';
+import { WorkshopService } from './workshop/workshop.service';
 
 const entities = [
   AdminLogEntity,
@@ -116,6 +118,7 @@ const entities = [
     MailController,
     PlayersController,
     RankingController,
+    WorkshopController,
   ],
   providers: [
     AdminService,
@@ -132,6 +135,7 @@ const entities = [
     PlayersService,
     RankingService,
     RedisService,
+    WorkshopService,
   ],
 })
 export class AppModule {}

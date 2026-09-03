@@ -40,7 +40,7 @@ async function main() {
     assert(profileAfterDraw.player.gold < session.player.gold, 'gacha should deduct gold');
 
     const dungeonId = dungeonForAttribute(character.attributeType);
-    await postJson(`/dungeons/${playerId}/${dungeonId}/start`, {}, auth);
+    await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
     const settlement = await postJson('/battle-settlement', {
       playerId,
       dungeonId,

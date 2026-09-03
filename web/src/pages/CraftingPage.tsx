@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { isFormalOnlineMode } from '../config'
+import { useAuthStore } from '../stores/authStore'
+import { onlineApi } from '../services/onlineApi'
+import { loadOnlineMaterials } from '../services/onlineInventoryAdapter'
+import { loadOnlineProfile } from '../services/onlineGameAdapter'
 import './CraftingPage.css'
 
 interface Material {
@@ -19,6 +24,7 @@ interface CostPreview {
 
 const CraftingPage: React.FC = () => {
   const navigate = useNavigate()
+  const { player } = useAuthStore()
   const [materials, setMaterials] = useState<Record<string, Material>>({})
   const [loading, setLoading] = useState(true)
   const [craftingType, setCraftingType] = useState<'exclusive' | 'equipment'>('exclusive')
@@ -42,6 +48,11 @@ const CraftingPage: React.FC = () => {
 
   const loadMaterials = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineMaterials(player)
+        setMaterials(payload.materials)
+        return
+      }
       const response = await axios.get('/api/materials')
       if (response.data.success) {
         setMaterials(response.data.materials)
@@ -58,6 +69,11 @@ const CraftingPage: React.FC = () => {
 
   const loadCharacters = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        setCharacters(profile.characters)
+        return
+      }
       const response = await axios.get('/api/characters')
       if (response.data.success) {
         setCharacters(response.data.characters)
@@ -76,6 +92,21 @@ const CraftingPage: React.FC = () => {
       return
     }
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineMaterials(player)
+        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/crafting/preview`, {
+          craftingType,
+          attributeType: selectedAttribute || undefined,
+        })
+        setCostPreview((response.data?.preview?.costs || []).map((cost: any) => ({
+          material_type: cost.materialType,
+          attribute_type: cost.attributeType,
+          required: cost.required,
+          owned: cost.owned,
+          enough: cost.enough,
+        })))
+        return
+      }
       const response = await axios.post('/api/crafting/preview', {
         crafting_type: craftingType,
         attribute_type: selectedAttribute
@@ -96,6 +127,15 @@ const CraftingPage: React.FC = () => {
 
     try {
       setFeedback({ type: 'info', message: '正在制作专属道具...' })
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineMaterials(player)
+        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/crafting/exclusive`, { characterId: selectedCharacter })
+        setFeedback({ type: 'success', message: response.data?.message || '专属武器制作成功' })
+        setCraftedItem({ ...response.data?.item?.payload, item_id: response.data?.item?.id, item_name: response.data?.item?.payload?.name })
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadMaterials()
+        return
+      }
       const response = await axios.post('/api/crafting/exclusive-item', {
         character_id: selectedCharacter
       })
@@ -128,6 +168,19 @@ const CraftingPage: React.FC = () => {
 
     try {
       setFeedback({ type: 'info', message: '正在制作套装部件...' })
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineMaterials(player)
+        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/crafting/equipment`, {
+          attributeType: selectedAttribute,
+          professionCategory: selectedCategory,
+          slot: selectedSlot,
+        })
+        setFeedback({ type: 'success', message: response.data?.message || '套装部件制作成功' })
+        setCraftedItem({ ...response.data?.item?.payload, item_id: response.data?.item?.id, item_name: response.data?.item?.payload?.name })
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadMaterials()
+        return
+      }
       const response = await axios.post('/api/crafting/equipment-set', {
         attribute_type: selectedAttribute,
         profession_category: selectedCategory,

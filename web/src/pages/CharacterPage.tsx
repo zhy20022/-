@@ -5,6 +5,7 @@ import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { useAuthStore } from '../stores/authStore'
 import { getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, loadOnlineProfile, mapOnlineCharacter, onlineApi } from '../services/onlineGameAdapter'
+import { mapOnlineInventoryItem } from '../services/onlineInventoryAdapter'
 import './CharacterPage.css'
 
 interface CharacterStats {
@@ -626,7 +627,19 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   }, [character.character_id, character.level, character.exp, expLevelDelta])
 
   const loadEquipmentOptions = async () => {
-    if (isFormalOnlineMode()) return
+    if (isFormalOnlineMode()) {
+      try {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.get(`/players/${profile.session.player.id}/characters/${character.character_id}/equipment-options`)
+        setEquipmentOptions({
+          weapons: (response.data?.weapons || []).map(mapOnlineInventoryItem),
+          equipment: (response.data?.equipment || []).map(mapOnlineInventoryItem)
+        })
+      } catch (error) {
+        setEquipmentFeedback(getOnlineModeError(error, '加载可穿戴装备失败'))
+      }
+      return
+    }
     try {
       const response = await axios.get(`/api/characters/${character.character_id}/equipment-options`)
       if (response.data.success) {
@@ -698,6 +711,14 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const handleEquipItem = async (itemId: string) => {
     try {
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/equip`, { itemId })
+        setEquipmentFeedback(response.data?.message || '装备成功')
+        onCharacterUpdated(mapOnlineCharacter(response.data.character))
+        await loadEquipmentOptions()
+        return
+      }
       const response = await axios.post(`/api/characters/${character.character_id}/equip`, { item_id: itemId })
       if (response.data.success) {
         setEquipmentFeedback(response.data.message || '装备成功')
@@ -713,6 +734,14 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const handleUnequipItem = async (itemId: string, itemType?: string, slot?: string) => {
     try {
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/unequip`, { itemId, slot: itemType === 'weapon' ? 'weapon' : slot })
+        setEquipmentFeedback(response.data?.message || '卸下成功')
+        onCharacterUpdated(mapOnlineCharacter(response.data.character))
+        await loadEquipmentOptions()
+        return
+      }
       const response = await axios.post(`/api/characters/${character.character_id}/unequip`, {
         item_id: itemId,
         item_type: itemType,
@@ -1051,10 +1080,17 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
     try {
       setSweepingExp(true)
       if (isFormalOnlineMode()) {
-        setExpFeedback('正式在线模式下扫荡会在下一步接入服务器扫荡接口；当前请先进入经验本挑战。')
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.post(`/dungeons/${profile.session.player.id}/${sweepableExperienceDungeon.dungeon_id}/sweep`, {
+          characterId: character.character_id,
+          count: 1,
+        })
+        setExpFeedback(`已扫荡 ${sweepableExperienceDungeon.name}，获得经验结晶 ${response.data?.rewards?.expCrystals || 0}、金币 ${response.data?.rewards?.gold || 0}`)
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadMaterials()
+        await loadExpPreview()
         return
       }
-
       const response = await axios.post(`/api/dungeons/${sweepableExperienceDungeon.dungeon_id}/sweep`, { count: 1 })
       if (response.data.success) {
         setExpFeedback(`已扫荡 ${sweepableExperienceDungeon.name}`)
@@ -1078,22 +1114,25 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const loadSkillConfig = async () => {
     if (isFormalOnlineMode()) {
-      const configuredSkills = ((character.skills as any)?.configuredSkills || (character.skills as any)?.skillSlots || []) as any[]
-      const skills = Array.isArray(configuredSkills)
-        ? configuredSkills.map((skill, index) => ({
-          skill_id: String(skill.id || skill.skill_id || skill.name || `skill_${index}`),
-          name: String(skill.name || `技能${index + 1}`),
-          skill_logic: String(skill.logic || skill.skill_logic || skill.effect || ''),
-          skill_tier: index < 5 ? '底级别' : index < 8 ? '中级别' : '高级别',
-          cooldown: 0,
-          skill_multiplier: 1,
-          target_type: 'AUTO',
-          description: String(skill.effect || skill.description || ''),
+      try {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.get(`/players/${profile.session.player.id}/characters/${character.character_id}/skills`)
+        const skills = (response.data?.unlockedSkills || []).map((skill: any) => ({
+          skill_id: skill.skillId,
+          name: skill.name,
+          skill_logic: skill.logic,
+          skill_tier: skill.tier,
+          cooldown: skill.cooldown,
+          skill_multiplier: skill.skillMultiplier,
+          target_type: skill.targetType,
+          description: skill.description,
         }))
-        : []
-      setUnlockedSkills(skills)
-      setSkillSlots(getDefaultSkillSlots(skills))
-      setSkillFeedback('正式在线模式：技能配置来自角色内容库，保存接口后续迁移。')
+        setUnlockedSkills(skills)
+        setSkillSlots(response.data?.skillSlots || { low: [], mid: [], high: [] })
+        setSkillFeedback('正式在线技能配置已加载，9 个技能槽从 1 级起开放。')
+      } catch (error) {
+        setSkillFeedback(getOnlineModeError(error, '加载技能配置失败'))
+      }
       return
     }
 
@@ -1126,7 +1165,14 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const saveSkillConfig = async () => {
     if (isFormalOnlineMode()) {
-      setSkillFeedback('正式在线模式下技能保存接口还未迁移，当前保留配置预览。')
+      try {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/skills`, { skillSlots })
+        setSkillFeedback(response.data?.message || '技能配置已保存')
+        if (response.data?.character) onCharacterUpdated(mapOnlineCharacter(response.data.character))
+      } catch (error) {
+        setSkillFeedback(getOnlineModeError(error, '技能配置保存失败'))
+      }
       return
     }
 
@@ -1149,7 +1195,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const renderSkillSelectors = (tier: 'low' | 'mid' | 'high', label: string, count: number) => {
     const tierName = tier === 'low' ? '底级别' : tier === 'mid' ? '中级别' : '高级别'
-    const options = unlockedSkills.filter((skill) => skill.skill_tier === tierName)
+    const options = unlockedSkills.filter((skill) => skill.skill_tier.toLowerCase() === tier || skill.skill_tier === tierName)
     return (
       <div className="skill-slot-group">
         <h4>{label}</h4>

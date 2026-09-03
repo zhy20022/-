@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PlayerCharacterEntity } from '../database/entities';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, In, Repository } from 'typeorm';
+import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
 export interface OnlineDungeon {
   dungeonId: string;
@@ -42,6 +44,12 @@ const DIFFICULTIES = [
 @Injectable()
 export class DungeonsService {
   private readonly dungeons = this.buildDungeons();
+
+  constructor(
+    private readonly dataSource: DataSource,
+    @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
+    @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
+  ) {}
 
   list() {
     return {
@@ -101,6 +109,101 @@ export class DungeonsService {
       cappedGroupKills,
       maxWaves,
     };
+  }
+
+  async start(playerId: string, dungeonId: string, characterIds: string[]) {
+    const player = await this.players.findOne({ where: { id: playerId } });
+    if (!player) throw new NotFoundException('player not found');
+    if (!characterIds?.length) throw new BadRequestException('characterIds are required');
+    const characters = await this.characters.find({ where: { playerId, id: In(characterIds) } });
+    if (characters.length !== characterIds.length) throw new BadRequestException('all characters must belong to player');
+    const dungeon = this.assertCanEnter(dungeonId, characters);
+    return {
+      battleSeed: `${playerId}:${dungeonId}:${Date.now()}`,
+      dungeon,
+      characters: characters.map((character) => ({
+        id: character.id,
+        level: character.level,
+        attributeType: character.attributeType,
+        skillSlots: character.skillSlots,
+        equipment: character.equipment,
+        equipmentSkillEffects: this.equipmentSkillEffects(character.equipment),
+      })),
+      serverTime: new Date().toISOString(),
+    };
+  }
+
+  async sweep(playerId: string, dungeonId: string, characterId: string, count: number) {
+    const dungeon = this.get(dungeonId);
+    const character = await this.characters.findOne({ where: { id: characterId, playerId } });
+    if (!character) throw new NotFoundException('character not found');
+    this.assertCanEnter(dungeonId, [character]);
+    const sweepCount = Math.max(1, Math.min(10, Math.floor(count || 1)));
+    return this.dataSource.transaction(async (manager) => {
+      const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!player) throw new NotFoundException('player not found');
+      let progress = await manager.findOne(DungeonProgressEntity, { where: { playerId, dungeonId }, lock: { mode: 'pessimistic_write' } });
+      if (!progress || progress.successfulAttempts < dungeon.sweepUnlockCount) {
+        throw new BadRequestException({ message: 'sweep is not unlocked', requiredClears: dungeon.sweepUnlockCount, currentClears: progress?.successfulAttempts || 0 });
+      }
+      const expCrystals = dungeon.rewardConfig.fullExp * sweepCount;
+      const gold = dungeon.rewardConfig.gold * sweepCount;
+      let expItem = await manager.findOne(InventoryItemEntity, { where: { playerId, itemConfigId: 'character_exp_crystal', itemType: 'material' }, lock: { mode: 'pessimistic_write' } });
+      if (!expItem) {
+        expItem = manager.create(InventoryItemEntity, { playerId, itemConfigId: 'character_exp_crystal', itemType: 'material', quantity: 0, payload: { materialType: 'CHARACTER_EXP', name: 'Universal Character Experience Crystal', source: 'experience_dungeon_sweep' } });
+      }
+      const before = expItem.quantity;
+      expItem.quantity = Math.min(999_999_999, before + expCrystals);
+      expItem.payload = { ...expItem.payload, lastSource: 'experience_dungeon_sweep' };
+      await manager.save(expItem);
+      player.gold += gold;
+      await manager.save(player);
+      progress.totalAttempts += sweepCount;
+      progress.successfulAttempts += sweepCount;
+      progress.bestRecord = { ...(progress.bestRecord || {}), lastSweepAt: new Date().toISOString(), lastSweepCount: sweepCount };
+      progress = await manager.save(progress);
+      const record = await manager.save(manager.create(BattleRecordEntity, {
+        playerId,
+        dungeonId,
+        success: true,
+        duration: 0,
+        damageScore: 0,
+        characterIds: [characterId],
+        rewards: { gold, expCrystals: expItem.quantity - before },
+        resultPayload: { mode: 'sweep', count: sweepCount },
+      }));
+      return {
+        success: true,
+        message: 'sweep completed',
+        sweepCount,
+        rewards: { gold, expCrystals: expItem.quantity - before, requestedExpCrystals: expCrystals, capped: expItem.quantity - before < expCrystals },
+        materialsAwarded: [{ itemConfigId: 'character_exp_crystal', name: 'Experience Crystal', count: expItem.quantity - before }],
+        player,
+        progress,
+        recordId: record.id,
+      };
+    });
+  }
+
+  private equipmentSkillEffects(equipment: Record<string, unknown>) {
+    const effects: unknown[] = [];
+    const seen = new Set<string>();
+    const add = (effect: unknown) => {
+      if (!effect || typeof effect !== 'object') return;
+      const key = String((effect as Record<string, unknown>).id || JSON.stringify(effect));
+      if (seen.has(key)) return;
+      seen.add(key);
+      effects.push(effect);
+    };
+    const visit = (value: unknown) => {
+      if (!value || typeof value !== 'object') return;
+      const payload = value as Record<string, unknown>;
+      add(payload.specialSkill);
+      add(payload.special_skill);
+      Object.values(payload).forEach(visit);
+    };
+    visit(equipment);
+    return effects;
   }
 
   private normalizeAttribute(value: string) {

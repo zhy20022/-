@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { ensureOnlineSession, onlineApi } from '../services/onlineApi'
+import { isFormalOnlineMode } from '../config'
+import { ONLINE_ROUTE_COVERAGE, resolveFormalOnlineRoute } from '../services/onlineFeatureCoverage'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import './MainMenu.css'
 
@@ -17,6 +19,19 @@ const MainMenu: React.FC = () => {
   const handleLogout = () => {
     logout()
     navigate('/login')
+  }
+
+  const openMainRoute = (path: string) => {
+    if (!isFormalOnlineMode()) {
+      navigate(path)
+      return
+    }
+    const resolved = resolveFormalOnlineRoute(path)
+    if (!resolved) {
+      alert(`该入口仍在迁移到正式在线后端：${ONLINE_ROUTE_COVERAGE[path]?.note || path}`)
+      return
+    }
+    navigate(resolved)
   }
 
   const loadOnlineHint = async () => {
@@ -49,21 +64,21 @@ const MainMenu: React.FC = () => {
         <NewPlayerGuide page="home" />
 
         <div className="menu-buttons">
-          <button onClick={() => navigate('/characters')}>角色管理</button>
-          <button onClick={() => navigate('/dungeons')}>副本选择</button>
-          <button onClick={() => navigate('/gacha')}>角色抽取</button>
-          <button onClick={() => navigate('/crafting')}>制作系统</button>
-          <button onClick={() => navigate('/inventory')}>背包</button>
+          <button onClick={() => openMainRoute('/characters')}>角色管理</button>
+          <button onClick={() => openMainRoute('/dungeons')}>副本选择</button>
+          <button onClick={() => openMainRoute('/gacha')}>角色抽取</button>
+          <button onClick={() => openMainRoute('/crafting')}>制作系统</button>
+          <button onClick={() => openMainRoute('/inventory')}>背包</button>
           <button onClick={() => navigate('/online-progress')} className={onlineHint.idleClaimable || onlineHint.dailyClaimable > 0 ? 'attention-btn' : ''}>
             在线收益{onlineHint.dailyClaimable > 0 ? ` · ${onlineHint.dailyClaimable}个可领` : onlineHint.idleClaimable ? ' · 可领取' : ''}
           </button>
-          <button onClick={() => navigate('/shop')}>活动商店</button>
-          <button onClick={() => navigate('/social')}>好友助战</button>
-          <button onClick={() => navigate('/world-boss')}>全服 Boss</button>
-          <button onClick={() => navigate('/quests')}>任务</button>
-          <button onClick={() => navigate('/achievements')}>成就</button>
-          <button onClick={() => navigate('/enhancement')}>装备强化</button>
-          <button onClick={() => navigate('/admin')}>管理入口</button>
+          <button onClick={() => openMainRoute('/shop')}>活动商店</button>
+          <button onClick={() => openMainRoute('/social')}>好友助战</button>
+          <button onClick={() => openMainRoute('/world-boss')}>全服 Boss</button>
+          <button onClick={() => openMainRoute('/quests')}>任务</button>
+          <button onClick={() => openMainRoute('/achievements')}>成就</button>
+          <button onClick={() => openMainRoute('/enhancement')}>装备强化</button>
+          <button onClick={() => openMainRoute('/admin')}>管理入口</button>
           <button onClick={() => navigate('/online-admin')}>在线后台</button>
           <button onClick={handleLogout} className="logout-btn">登出</button>
         </div>

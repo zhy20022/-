@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "crafting": {
+    "exclusive": {
+      "materialType": "EXCLUSIVE_ITEM",
+      "acceptedItemConfigIds": ["exclusive_material", "generic_battle_material"],
+      "materialCost": 20,
+      "goldCost": 0,
+      "quality": "epic",
+      "baseStats": { "attack_bonus": 100, "magic_attack_bonus": 100 }
+    },
+    "equipmentSet": {
+      "materialType": "EQUIPMENT_SET",
+      "acceptedItemConfigIds": ["equipment_material", "generic_battle_material"],
+      "materialCost": 1,
+      "goldCost": 0,
+      "quality": "rare",
+      "slots": ["HEAD", "CHEST", "LEGS", "BOOTS", "GLOVES", "ACCESSORY"],
+      "professionCategories": ["A", "B", "C", "D"],
+      "baseStats": { "hp_bonus": 100, "attack_bonus": 50, "defense_bonus": 50 }
+    }
+  },
+  "enhancement": {
+    "maxLevel": 50,
+    "breakthroughLevels": [10, 20, 30, 40],
+    "goldCostBase": 1000,
+    "materialCostBase": 1,
+    "materialType": "EQUIPMENT_SET",
+    "acceptedItemConfigIds": ["equipment_material", "generic_battle_material"],
+    "successRates": { "0": 1, "10": 0.8, "20": 0.6, "30": 0.4, "40": 0.2 },
+    "breakthroughCosts": {
+      "10": { "gold": 10000, "material": 5 },
+      "20": { "gold": 20000, "material": 10 },
+      "30": { "gold": 30000, "material": 15 },
+      "40": { "gold": 40000, "material": 20 }
+    }
+  }
+}

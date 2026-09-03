@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "灾异志 - Web前端",
   "scripts": {
+    "audit:online-api": "node scripts/audit-online-api-coverage.mjs",
     "dev": "vite",
     "build": "vite build",
     "build:github-pages": "vite build",

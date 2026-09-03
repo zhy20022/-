@@ -1,6 +1,23 @@
-import { Controller, Get, Headers, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post } from '@nestjs/common';
+import { IsArray, IsInt, IsString, Max, Min } from 'class-validator';
 import { AuthService } from '../auth/auth.service';
 import { DungeonsService } from './dungeons.service';
+
+class StartDungeonDto {
+  @IsArray()
+  @IsString({ each: true })
+  characterIds: string[];
+}
+
+class SweepDungeonDto {
+  @IsString()
+  characterId: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  count: number;
+}
 
 @Controller('dungeons')
 export class DungeonsController {
@@ -20,16 +37,24 @@ export class DungeonsController {
   }
 
   @Post(':playerId/:dungeonId/start')
-  start(
+  async start(
     @Headers('authorization') authorization: string | undefined,
     @Param('playerId') playerId: string,
     @Param('dungeonId') dungeonId: string,
+    @Body() dto: StartDungeonDto,
   ) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return {
-      battleSeed: `${playerId}:${dungeonId}:${Date.now()}`,
-      dungeon: this.dungeons.get(dungeonId),
-      serverTime: new Date().toISOString(),
-    };
+    return this.dungeons.start(playerId, dungeonId, dto.characterIds);
+  }
+
+  @Post(':playerId/:dungeonId/sweep')
+  sweep(
+    @Headers('authorization') authorization: string | undefined,
+    @Param('playerId') playerId: string,
+    @Param('dungeonId') dungeonId: string,
+    @Body() dto: SweepDungeonDto,
+  ) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.dungeons.sweep(playerId, dungeonId, dto.characterId, dto.count);
   }
 }

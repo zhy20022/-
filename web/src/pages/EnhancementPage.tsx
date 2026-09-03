@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { isFormalOnlineMode } from '../config'
+import { useAuthStore } from '../stores/authStore'
+import { onlineApi } from '../services/onlineApi'
+import { loadOnlineInventory, mapOnlineEnhancementPreview, mapOnlineInventoryItem } from '../services/onlineInventoryAdapter'
 import './EnhancementPage.css'
 
 interface EquipmentItem {
@@ -15,6 +19,9 @@ interface EnhancementPreview {
   current_level: number
   next_level: number
   success_rate: number
+  max_level?: number
+  requires_breakthrough?: boolean
+  action?: 'enhance' | 'breakthrough'
   costs: {
     gold: { required: number; owned: number; enough: boolean }
     material: { material_type: string; required: number; owned: number; enough: boolean }
@@ -23,6 +30,7 @@ interface EnhancementPreview {
 
 const EnhancementPage: React.FC = () => {
   const navigate = useNavigate()
+  const { player } = useAuthStore()
   const [equipment, setEquipment] = useState<EquipmentItem[]>([])
   const [selectedEquipment, setSelectedEquipment] = useState<EquipmentItem | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,6 +49,13 @@ const EnhancementPage: React.FC = () => {
   const loadEquipment = async () => {
     try {
       setLoading(true)
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineInventory(player)
+        const allEquipment = payload.inventory.equipment
+        setEquipment(allEquipment)
+        setSelectedEquipment((current) => allEquipment.find((item) => item.item_id === current?.item_id) || allEquipment[0] || null)
+        return
+      }
       const response = await axios.get('/api/inventory')
       if (response.data.success) {
         const allEquipment = response.data.inventory.equipment || []
@@ -62,6 +77,16 @@ const EnhancementPage: React.FC = () => {
 
     try {
       setEnhancing(true)
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineInventory(player)
+        const action = preview?.requires_breakthrough ? 'breakthrough' : 'enhance'
+        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/equipment/${selectedEquipment.item_id}/${action}`)
+        setFeedback({ type: response.data?.success ? 'success' : 'error', message: response.data?.message || (action === 'breakthrough' ? '突破完成' : '强化完成') })
+        setSelectedEquipment(mapOnlineInventoryItem(response.data?.equipment))
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadEquipment()
+        return
+      }
       const response = await axios.post('/api/equipment/enhance', {
         item_id: selectedEquipment.item_id,
         current_level: selectedEquipment.level || 0
@@ -93,6 +118,12 @@ const EnhancementPage: React.FC = () => {
       return
     }
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineInventory(player)
+        const response = await onlineApi.get(`/workshop/${payload.session.player.id}/equipment/${selectedEquipment.item_id}/enhancement`)
+        setPreview(mapOnlineEnhancementPreview(response.data?.preview))
+        return
+      }
       const response = await axios.post('/api/equipment/enhance/preview', {
         item_id: selectedEquipment.item_id,
         current_level: selectedEquipment.level || 0
@@ -181,7 +212,7 @@ const EnhancementPage: React.FC = () => {
                     onClick={handleEnhance}
                     disabled={enhancing || !!preview && (!preview.costs.gold.enough || !preview.costs.material.enough)}
                   >
-                    {enhancing ? '强化中...' : '强化'}
+                    {enhancing ? '处理中...' : preview?.requires_breakthrough ? '突破' : '强化'}
                   </button>
                 </div>
               </div>
@@ -198,5 +229,3 @@ const EnhancementPage: React.FC = () => {
 }
 
 export default EnhancementPage
-
-

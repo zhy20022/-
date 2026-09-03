@@ -68,4 +68,28 @@ export class InventoryController {
     this.auth.assertPlayerAccess(authorization, playerId);
     return this.inventory.consume(playerId, dto.itemConfigId, dto.quantity);
   }
+
+  @Post(':playerId/items/:itemId/lock')
+  lock(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.inventory.setLocked(playerId, itemId, true);
+  }
+
+  @Post(':playerId/items/:itemId/unlock')
+  unlock(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.inventory.setLocked(playerId, itemId, false);
+  }
+
+  @Get(':playerId/items/:itemId/dismantle-preview')
+  dismantlePreview(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.inventory.dismantlePreview(playerId, itemId);
+  }
+
+  @Post(':playerId/items/:itemId/dismantle')
+  dismantle(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.inventory.dismantle(playerId, itemId);
+  }
 }

@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
+import { isFormalOnlineMode } from '../config'
+import { getApiErrorMessage, onlineApi } from '../services/onlineApi'
+import { loadOnlineInventory } from '../services/onlineInventoryAdapter'
 import './InventoryPage.css'
 
 interface InventoryItem {
@@ -29,6 +33,7 @@ interface MaterialTransaction {
 
 const InventoryPage: React.FC = () => {
   const navigate = useNavigate()
+  const { player } = useAuthStore()
   const [inventory, setInventory] = useState<{
     materials: InventoryItem[]
     weapons: InventoryItem[]
@@ -52,6 +57,13 @@ const InventoryPage: React.FC = () => {
 
   const loadInventory = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineInventory(player)
+        setInventory(payload.inventory)
+        setTransactions([])
+        setFeedback(null)
+        return
+      }
       const response = await axios.get('/api/inventory')
       if (response.data.success) {
         setInventory(response.data.inventory)
@@ -68,6 +80,7 @@ const InventoryPage: React.FC = () => {
   }
 
   const loadMaterialTransactions = async () => {
+    if (isFormalOnlineMode()) return
     try {
       const response = await axios.get('/api/materials/transactions?limit=8')
       if (response.data.success) {
@@ -80,6 +93,13 @@ const InventoryPage: React.FC = () => {
 
   const handleLock = async (itemId: string) => {
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineInventory(player)
+        await onlineApi.post(`/inventory/${payload.session.player.id}/items/${itemId}/lock`)
+        setFeedback({ type: 'success', message: '物品已锁定' })
+        await loadInventory()
+        return
+      }
       const response = await axios.post(`/api/inventory/${itemId}/lock`)
       if (response.data.success) {
         setFeedback({ type: 'success', message: '物品已锁定' })
@@ -97,6 +117,13 @@ const InventoryPage: React.FC = () => {
 
   const handleUnlock = async (itemId: string) => {
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineInventory(player)
+        await onlineApi.post(`/inventory/${payload.session.player.id}/items/${itemId}/unlock`)
+        setFeedback({ type: 'success', message: '物品已解锁' })
+        await loadInventory()
+        return
+      }
       const response = await axios.post(`/api/inventory/${itemId}/unlock`)
       if (response.data.success) {
         setFeedback({ type: 'success', message: '物品已解锁' })
@@ -113,6 +140,27 @@ const InventoryPage: React.FC = () => {
   }
 
   const handleDismantle = async (itemId: string) => {
+    if (isFormalOnlineMode()) {
+      try {
+        const payload = await loadOnlineInventory(player)
+        const preview = await onlineApi.get(`/inventory/${payload.session.player.id}/items/${itemId}/dismantle-preview`)
+        const rewardText = (preview.data?.materials || [])
+          .map((material: any) => `${material.materialType || material.itemConfigId} x${material.quantity}`)
+          .join('、')
+        if (!confirm(`确定分解这件物品吗？${rewardText ? `\n预计获得：${rewardText}` : ''}`)) return
+        const response = await onlineApi.post(`/inventory/${payload.session.player.id}/items/${itemId}/dismantle`)
+        const actualText = (response.data?.materials || [])
+          .map((material: any) => `${material.materialType || material.itemConfigId} x${material.quantity}`)
+          .join('、')
+        setFeedback({ type: 'success', message: `分解成功${actualText ? `，获得 ${actualText}` : ''}` })
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadInventory()
+      } catch (error) {
+        setFeedback({ type: 'error', message: getApiErrorMessage(error, '分解失败，请稍后重试') })
+      }
+      return
+    }
+
     let previewText = ''
     try {
       const preview = await axios.get(`/api/inventory/${itemId}/dismantle/preview`)

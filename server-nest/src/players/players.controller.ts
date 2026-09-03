@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsObject, IsOptional, IsString, Min } from 'class-validator';
 import { AuthService } from '../auth/auth.service';
 import { PlayersService } from './players.service';
 
@@ -13,6 +13,26 @@ class UseCharacterExpDto {
   @IsInt()
   @Min(1)
   levelDelta?: number;
+}
+
+class ConfigureSkillsDto {
+  @IsObject()
+  skillSlots: Record<string, string[]>;
+}
+
+class EquipCharacterDto {
+  @IsString()
+  itemId: string;
+}
+
+class UnequipCharacterDto {
+  @IsOptional()
+  @IsString()
+  itemId?: string;
+
+  @IsOptional()
+  @IsString()
+  slot?: string;
 }
 
 @Controller('players')
@@ -48,5 +68,50 @@ export class PlayersController {
   ) {
     this.auth.assertPlayerAccess(authorization, playerId);
     return this.players.useExp(playerId, characterId, dto);
+  }
+
+  @Get(':playerId/characters/:characterId/skills')
+  skills(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('characterId') characterId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.players.getSkills(playerId, characterId);
+  }
+
+  @Post(':playerId/characters/:characterId/skills')
+  configureSkills(
+    @Headers('authorization') authorization: string | undefined,
+    @Param('playerId') playerId: string,
+    @Param('characterId') characterId: string,
+    @Body() dto: ConfigureSkillsDto,
+  ) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.players.configureSkills(playerId, characterId, dto.skillSlots);
+  }
+
+  @Get(':playerId/characters/:characterId/equipment-options')
+  equipmentOptions(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('characterId') characterId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.players.equipmentOptions(playerId, characterId);
+  }
+
+  @Post(':playerId/characters/:characterId/equip')
+  equip(
+    @Headers('authorization') authorization: string | undefined,
+    @Param('playerId') playerId: string,
+    @Param('characterId') characterId: string,
+    @Body() dto: EquipCharacterDto,
+  ) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.players.equip(playerId, characterId, dto.itemId);
+  }
+
+  @Post(':playerId/characters/:characterId/unequip')
+  unequip(
+    @Headers('authorization') authorization: string | undefined,
+    @Param('playerId') playerId: string,
+    @Param('characterId') characterId: string,
+    @Body() dto: UnequipCharacterDto,
+  ) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.players.unequip(playerId, characterId, dto);
   }
 }

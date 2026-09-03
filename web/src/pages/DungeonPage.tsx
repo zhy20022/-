@@ -288,7 +288,7 @@ const DungeonPage: React.FC = () => {
           alert('请选择当前在线账号拥有的角色')
           return
         }
-        await onlineApi.post(`/dungeons/${payload.session.player.id}/${selectedDungeon.dungeon_id}/start`, {})
+        await onlineApi.post(`/dungeons/${payload.session.player.id}/${selectedDungeon.dungeon_id}/start`, { characterIds: selectedCharacters })
         completeNewPlayerGuideStep('learn_dungeons')
         if (normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE') {
           completeNewPlayerGuideStep('run_exp_dungeon')
@@ -441,10 +441,22 @@ const DungeonPage: React.FC = () => {
     
     try {
       if (isFormalOnlineMode()) {
-        alert('正式在线模式下扫荡接口还未开放；当前请先进入经验本手动挑战，通关进度会真实落库。')
+        const payload = await loadOnlineDungeons(player)
+        const character = payload.characters.find((item) => normalizeAttribute(item.attribute_type) === normalizeAttribute(dungeon.attribute_type))
+        if (!character) {
+          alert('没有可用于该属性经验副本的角色')
+          return
+        }
+        const response = await onlineApi.post(`/dungeons/${payload.session.player.id}/${dungeon.dungeon_id}/sweep`, {
+          characterId: character.character_id,
+          count,
+        })
+        completeNewPlayerGuideStep('run_exp_dungeon')
+        alert(`扫荡成功：经验结晶 ${response.data?.rewards?.expCrystals || 0}，金币 ${response.data?.rewards?.gold || 0}`)
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadDungeons()
         return
       }
-
       const response = await axios.post(`/api/dungeons/${dungeon.dungeon_id}/sweep`, {
         count: count
       })
