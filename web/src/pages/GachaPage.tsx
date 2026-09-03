@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
+import { getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, onlineApi } from '../services/onlineGameAdapter'
 import './GachaPage.css'
 
 interface GachaResultItem {
@@ -70,6 +71,8 @@ const GachaPage: React.FC = () => {
   const [history, setHistory] = useState<GachaHistoryItem[]>([])
   const [pity, setPity] = useState<GachaPity | null>(null)
   const [upPool, setUpPool] = useState<UpPoolInfo | null>(null)
+  const [onlineGold, setOnlineGold] = useState<number | null>(null)
+  const [onlinePoolCosts, setOnlinePoolCosts] = useState<Record<string, number>>({})
   const [statusLoading, setStatusLoading] = useState(false)
 
   const selectedPool = useMemo(
@@ -84,6 +87,45 @@ const GachaPage: React.FC = () => {
   const loadGachaStatus = async () => {
     setStatusLoading(true)
     try {
+      if (isFormalOnlineMode()) {
+        const [profile, poolResponse] = await Promise.all([
+          loadOnlineProfile(player),
+          onlineApi.get('/gacha/pools'),
+        ])
+        setOnlineGold(Number(profile.player?.gold || 0))
+        const costMap: Record<string, number> = {}
+        ;(poolResponse.data || []).forEach((pool: any) => {
+          costMap[pool.key] = Number(pool.cost?.amount || 0)
+        })
+        setOnlinePoolCosts(costMap)
+        const currentPool = (poolResponse.data || []).find((pool: any) => pool.key === poolType)
+        if (poolType === 'UP_POOL' && currentPool) {
+          const entries = (currentPool.entries || []).filter((entry: any) => entry.type === 'character').slice(0, 8)
+          setUpPool({
+            title: currentPool.name || 'UP池',
+            description: currentPool.description || '由后端配置控制的 UP 角色池',
+            up_rate: 1,
+            up_character_names: entries.map((entry: any) => entry.name || entry.characterConfigId),
+            up_characters: entries.map((entry: any) => ({
+              name: entry.name || entry.characterConfigId,
+              attribute_type: entry.attributeType || '',
+              profession_type: entry.professionType || '',
+            })),
+          })
+        } else {
+          setUpPool(null)
+        }
+        setHistory([])
+        setPity({
+          current: 0,
+          threshold: 50,
+          remaining: 50,
+          next_guaranteed: false,
+          description: '正式在线模式：抽卡记录已在数据库落库，保底细则后续接入。'
+        })
+        return
+      }
+
       const response = await axios.get('/api/gacha/status', { params: { pool_type: poolType } })
       if (response.data.success) {
         setHistory(response.data.history || [])
@@ -102,6 +144,58 @@ const GachaPage: React.FC = () => {
     setResult(null)
 
     try {
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.post(`/gacha/${profile.session.player.id}/draw`, {
+          poolKey: poolType,
+          count: pullCount,
+        })
+        const onlineResults = (response.data.results || []).map((item: any) => ({
+          character: {
+            name: item.name || item.character?.name || item.characterConfigId || item.entryId,
+            attribute_type: item.attributeType || item.character?.attributeType || '',
+            profession_type: item.professionType || item.character?.professionType || '',
+          },
+          is_duplicate: Boolean(item.duplicate),
+          essence_gained: Number(item.convertedTo?.quantity || 0),
+        }))
+        const newCharacters = onlineResults.filter((item: GachaResultItem) => !item.is_duplicate).length
+        const duplicates = onlineResults.length - newCharacters
+        const summary = {
+          new_characters: newCharacters,
+          duplicates,
+          essence_gained: onlineResults.reduce((sum: number, item: GachaResultItem) => sum + item.essence_gained, 0),
+          pity_triggered: 0,
+        }
+        setResult({
+          success: true,
+          message: `在线抽取完成，消耗 ${response.data.cost?.amount || 0} 金币`,
+          results: onlineResults,
+          summary,
+        })
+        setHistory((previous) => [{
+          timestamp: new Date().toISOString(),
+          pool_type: poolType,
+          pull_count: pullCount,
+          cost: Number(response.data.cost?.amount || 0),
+          new_characters: newCharacters,
+          duplicates,
+          essence_gained: summary.essence_gained,
+          results: onlineResults.map((item: GachaResultItem) => ({
+            name: item.character.name,
+            attribute_type: item.character.attribute_type,
+            profession_type: item.character.profession_type,
+            is_duplicate: item.is_duplicate,
+            essence_gained: item.essence_gained,
+          })),
+        }, ...previous].slice(0, 8))
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        const refreshed = await loadOnlineProfile(player)
+        setOnlineGold(Number(refreshed.player?.gold || 0))
+        completeNewPlayerGuideStep('draw_character')
+        return
+      }
+
       const response = await axios.post('/api/gacha/pull', {
         pull_count: pullCount,
         pool_type: poolType
@@ -114,11 +208,12 @@ const GachaPage: React.FC = () => {
         setPity(response.data.pity || null)
         setUpPool(response.data.up_pool || null)
         await loadPlayer()
+        window.dispatchEvent(new Event('gamer:resources-changed'))
       } else {
         alert(response.data.message)
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || '抽取失败')
+      alert(getOnlineModeError(error, error.response?.data?.message || '抽取失败'))
     } finally {
       setLoading(false)
     }
@@ -126,6 +221,8 @@ const GachaPage: React.FC = () => {
 
   const pityPercent = pity ? Math.min(100, Math.round((pity.current / pity.threshold) * 100)) : 0
   const results: GachaResultItem[] = result?.results || []
+  const unitCost = onlinePoolCosts[poolType] || (isFormalOnlineMode() ? 160 : 1000)
+  const currentGold = onlineGold ?? player?.gold ?? 0
 
   return (
     <div className="gacha-page">
@@ -138,7 +235,7 @@ const GachaPage: React.FC = () => {
         <div className="gacha-info-grid">
           <div className="gacha-info">
             <span>当前金币</span>
-            <strong>{player?.gold ?? 0}</strong>
+            <strong>{currentGold}</strong>
           </div>
           <div className="gacha-info">
             <span>当前卡池</span>
@@ -147,7 +244,7 @@ const GachaPage: React.FC = () => {
           </div>
           <div className="gacha-info">
             <span>消耗</span>
-            <strong>1000 / 10000 / 100000</strong>
+            <strong>{unitCost} / {unitCost * 10} / {unitCost * 100}</strong>
             <small>单抽 / 10连 / 100连</small>
           </div>
         </div>
@@ -198,17 +295,17 @@ const GachaPage: React.FC = () => {
         )}
 
         <div className="pull-buttons">
-          <button onClick={() => handlePull(1)} disabled={loading || (player?.gold || 0) < 1000}>
+          <button onClick={() => handlePull(1)} disabled={loading || currentGold < unitCost}>
             单抽
-            <span>1000金币</span>
+            <span>{unitCost}金币</span>
           </button>
-          <button onClick={() => handlePull(10)} disabled={loading || (player?.gold || 0) < 10000}>
+          <button onClick={() => handlePull(10)} disabled={loading || currentGold < unitCost * 10}>
             10连
-            <span>10000金币</span>
+            <span>{unitCost * 10}金币</span>
           </button>
-          <button onClick={() => handlePull(100)} disabled={loading || (player?.gold || 0) < 100000}>
+          <button onClick={() => handlePull(100)} disabled={loading || currentGold < unitCost * 100}>
             100连
-            <span>100000金币</span>
+            <span>{unitCost * 100}金币</span>
           </button>
         </div>
 

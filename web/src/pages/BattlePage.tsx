@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { io, Socket } from 'socket.io-client'
 import axios from 'axios'
 import { getSocketUrl } from '../config'
+import { getOnlineModeError, onlineApi } from '../services/onlineGameAdapter'
 import './BattlePage.css'
 
 interface StateInfo {
@@ -340,6 +341,8 @@ const BattlePage: React.FC = () => {
   const pollRef = useRef<number | null>(null)
   const endTimeoutRef = useRef<number | null>(null)
   const redirectIntervalRef = useRef<number | null>(null)
+  const onlineBattleTimerRef = useRef<number | null>(null)
+  const battleSpeedRef = useRef(1)
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null)
   const [autoNavigate, setAutoNavigate] = useState(true)
   const [assistEnabled, setAssistEnabled] = useState(false)
@@ -355,6 +358,7 @@ const BattlePage: React.FC = () => {
   })
   const [dropPage, setDropPage] = useState(1)
   const DROP_PAGE_SIZE = 10
+  const isOnlineMode = Boolean(location.state?.online_mode)
 
   const getBattleEventClass = (eventType: string) => {
     if (eventType === 'boss_mechanic') return 'mechanic'
@@ -420,6 +424,13 @@ const BattlePage: React.FC = () => {
     }
   }
 
+  const stopOnlineBattleTimer = () => {
+    if (onlineBattleTimerRef.current !== null) {
+      window.clearInterval(onlineBattleTimerRef.current)
+      onlineBattleTimerRef.current = null
+    }
+  }
+
   const startRedirectTimer = (result: BattleResultPayload, seconds = 5) => {
     clearRedirectTimers()
     setAutoNavigate(true)
@@ -455,6 +466,10 @@ const BattlePage: React.FC = () => {
   useEffect(() => {
     fetchAssistMode()
   }, [])
+
+  useEffect(() => {
+    battleSpeedRef.current = battleSpeed
+  }, [battleSpeed])
   
   useEffect(() => {
     const events = snapshot?.drops?.events ?? []
@@ -511,6 +526,14 @@ const BattlePage: React.FC = () => {
       return
     }
 
+    if (location.state?.online_mode) {
+      startOnlineExperienceBattle()
+      return () => {
+        stopOnlineBattleTimer()
+        clearRedirectTimers()
+      }
+    }
+
     if (existingBattleId) {
       setBattleId(existingBattleId)
       connectWebSocket(existingBattleId)
@@ -529,6 +552,7 @@ const BattlePage: React.FC = () => {
 
     return () => {
       stopPolling()
+      stopOnlineBattleTimer()
       clearRedirectTimers()
       // 清理WebSocket连接
       if (socketRef.current) {
@@ -536,6 +560,146 @@ const BattlePage: React.FC = () => {
       }
     }
   }, [])
+
+  const startOnlineExperienceBattle = () => {
+    const dungeon = location.state?.dungeon
+    const characters = location.state?.characters || []
+    const selectedCharacter = characters[0]
+    const dungeonId = location.state?.dungeon_id
+    const playerId = location.state?.player_id
+    if (!playerId || !dungeonId || !selectedCharacter?.character_id) {
+      setBattleNotice('在线战斗缺少玩家、角色或副本信息，请返回副本页重新进入。')
+      setLoading(false)
+      return
+    }
+    const newBattleId = `online-${Date.now()}`
+    setBattleId(newBattleId)
+    setLoading(false)
+    setBattleResult(null)
+    setBattleNotice('正式在线模式：战斗展示在前端播放，最终奖励由服务器结算落库。')
+    const duration = Number(dungeon?.duration || 60)
+    const totalWaves = Number(dungeon?.reward_config?.spawn_wave_count || 20)
+    const spawnInterval = Number(dungeon?.reward_config?.spawn_interval || 3)
+    const maxHealth = Math.max(600, 700 + Number(selectedCharacter?.level || 1) * 35)
+    const startedAt = Date.now()
+
+    const tick = () => {
+      const currentTime = Math.min(duration, ((Date.now() - startedAt) / 1000) * battleSpeedRef.current)
+      const waves = Math.min(totalWaves, Math.max(0, Math.floor(currentTime / spawnInterval) + 1))
+      const singleKills = Math.floor(waves / 2)
+      const groupKills = (waves - singleKills) * 5
+      const enemyHealth = Math.max(0, Math.round(300 - (currentTime % spawnInterval) * 120))
+      const battleEvents: BattleEvent[] = [
+        {
+          time: currentTime,
+          time_text: `${currentTime.toFixed(1)}s`,
+          message: `${selectedCharacter?.name || '角色'} 正在清理第 ${waves || 1} 波经验小怪`,
+          event_type: 'skill_effect',
+          payload: { caster_name: selectedCharacter?.name || '角色', skill_name: '循环技能' },
+        },
+        {
+          time: currentTime,
+          time_text: `${currentTime.toFixed(1)}s`,
+          message: `已击杀单体 ${singleKills}，群体 ${groupKills}`,
+          event_type: 'damage',
+          payload: { amount: singleKills + groupKills, target_name: '经验小怪' },
+        },
+      ]
+      applySnapshot({
+        flow_state: { code: currentTime >= duration ? 'reward' : 'running', label: currentTime >= duration ? '结算中' : '战斗中' },
+        battle_state: { code: currentTime >= duration ? 'completed' : 'running', label: currentTime >= duration ? '已完成' : '进行中' },
+        current_time: currentTime,
+        duration,
+        player_units: [{
+          character_id: selectedCharacter?.character_id || 'online_character',
+          name: selectedCharacter?.name || '在线角色',
+          health: maxHealth,
+          max_health: maxHealth,
+          physical_health: maxHealth,
+          max_physical_health: maxHealth,
+          magical_health: 0,
+          max_magical_health: 0,
+          is_alive: true,
+        }],
+        enemy_units: currentTime >= duration ? [] : [{
+          character_id: `online_wave_${waves}`,
+          name: waves % 2 === 0 ? '群体经验小怪' : '单体经验小怪',
+          health: enemyHealth,
+          max_health: 300,
+          physical_health: enemyHealth,
+          max_physical_health: 300,
+          magical_health: 0,
+          max_magical_health: 0,
+          spawn_category: 'minion',
+          is_alive: enemyHealth > 0,
+        }],
+        battle_log: battleEvents.map((event) => event.message),
+        battle_events: battleEvents,
+        battle_speed: battleSpeedRef.current,
+      })
+
+      if (currentTime >= duration) {
+        stopOnlineBattleTimer()
+        void settleOnlineExperienceBattle(playerId, dungeonId, selectedCharacter?.character_id, duration, singleKills, groupKills)
+      }
+    }
+
+    tick()
+    onlineBattleTimerRef.current = window.setInterval(tick, 1000)
+  }
+
+  const settleOnlineExperienceBattle = async (
+    playerId: string,
+    dungeonId: string,
+    characterId: string,
+    duration: number,
+    singleMonstersKilled: number,
+    groupMonstersKilled: number,
+  ) => {
+    try {
+      const response = await onlineApi.post('/battle-settlement', {
+        playerId,
+        dungeonId,
+        characterIds: [characterId],
+        success: true,
+        duration,
+        singleMonstersKilled,
+        groupMonstersKilled,
+        clientTrace: { source: 'battle-page-online-mode' },
+      })
+      const serverRewards = response.data?.serverRewards || {}
+      const progress = response.data?.progress || {}
+      window.dispatchEvent(new Event('gamer:resources-changed'))
+      handleBattleResult({
+        battle_id: response.data?.record?.id || battleId || `online-${Date.now()}`,
+        player_id: playerId,
+        dungeon_id: dungeonId,
+        state: { code: 'finished', label: '已结算' },
+        outcome: { success: response.data?.outcome === 'success', code: response.data?.outcome || 'success', label: response.data?.outcome === 'success' ? '通关' : '失败' },
+        duration: serverRewards.cappedDuration || duration,
+        rewards: { serverRewards },
+        materials: (response.data?.rewards || []).map((item: any) => ({
+          material_type: item.payload?.name || item.itemConfigId,
+          attribute_type: item.payload?.attributeType || null,
+          count: Number(item.quantity || 0),
+        })),
+        progress,
+        progress_summary: {
+          completion_count: Number(progress.successfulAttempts || 0),
+          total_attempts: Number(progress.totalAttempts || 0),
+          successful_attempts: Number(progress.successfulAttempts || 0),
+          failed_attempts: Number(progress.failedAttempts || 0),
+          sweep_unlocked: Number(progress.successfulAttempts || 0) >= 50,
+          sweep_unlock_count: 50,
+          sweep_text: Number(progress.successfulAttempts || 0) >= 50 ? '已解锁' : `${Number(progress.successfulAttempts || 0)}/50`,
+        },
+        finished_at: new Date().toISOString(),
+      })
+    } catch (error) {
+      setBattleNotice(getOnlineModeError(error, '在线战斗结算失败，请确认 server-nest 正在运行。'))
+      cancelAutoNavigate()
+    }
+  }
 
   const createBattle = async (dungeonId: string, selectedCharacterIds?: string[]) => {
     setLoading(true)
@@ -695,6 +859,12 @@ const BattlePage: React.FC = () => {
   const handleSpeedChange = async (speed: number) => {
     setSpeedUpdating(true)
     setSpeedSyncMessage(`正在请求 ${speed}x...`)
+    if (isOnlineMode) {
+      setBattleSpeed(speed)
+      setSpeedSyncMessage(`当前速度：${speed}x`)
+      setSpeedUpdating(false)
+      return
+    }
     if (battleId) {
       try {
         const response = await axios.post(`/api/battle/${battleId}/speed`, { battle_speed: speed })
@@ -717,6 +887,11 @@ const BattlePage: React.FC = () => {
   }
 
   const handleStopBattle = async () => {
+    if (isOnlineMode) {
+      stopOnlineBattleTimer()
+      navigateToDungeons()
+      return
+    }
     if (battleId) {
       try {
         await axios.post(`/api/battle/${battleId}/stop`)

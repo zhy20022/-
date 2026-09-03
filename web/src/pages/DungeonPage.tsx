@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
+import { useAuthStore } from '../stores/authStore'
+import { getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import './DungeonPage.css'
 
 interface DungeonProgress {
@@ -205,6 +207,7 @@ const normalizeDifficulty = (difficulty?: string) => {
 
 const DungeonPage: React.FC = () => {
   const navigate = useNavigate()
+  const { player } = useAuthStore()
   const [dungeons, setDungeons] = useState<Dungeon[]>([])
   const [characters, setCharacters] = useState<Character[]>([])
   const [selectedDungeon, setSelectedDungeon] = useState<Dungeon | null>(null)
@@ -230,6 +233,13 @@ const DungeonPage: React.FC = () => {
 
   const loadDungeons = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineDungeons(player)
+        setDungeons(payload.dungeons)
+        setCharacters(payload.characters)
+        return
+      }
+
       const response = await axios.get('/api/dungeons')
       if (response.data.success) {
         setDungeons(response.data.dungeons)
@@ -242,6 +252,7 @@ const DungeonPage: React.FC = () => {
   }
 
   const loadCharacters = async () => {
+    if (isFormalOnlineMode()) return
     try {
       const response = await axios.get('/api/characters')
       if (response.data.success) {
@@ -270,6 +281,31 @@ const DungeonPage: React.FC = () => {
     }
 
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineDungeons(player)
+        const character = payload.characters.find((item) => selectedCharacters.includes(item.character_id))
+        if (!character) {
+          alert('请选择当前在线账号拥有的角色')
+          return
+        }
+        await onlineApi.post(`/dungeons/${payload.session.player.id}/${selectedDungeon.dungeon_id}/start`, {})
+        completeNewPlayerGuideStep('learn_dungeons')
+        if (normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE') {
+          completeNewPlayerGuideStep('run_exp_dungeon')
+        }
+        navigate('/battle', {
+          state: {
+            online_mode: true,
+            player_id: payload.session.player.id,
+            dungeon_id: selectedDungeon.dungeon_id,
+            dungeon: selectedDungeon,
+            character_ids: selectedCharacters,
+            characters: [character],
+          }
+        })
+        return
+      }
+
       const response = await axios.post(`/api/dungeons/${selectedDungeon.dungeon_id}/start`, {
         character_ids: selectedCharacters
       })
@@ -288,7 +324,7 @@ const DungeonPage: React.FC = () => {
         })
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || '开始副本失败')
+      alert(getOnlineModeError(error, error.response?.data?.message || '开始副本失败'))
     }
   }
 
@@ -404,6 +440,11 @@ const DungeonPage: React.FC = () => {
     }
     
     try {
+      if (isFormalOnlineMode()) {
+        alert('正式在线模式下扫荡接口还未开放；当前请先进入经验本手动挑战，通关进度会真实落库。')
+        return
+      }
+
       const response = await axios.post(`/api/dungeons/${dungeon.dungeon_id}/sweep`, {
         count: count
       })
@@ -426,6 +467,13 @@ const DungeonPage: React.FC = () => {
   // 查看详情
   const handleViewDetail = async (dungeon: Dungeon) => {
     try {
+      if (isFormalOnlineMode()) {
+        const response = await onlineApi.get(`/dungeons/${dungeon.dungeon_id}`)
+        setSelectedDungeon(mapOnlineDungeon(response.data.dungeon, [], characters as any))
+        setShowDetail(true)
+        return
+      }
+
       const response = await axios.get(`/api/dungeons/${dungeon.dungeon_id}`)
       if (response.data.success) {
         setSelectedDungeon(response.data.dungeon)

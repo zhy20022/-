@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
+import { useAuthStore } from '../stores/authStore'
+import { getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, loadOnlineProfile, mapOnlineCharacter, onlineApi } from '../services/onlineGameAdapter'
 import './CharacterPage.css'
 
 interface CharacterStats {
@@ -147,6 +149,7 @@ interface BattleSoulInfo {
 
 const CharacterPage: React.FC = () => {
   const navigate = useNavigate()
+  const { player } = useAuthStore()
   const [characters, setCharacters] = useState<Character[]>([])
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
   const [showDetail, setShowDetail] = useState(false)
@@ -166,6 +169,7 @@ const CharacterPage: React.FC = () => {
   }, [])
 
   const loadBattleSoulData = async () => {
+    if (isFormalOnlineMode()) return
     try {
       const response = await axios.get('/api/battle-soul/info')
       if (response.data.success) {
@@ -178,6 +182,12 @@ const CharacterPage: React.FC = () => {
 
   const loadCharacters = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        setCharacters(profile.characters)
+        return
+      }
+
       const response = await axios.get('/api/characters')
       if (response.data.success) {
         // 为角色添加默认星级（如果没有）
@@ -540,6 +550,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   onBattleSoulUpgrade,
   onCharacterUpdated
 }) => {
+  const { player } = useAuthStore()
   const [activeTab, setActiveTab] = useState<'info' | 'skills' | 'equipment' | 'illustration' | 'battle-soul'>('info')
   const [upgrading, setUpgrading] = useState(false)
   const [equipmentOptions, setEquipmentOptions] = useState<{ weapons: InventoryOption[]; equipment: InventoryOption[] }>({ weapons: [], equipment: [] })
@@ -615,6 +626,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   }, [character.character_id, character.level, character.exp, expLevelDelta])
 
   const loadEquipmentOptions = async () => {
+    if (isFormalOnlineMode()) return
     try {
       const response = await axios.get(`/api/characters/${character.character_id}/equipment-options`)
       if (response.data.success) {
@@ -629,6 +641,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   }
 
   const loadIllustrationStatus = async () => {
+    if (isFormalOnlineMode()) return
     try {
       const response = await axios.get('/api/exchange/illustration/status', {
         params: { character_id: character.character_id }
@@ -688,7 +701,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
       const response = await axios.post(`/api/characters/${character.character_id}/equip`, { item_id: itemId })
       if (response.data.success) {
         setEquipmentFeedback(response.data.message || '装备成功')
-        onCharacterUpdated(response.data.character)
+        onCharacterUpdated(mapOnlineCharacter(response.data.character))
         loadEquipmentOptions()
       } else {
         setEquipmentFeedback(response.data.message || '装备失败')
@@ -798,6 +811,21 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const loadMaterials = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        const expCount = (profile.inventory || [])
+          .filter((item: any) => item.itemConfigId === 'character_exp_crystal')
+          .reduce((sum: number, item: any) => sum + Number(item.quantity || 0), 0)
+        setMaterials({
+          character_exp_crystal: {
+            material_type: 'CHARACTER_EXP',
+            attribute_type: null,
+            count: expCount,
+          },
+        })
+        return
+      }
+
       const response = await axios.get('/api/materials')
       if (response.data.success) {
         setMaterials(response.data.materials || {})
@@ -809,6 +837,12 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const loadExpDungeons = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const payload = await loadOnlineDungeons(player)
+        setExpDungeons(payload.dungeons.filter((dungeon) => dungeon.reward_config?.type === 'experience'))
+        return
+      }
+
       const response = await axios.get('/api/dungeons')
       if (response.data.success) {
         const dungeons = (response.data.dungeons || []).filter(
@@ -830,6 +864,30 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
     const maxDelta = Math.max(1, maxCharacterLevel - character.level)
     const normalizedDelta = Math.min(Math.max(expLevelDelta || 1, 1), maxDelta)
     try {
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.get(`/players/${profile.session.player.id}/characters/${character.character_id}/exp-preview`, {
+          params: { levelDelta: normalizedDelta }
+        })
+        setExpPreview({
+          target_level: response.data.targetLevel,
+          required_exp: response.data.requiredExpPackages,
+          owned_exp: response.data.ownedExpPackages,
+          need_more: response.data.needMoreExpPackages,
+          can_afford: response.data.canAfford,
+          max_crystals: response.data.ownedExpPackages,
+        })
+        setExpShortage(response.data.canAfford ? null : {
+          required_exp: response.data.requiredExpPackages,
+          owned_exp: response.data.ownedExpPackages,
+          need_more: response.data.needMoreExpPackages,
+          message: response.data.needMoreGold > 0
+            ? `经验结晶或金币不足（缺金币 ${response.data.needMoreGold}）`
+            : '经验结晶量不足'
+        })
+        return
+      }
+
       const response = await axios.get(`/api/characters/${character.character_id}/exp-preview`, {
         params: { level_delta: normalizedDelta }
       })
@@ -889,12 +947,31 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
     try {
       setExpFeedback(null)
       setExpShortage(null)
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/use-exp`, { amount })
+        completeNewPlayerGuideStep('level_character')
+        onCharacterUpdated(response.data.character)
+        setMaterials({
+          character_exp_crystal: {
+            material_type: 'CHARACTER_EXP',
+            attribute_type: null,
+            count: Number(response.data.ownedExpPackages || 0),
+          },
+        })
+        setExpFeedback(`已消耗 ${response.data.consumedExpPackages || amount} 个经验结晶和 ${response.data.consumedGold || 0} 金币`)
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadExpPreview()
+        return
+      }
+
       const response = await axios.post(`/api/characters/${character.character_id}/use-exp`, { amount })
       if (response.data.success) {
         completeNewPlayerGuideStep('level_character')
         onCharacterUpdated(response.data.character)
         setMaterials(response.data.materials || {})
         setExpFeedback(`已消耗 ${amount} 个经验结晶`)
+        window.dispatchEvent(new Event('gamer:resources-changed'))
       } else {
         setExpFeedback(response.data.message || '使用经验失败')
       }
@@ -908,7 +985,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
           message: payload.message || '经验结晶量不足'
         })
       }
-      setExpFeedback(payload.message || '使用经验失败')
+      setExpFeedback(getOnlineModeError(error, payload.message || '使用经验失败'))
     }
   }
 
@@ -916,6 +993,27 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
     if (isCharacterMaxLevel) return
     try {
       setExpFeedback(null)
+      if (isFormalOnlineMode()) {
+        const profile = await loadOnlineProfile(player)
+        const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/use-exp`, {
+          levelDelta: normalizedLevelDelta
+        })
+        completeNewPlayerGuideStep('level_character')
+        onCharacterUpdated(mapOnlineCharacter(response.data.character))
+        setMaterials({
+          character_exp_crystal: {
+            material_type: 'CHARACTER_EXP',
+            attribute_type: null,
+            count: Number(response.data.ownedExpPackages || 0),
+          },
+        })
+        setExpShortage(null)
+        setExpFeedback(`已提升到 Lv.${response.data.character.level}，消耗经验结晶 ${response.data.consumedExpPackages || 0} 和金币 ${response.data.consumedGold || 0}`)
+        window.dispatchEvent(new Event('gamer:resources-changed'))
+        await loadExpPreview()
+        return
+      }
+
       const response = await axios.post(`/api/characters/${character.character_id}/use-exp`, {
         level_delta: normalizedLevelDelta
       })
@@ -925,6 +1023,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         setMaterials(response.data.materials || {})
         setExpShortage(null)
         setExpFeedback(`已提升到 Lv.${response.data.character.level}`)
+        window.dispatchEvent(new Event('gamer:resources-changed'))
       } else {
         setExpFeedback(response.data.message || '升级失败')
       }
@@ -938,7 +1037,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
           message: payload.message || '经验结晶量不足'
         })
       }
-      setExpFeedback(payload.message || '升级失败')
+      setExpFeedback(getOnlineModeError(error, payload.message || '升级失败'))
     }
   }
 
@@ -951,6 +1050,11 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
     if (!sweepableExperienceDungeon || sweepingExp) return
     try {
       setSweepingExp(true)
+      if (isFormalOnlineMode()) {
+        setExpFeedback('正式在线模式下扫荡会在下一步接入服务器扫荡接口；当前请先进入经验本挑战。')
+        return
+      }
+
       const response = await axios.post(`/api/dungeons/${sweepableExperienceDungeon.dungeon_id}/sweep`, { count: 1 })
       if (response.data.success) {
         setExpFeedback(`已扫荡 ${sweepableExperienceDungeon.name}`)
@@ -973,6 +1077,26 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   })
 
   const loadSkillConfig = async () => {
+    if (isFormalOnlineMode()) {
+      const configuredSkills = ((character.skills as any)?.configuredSkills || (character.skills as any)?.skillSlots || []) as any[]
+      const skills = Array.isArray(configuredSkills)
+        ? configuredSkills.map((skill, index) => ({
+          skill_id: String(skill.id || skill.skill_id || skill.name || `skill_${index}`),
+          name: String(skill.name || `技能${index + 1}`),
+          skill_logic: String(skill.logic || skill.skill_logic || skill.effect || ''),
+          skill_tier: index < 5 ? '底级别' : index < 8 ? '中级别' : '高级别',
+          cooldown: 0,
+          skill_multiplier: 1,
+          target_type: 'AUTO',
+          description: String(skill.effect || skill.description || ''),
+        }))
+        : []
+      setUnlockedSkills(skills)
+      setSkillSlots(getDefaultSkillSlots(skills))
+      setSkillFeedback('正式在线模式：技能配置来自角色内容库，保存接口后续迁移。')
+      return
+    }
+
     try {
       const response = await axios.get(`/api/characters/${character.character_id}/skills`)
       if (response.data.success) {
@@ -1001,6 +1125,11 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   }
 
   const saveSkillConfig = async () => {
+    if (isFormalOnlineMode()) {
+      setSkillFeedback('正式在线模式下技能保存接口还未迁移，当前保留配置预览。')
+      return
+    }
+
     try {
       const response = await axios.post(`/api/characters/${character.character_id}/skills/config`, {
         skill_slots: skillSlots

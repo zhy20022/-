@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import axios from 'axios'
+import { isFormalOnlineMode } from '../config'
+import { clearOnlineSession, ensureOnlineSession, getApiErrorMessage } from '../services/onlineApi'
 
 interface Player {
   player_id: string
@@ -26,6 +28,22 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (username: string, password: string) => {
     try {
+      if (isFormalOnlineMode()) {
+        const session = await ensureOnlineSession({ username, displayName: username })
+        set({
+          isAuthenticated: true,
+          player: {
+            player_id: session.player.id,
+            username: session.player.displayName,
+            level: session.player.level,
+            exp: 0,
+            gold: session.player.gold,
+          },
+          token: session.accessToken,
+        })
+        return { success: true, message: '登录成功' }
+      }
+
       const response = await axios.post('/api/auth/login', {
         username,
         password
@@ -44,13 +62,29 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error: any) {
       return {
         success: false,
-        message: error.response?.data?.message || '登录失败'
+        message: getApiErrorMessage(error, error.response?.data?.message || '登录失败')
       }
     }
   },
 
   register: async (username: string, password: string, email?: string) => {
     try {
+      if (isFormalOnlineMode()) {
+        const session = await ensureOnlineSession({ username, displayName: username }, { forceRefresh: true })
+        set({
+          isAuthenticated: true,
+          player: {
+            player_id: session.player.id,
+            username: session.player.displayName,
+            level: session.player.level,
+            exp: 0,
+            gold: session.player.gold,
+          },
+          token: session.accessToken,
+        })
+        return { success: true, message: '注册并登录成功' }
+      }
+
       const response = await axios.post('/api/auth/register', {
         username,
         password,
@@ -65,14 +99,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error: any) {
       return {
         success: false,
-        message: error.response?.data?.message || '注册失败'
+        message: getApiErrorMessage(error, error.response?.data?.message || '注册失败')
       }
     }
   },
 
   logout: async () => {
     try {
-      await axios.post('/api/auth/logout')
+      if (isFormalOnlineMode()) {
+        clearOnlineSession()
+      } else {
+        await axios.post('/api/auth/logout')
+      }
     } catch (error) {
       console.error('登出失败', error)
     }
@@ -85,6 +123,24 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   loadPlayer: async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const session = await ensureOnlineSession({
+          player_id: localStorage.getItem('gamer_online_player_id') || 'local-player',
+        })
+        set({
+          isAuthenticated: true,
+          player: {
+            player_id: session.player.id,
+            username: session.player.displayName,
+            level: session.player.level,
+            exp: 0,
+            gold: session.player.gold,
+          },
+          token: session.accessToken,
+        })
+        return
+      }
+
       const response = await axios.get('/api/player/info')
       if (response.data.success) {
         set({

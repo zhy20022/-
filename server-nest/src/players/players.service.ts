@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { applyCharacterExp, getExpForNextLevel, getExpRequiredToLevel, MAX_CHARACTER_LEVEL } from '../common/leveling';
+import { GameConfigsService } from '../configs/configs.service';
 import { InventoryItemEntity, MailEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
 const CHARACTER_EXP_ITEM_ID = 'character_exp_crystal';
@@ -14,6 +15,7 @@ export class PlayersService {
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
     @InjectRepository(InventoryItemEntity) private readonly inventory: Repository<InventoryItemEntity>,
     @InjectRepository(MailEntity) private readonly mails: Repository<MailEntity>,
+    private readonly configs: GameConfigsService,
   ) {}
 
   async getProfile(playerId: string) {
@@ -24,7 +26,13 @@ export class PlayersService {
       this.inventory.find({ where: { playerId }, take: 100 }),
       this.mails.find({ where: { playerId }, order: { createdAt: 'DESC' }, take: 30 }),
     ]);
-    return { player, characters: characters.map((character) => this.serializeCharacter(character)), inventory, mails };
+    const configMap = await this.getCharacterConfigMap();
+    return {
+      player,
+      characters: characters.map((character) => this.serializeCharacter(character, configMap.get(character.characterConfigId))),
+      inventory,
+      mails,
+    };
   }
 
   async expPreview(playerId: string, characterId: string, levelDelta = 1) {
@@ -102,12 +110,24 @@ export class PlayersService {
     };
   }
 
-  private serializeCharacter(character: PlayerCharacterEntity) {
+  private serializeCharacter(character: PlayerCharacterEntity, config?: Record<string, unknown>) {
     return {
       ...character,
+      name: config?.name || character.equipment?.characterName || character.characterConfigId,
+      attributeName: config?.attributeName,
+      professionName: config?.professionName,
+      rarity: config?.rarity || character.equipment?.rarity || 'rare',
+      weaponName: config?.weaponName || character.equipment?.weaponName || '',
+      skills: config?.skills || [],
       maxLevel: MAX_CHARACTER_LEVEL,
       expToNextLevel: getExpForNextLevel(character.level),
     };
+  }
+
+  private async getCharacterConfigMap() {
+    const config = await this.configs.getContentConfig('characters');
+    const payload = config.payload as { characters?: Array<Record<string, unknown> & { id: string }> } | null;
+    return new Map((payload?.characters || []).map((character) => [character.id, character]));
   }
 
   private async getOwnedCharacter(playerId: string, characterId: string) {

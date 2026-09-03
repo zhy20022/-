@@ -61,17 +61,44 @@
 
 /* 移动端横竖屏适配 */
 @media (max-width: 768px) {
+  .app.mobile-shell-active .main-menu {
+    background: #edf1f5;
+  }
+
   .menu-container {
     padding: 20px;
     padding-top: 70px;
+  }
+
+  .app.mobile-shell-active .menu-container {
+    padding: 16px;
+    background: #ffffff;
   }
   
   .menu-container h1 {
     font-size: 32px;
   }
+
+  .app.mobile-shell-active .menu-container h1 {
+    text-align: left;
+    color: #172033;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    text-shadow: none;
+  }
+
+  .app.mobile-shell-active .player-info {
+    display: none;
+  }
   
   .app-orientation-container.portrait .menu-buttons {
     grid-template-columns: 1fr;
+  }
+
+  .app.mobile-shell-active.portrait .menu-buttons,
+  .app.mobile-shell-active.landscape .menu-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
   
   .app-orientation-container.landscape .menu-buttons {
@@ -81,6 +108,36 @@
   .menu-buttons button {
     padding: 16px 20px;
     font-size: 16px;
+  }
+
+  .app.mobile-shell-active .menu-buttons button {
+    min-height: 64px;
+    padding: 10px 8px;
+    border: 1px solid #d9e1ea;
+    border-radius: 7px;
+    color: #273449;
+    background: #f7f9fb;
+    box-shadow: none;
+    font-size: 14px;
+  }
+
+  .app.mobile-shell-active .menu-buttons button:hover,
+  .app.mobile-shell-active .menu-buttons button:active {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .app.mobile-shell-active .menu-buttons .attention-btn {
+    color: #065f46;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+
+  .app.mobile-shell-active .menu-buttons .logout-btn {
+    min-height: 48px;
+    color: #b42318;
+    background: #fff5f5;
+    border-color: #fecaca;
   }
 }
 
@@ -159,4 +216,3 @@
 .menu-buttons .attention-btn:hover {
   box-shadow: 0 6px 20px rgba(22, 163, 74, 0.45);
 }
-

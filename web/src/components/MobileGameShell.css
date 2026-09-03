@@ -1,0 +1,183 @@
+.mobile-game-topbar,
+.mobile-game-tabbar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-game-topbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 1100;
+    display: flex;
+    min-height: 62px;
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #f8fafc;
+    background: rgba(19, 27, 38, 0.96);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.24);
+    backdrop-filter: blur(14px);
+  }
+
+  .mobile-player-summary {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-connection-dot {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 50%;
+    background: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.14);
+  }
+
+  .mobile-connection-dot.online {
+    background: #34d399;
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.16);
+  }
+
+  .mobile-connection-dot.offline {
+    background: #fb7185;
+    box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.16);
+  }
+
+  .mobile-player-copy {
+    display: grid;
+    min-width: 0;
+    line-height: 1.1;
+  }
+
+  .mobile-player-copy strong {
+    max-width: 88px;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-player-copy small {
+    margin-top: 4px;
+    color: #a7b2c2;
+    font-size: 10px;
+  }
+
+  .mobile-resource-list {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .mobile-resource-item {
+    display: grid;
+    grid-template-columns: auto auto;
+    min-width: 86px;
+    padding: 6px 8px;
+    align-items: center;
+    column-gap: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .mobile-resource-item > span {
+    grid-row: 1 / span 2;
+    color: #fbbf24;
+    font-size: 12px;
+  }
+
+  .mobile-resource-item.exp > span {
+    color: #67e8f9;
+  }
+
+  .mobile-resource-item small {
+    color: #a7b2c2;
+    font-size: 9px;
+    line-height: 1;
+  }
+
+  .mobile-resource-item strong {
+    max-width: 58px;
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 12px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-game-tabbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 1100;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    min-height: calc(62px + env(safe-area-inset-bottom));
+    padding: 4px 5px max(4px, env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.98);
+    border-top: 1px solid #dbe2ea;
+    box-shadow: 0 -6px 22px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(14px);
+  }
+
+  .mobile-game-tabbar button {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 54px;
+    padding: 4px 2px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    color: #64748b;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .mobile-game-tabbar button::before {
+    position: absolute;
+    top: 0;
+    width: 20px;
+    height: 3px;
+    content: '';
+    border-radius: 0 0 3px 3px;
+    background: transparent;
+  }
+
+  .mobile-game-tabbar button.active {
+    color: #0f766e;
+    background: #ecfdf5;
+  }
+
+  .mobile-game-tabbar button.active::before {
+    background: #0f766e;
+  }
+
+  .mobile-nav-icon {
+    height: 24px;
+    font-size: 20px;
+    line-height: 24px;
+  }
+}
+
+@media (max-width: 390px) {
+  .mobile-resource-item {
+    min-width: 74px;
+    padding-inline: 6px;
+  }
+
+  .mobile-player-copy strong {
+    max-width: 66px;
+  }
+}

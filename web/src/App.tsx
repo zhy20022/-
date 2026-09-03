@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
 import { useOrientation } from './hooks/useOrientation'
 import OrientationToggle from './components/OrientationToggle'
+import MobileGameShell from './components/MobileGameShell'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import MainMenu from './pages/MainMenu'
@@ -27,8 +28,12 @@ import './App.css'
 
 function App() {
   const { isAuthenticated } = useAuthStore()
+  const location = useLocation()
   const { isPortrait, isMobile } = useOrientation()
   const [isTransitioning, setIsTransitioning] = useState(false)
+
+  const shellHiddenRoutes = ['/login', '/register', '/battle', '/dungeons/multiplayer']
+  const showMobileShell = isAuthenticated && !shellHiddenRoutes.some((path) => location.pathname.startsWith(path))
 
   // 监听方向变化，添加过渡动画
   useEffect(() => {
@@ -47,6 +52,7 @@ function App() {
     isPortrait ? 'portrait' : 'landscape',
     isTransitioning ? 'orientation-transitioning' : '',
     isMobile ? 'mobile' : 'desktop',
+    showMobileShell ? 'mobile-shell-active' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -55,6 +61,7 @@ function App() {
     <div className={containerClassName}>
       {/* 横竖屏切换按钮 - 仅在已登录时显示 */}
       {isAuthenticated && <OrientationToggle position="top-right" />}
+      {showMobileShell && <MobileGameShell />}
       
       <Routes>
         <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />

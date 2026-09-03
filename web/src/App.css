@@ -58,4 +58,140 @@
   max-height: 100vh;
 }
 
+@media (max-width: 768px) {
+  .app.mobile-shell-active {
+    min-height: 100dvh;
+    background: #edf1f5;
+  }
+
+  .app.mobile-shell-active .orientation-toggle {
+    display: none;
+  }
+
+  .app.mobile-shell-active .main-menu,
+  .app.mobile-shell-active .character-page,
+  .app.mobile-shell-active .dungeon-page,
+  .app.mobile-shell-active .gacha-page,
+  .app.mobile-shell-active .crafting-page,
+  .app.mobile-shell-active .inventory-page,
+  .app.mobile-shell-active .shop-page,
+  .app.mobile-shell-active .social-page,
+  .app.mobile-shell-active .quest-page,
+  .app.mobile-shell-active .achievement-page,
+  .app.mobile-shell-active .enhancement-page,
+  .app.mobile-shell-active .admin-page,
+  .app.mobile-shell-active .world-boss-page,
+  .app.mobile-shell-active .team-records-page,
+  .app.mobile-shell-active .online-progress-page,
+  .app.mobile-shell-active .online-admin-page {
+    min-height: 100dvh;
+    padding: calc(72px + env(safe-area-inset-top)) 10px calc(78px + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+  }
+
+  .app.mobile-shell-active .page-container,
+  .app.mobile-shell-active .menu-container,
+  .app.mobile-shell-active .character-container,
+  .app.mobile-shell-active .dungeon-container,
+  .app.mobile-shell-active .gacha-container,
+  .app.mobile-shell-active .inventory-container,
+  .app.mobile-shell-active .crafting-container,
+  .app.mobile-shell-active .shop-container,
+  .app.mobile-shell-active .social-container,
+  .app.mobile-shell-active .quest-container,
+  .app.mobile-shell-active .achievement-container,
+  .app.mobile-shell-active .enhancement-container,
+  .app.mobile-shell-active .admin-container,
+  .app.mobile-shell-active .world-boss-shell,
+  .app.mobile-shell-active .team-records-shell,
+  .app.mobile-shell-active .online-progress-shell,
+  .app.mobile-shell-active .online-admin-shell {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 14px;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+  .app.mobile-shell-active .page-header,
+  .app.mobile-shell-active .character-header,
+  .app.mobile-shell-active .dungeon-header,
+  .app.mobile-shell-active .gacha-header,
+  .app.mobile-shell-active .inventory-header,
+  .app.mobile-shell-active .shop-header,
+  .app.mobile-shell-active .social-header {
+    min-height: auto;
+    margin-bottom: 14px;
+    padding-top: 0;
+  }
+
+  .app.mobile-shell-active .header-top {
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .app.mobile-shell-active .header-top h1,
+  .app.mobile-shell-active .page-header h1,
+  .app.mobile-shell-active .menu-container h1 {
+    margin: 0 0 14px;
+    font-size: 24px;
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+
+  .app.mobile-shell-active .back-btn,
+  .app.mobile-shell-active .world-boss-back {
+    display: none;
+  }
+
+  .app.mobile-shell-active button,
+  .app.mobile-shell-active input,
+  .app.mobile-shell-active select {
+    min-height: 44px;
+  }
+
+  .app.mobile-shell-active .characters-grid,
+  .app.mobile-shell-active .dungeons-grid,
+  .app.mobile-shell-active .inventory-grid,
+  .app.mobile-shell-active .shop-grid,
+  .app.mobile-shell-active .friend-grid,
+  .app.mobile-shell-active .world-boss-grid,
+  .app.mobile-shell-active .record-hero-grid,
+  .app.mobile-shell-active .report-grid,
+  .app.mobile-shell-active .reward-breakdown-grid,
+  .app.mobile-shell-active .role-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app.mobile-shell-active .tabs,
+  .app.mobile-shell-active .filter-tabs,
+  .app.mobile-shell-active .quest-tabs,
+  .app.mobile-shell-active .inventory-tabs,
+  .app.mobile-shell-active .difficulty-tabs {
+    display: flex;
+    max-width: 100%;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .app.mobile-shell-active .tabs::-webkit-scrollbar,
+  .app.mobile-shell-active .filter-tabs::-webkit-scrollbar,
+  .app.mobile-shell-active .quest-tabs::-webkit-scrollbar,
+  .app.mobile-shell-active .inventory-tabs::-webkit-scrollbar,
+  .app.mobile-shell-active .difficulty-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app.mobile-shell-active .tabs > *,
+  .app.mobile-shell-active .filter-tabs > *,
+  .app.mobile-shell-active .quest-tabs > *,
+  .app.mobile-shell-active .inventory-tabs > *,
+  .app.mobile-shell-active .difficulty-tabs > * {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
 
