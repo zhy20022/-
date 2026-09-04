@@ -18,6 +18,7 @@ DECLARE
     'idle_sessions',
     'inventory_items',
     'mails',
+    'operation_requests',
     'player_characters',
     'players',
     'ranking_entries',
@@ -42,7 +43,7 @@ BEGIN
   ORDER BY id DESC
   LIMIT 1;
 
-  IF current_version IS DISTINCT FROM 'InitialOnlineSchema1788502608304' THEN
+  IF current_version IS DISTINCT FROM 'ConcurrentMutationSafety1788509000000' THEN
     RAISE EXCEPTION 'restore verification failed; unexpected schema version: %', current_version;
   END IF;
 
@@ -68,6 +69,28 @@ BEGIN
   WHERE p.id IS NULL;
   IF orphan_count > 0 THEN
     RAISE EXCEPTION 'restore verification failed; orphan inventory items: %', orphan_count;
+  END IF;
+
+  SELECT count(*) INTO orphan_count FROM players WHERE gold < 0;
+  IF orphan_count > 0 THEN
+    RAISE EXCEPTION 'restore verification failed; negative player balances: %', orphan_count;
+  END IF;
+
+  SELECT count(*) INTO orphan_count FROM inventory_items WHERE quantity < 0;
+  IF orphan_count > 0 THEN
+    RAISE EXCEPTION 'restore verification failed; negative inventory quantities: %', orphan_count;
+  END IF;
+
+  SELECT count(*) INTO orphan_count
+  FROM (
+    SELECT 1
+    FROM inventory_items
+    WHERE "itemType" IN ('material', 'currency', 'fragment', 'consumable')
+    GROUP BY "playerId", "itemConfigId", "itemType"
+    HAVING count(*) > 1
+  ) duplicates;
+  IF orphan_count > 0 THEN
+    RAISE EXCEPTION 'restore verification failed; duplicate inventory stacks: %', orphan_count;
   END IF;
 END $$;
 

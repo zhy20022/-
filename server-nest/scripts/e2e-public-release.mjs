@@ -1,4 +1,5 @@
 import { setTimeout as delay } from 'node:timers/promises';
+import { randomUUID } from 'node:crypto';
 
 const apiBase = (process.env.E2E_API_BASE || 'https://gamer-2d-playable-demo.yicheng430664.chatgpt.site/api').replace(/\/$/, '');
 const expectedCommit = String(process.env.E2E_EXPECTED_COMMIT || '').trim();
@@ -21,7 +22,7 @@ async function main() {
   const pools = await getJson('/gacha/pools');
   assert(Array.isArray(pools) && pools.some((pool) => pool.key === 'starter'), 'starter gacha pool is unavailable');
 
-  const draw = await postJson(`/gacha/${playerId}/draw`, { poolKey: 'starter', count: 1 }, auth);
+  const draw = await postJson(`/gacha/${playerId}/draw`, { poolKey: 'starter', count: 1 }, auth, `release-gacha:${randomUUID()}`);
   assert(draw.results?.length === 1, 'gacha draw did not return one result');
   assert(draw.cost?.currency === 'gold', 'gacha draw did not use gold');
 
@@ -30,7 +31,7 @@ async function main() {
   assert(character?.id, 'drawn character was not persisted');
   const dungeonId = dungeonForAttribute(character.attributeType);
 
-  await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
+  const started = await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
   const settlement = await postJson('/battle-settlement', {
     playerId,
     dungeonId,
@@ -39,8 +40,8 @@ async function main() {
     duration: 60,
     singleMonstersKilled: 10,
     groupMonstersKilled: 50,
-    clientTrace: { source: 'post-deploy-acceptance' },
-  }, auth);
+    clientTrace: { source: 'post-deploy-acceptance', battleSeed: started.battleSeed },
+  }, auth, started.battleSeed);
   assert(settlement.outcome === 'success', 'experience dungeon settlement failed');
   assert(settlement.serverRewards?.expCrystals === 531, 'experience package reward is incorrect');
 
@@ -50,6 +51,7 @@ async function main() {
     `/players/${playerId}/characters/${character.id}/use-exp`,
     { levelDelta: 1 },
     auth,
+    `release-exp:${randomUUID()}`,
   );
   assert(upgraded.character.level >= character.level + 1, 'character upgrade was not persisted');
 
@@ -104,10 +106,14 @@ async function getJson(path, headers = {}) {
   return requestJson(path, { method: 'GET', headers });
 }
 
-async function postJson(path, body, headers = {}) {
+async function postJson(path, body, headers = {}, idempotencyKey) {
   return requestJson(path, {
     method: 'POST',
-    headers: { 'content-type': 'application/json; charset=utf-8', ...headers },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      ...headers,
+      ...(idempotencyKey ? { 'idempotency-key': idempotencyKey } : {}),
+    },
     body: JSON.stringify(body),
   });
 }

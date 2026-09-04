@@ -58,7 +58,7 @@ jobs:
             "${ONLINE_API_URL%/}/api/admin/database/backup" \
             -o backup/gamer.dump
           test -s backup/gamer.dump
-          grep -qi '^x-backup-schema-version: InitialOnlineSchema1788502608304' backup/response-headers.txt
+          grep -qi '^x-backup-schema-version: ConcurrentMutationSafety1788509000000' backup/response-headers.txt
           sha256sum backup/gamer.dump > backup/gamer.dump.sha256
 
       - name: Encrypt and decrypt the recovery artifact

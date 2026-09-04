@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
+import { IdempotencyService } from '../common/idempotency.service';
 import { InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
 export interface InventoryGrantItem {
@@ -16,6 +17,7 @@ export class InventoryService {
     @InjectRepository(InventoryItemEntity) private readonly inventory: Repository<InventoryItemEntity>,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
+    private readonly idempotency: IdempotencyService,
   ) {}
 
   async list(playerId: string) {
@@ -23,8 +25,24 @@ export class InventoryService {
     return this.inventory.find({ where: { playerId }, order: { createdAt: 'DESC' }, take: 200 });
   }
 
-  async grant(playerId: string, items: InventoryGrantItem[], source = 'system') {
-    await this.assertPlayer(playerId);
+  async grant(
+    playerId: string,
+    items: InventoryGrantItem[],
+    source = 'system',
+    manager?: EntityManager,
+  ): Promise<InventoryItemEntity[]> {
+    if (!manager) {
+      return this.inventory.manager.transaction(async (transactionManager) => {
+        const player = await transactionManager.findOne(PlayerEntity, {
+          where: { id: playerId },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!player) throw new NotFoundException('player not found');
+        return this.grant(playerId, items, source, transactionManager);
+      });
+    }
+
+    const inventory = manager.getRepository(InventoryItemEntity);
     const saved: InventoryItemEntity[] = [];
     for (const item of items) {
       if (!item.itemConfigId || !item.itemType || item.quantity <= 0) {
@@ -32,10 +50,13 @@ export class InventoryService {
       }
       const stackable = ['material', 'currency', 'fragment', 'consumable'].includes(item.itemType);
       let row = stackable
-        ? await this.inventory.findOne({ where: { playerId, itemConfigId: item.itemConfigId, itemType: item.itemType } })
+        ? await inventory.findOne({
+          where: { playerId, itemConfigId: item.itemConfigId, itemType: item.itemType },
+          lock: { mode: 'pessimistic_write' },
+        })
         : null;
       if (!row) {
-        row = this.inventory.create({
+        row = inventory.create({
           playerId,
           itemConfigId: item.itemConfigId,
           itemType: item.itemType,
@@ -48,7 +69,7 @@ export class InventoryService {
         ? Math.min(999_999_999, nextQuantity)
         : nextQuantity;
       row.payload = { ...(row.payload || {}), ...(item.payload || {}), lastSource: source };
-      saved.push(await this.inventory.save(row));
+      saved.push(await inventory.save(row));
     }
     return saved;
   }
@@ -79,22 +100,21 @@ export class InventoryService {
     return { success: true, materials: this.dismantleRewards(item) };
   }
 
-  async dismantle(playerId: string, itemId: string) {
-    const item = await this.getOwnedItem(playerId, itemId);
-    if (item.locked) throw new BadRequestException('locked item cannot be dismantled');
-    if (!['weapon', 'equipment'].includes(item.itemType)) throw new BadRequestException('item type cannot be dismantled');
-    if (await this.isEquipped(playerId, itemId)) throw new BadRequestException('equipped item cannot be dismantled');
-    const rewards = this.dismantleRewards(item);
-    await this.inventory.manager.transaction(async (manager) => {
+  async dismantle(playerId: string, itemId: string, idempotencyKey?: string) {
+    return this.idempotency.execute(playerId, 'inventory-dismantle', idempotencyKey, { itemId }, async ({ manager }) => {
+      const item = await manager.findOne(InventoryItemEntity, {
+        where: { id: itemId, playerId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!item) throw new NotFoundException('inventory item not found');
+      if (item.locked) throw new BadRequestException('locked item cannot be dismantled');
+      if (!['weapon', 'equipment'].includes(item.itemType)) throw new BadRequestException('item type cannot be dismantled');
+      if (await this.isEquipped(playerId, itemId, manager)) throw new BadRequestException('equipped item cannot be dismantled');
+      const rewards = this.dismantleRewards(item);
       await manager.remove(item);
-      for (const reward of rewards) {
-        let row = await manager.findOne(InventoryItemEntity, { where: { playerId, itemConfigId: reward.itemConfigId, itemType: 'material' } });
-        if (!row) row = manager.create(InventoryItemEntity, { playerId, itemConfigId: reward.itemConfigId, itemType: 'material', quantity: 0, payload: reward.payload });
-        row.quantity += reward.quantity;
-        await manager.save(row);
-      }
+      await this.grant(playerId, rewards.map((reward) => ({ ...reward, itemType: 'material' })), 'dismantle', manager);
+      return { success: true, message: 'item dismantled', materials: rewards };
     });
-    return { success: true, message: 'item dismantled', materials: rewards };
   }
 
   private dismantleRewards(item: InventoryItemEntity) {
@@ -112,8 +132,9 @@ export class InventoryService {
     return item;
   }
 
-  private async isEquipped(playerId: string, itemId: string) {
-    const characters = await this.characters.find({ where: { playerId }, select: { equipment: true } });
+  private async isEquipped(playerId: string, itemId: string, manager?: EntityManager) {
+    const characters = await (manager?.getRepository(PlayerCharacterEntity) || this.characters)
+      .find({ where: { playerId }, select: { equipment: true } });
     return characters.some((character) => JSON.stringify(character.equipment || {}).includes(itemId));
   }
 

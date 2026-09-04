@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
+import { IdempotencyService } from '../common/idempotency.service';
 import { GameConfigsService } from '../configs/configs.service';
 import { InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
@@ -44,7 +45,7 @@ const DEFAULT_RULES: EquipmentRules = {
 @Injectable()
 export class WorkshopService {
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly idempotency: IdempotencyService,
     private readonly configs: GameConfigsService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
@@ -75,10 +76,9 @@ export class WorkshopService {
     };
   }
 
-  async craftExclusive(playerId: string, characterId: string) {
+  async craftExclusive(playerId: string, characterId: string, idempotencyKey?: string) {
     const rules = await this.rules();
-    return this.dataSource.transaction(async (manager) => {
-      const player = await this.lockPlayer(manager, playerId);
+    return this.idempotency.execute(playerId, 'workshop-craft-exclusive', idempotencyKey, { characterId }, async ({ manager, player }) => {
       const character = await manager.findOne(PlayerCharacterEntity, { where: { id: characterId, playerId } });
       if (!character) throw new NotFoundException('character not found');
       await this.charge(manager, player, rules.crafting.exclusive, undefined);
@@ -106,7 +106,11 @@ export class WorkshopService {
     });
   }
 
-  async craftEquipment(playerId: string, input: { attributeType: string; professionCategory: string; slot: string }) {
+  async craftEquipment(
+    playerId: string,
+    input: { attributeType: string; professionCategory: string; slot: string },
+    idempotencyKey?: string,
+  ) {
     const rules = await this.rules();
     const attributeType = this.normalizeAttribute(input.attributeType);
     const slot = input.slot.toUpperCase();
@@ -114,8 +118,7 @@ export class WorkshopService {
     if (!attributeType) throw new BadRequestException('invalid attributeType');
     if (!rules.crafting.equipmentSet.slots.includes(slot)) throw new BadRequestException('invalid equipment slot');
     if (!rules.crafting.equipmentSet.professionCategories.includes(professionCategory)) throw new BadRequestException('invalid profession category');
-    return this.dataSource.transaction(async (manager) => {
-      const player = await this.lockPlayer(manager, playerId);
+    return this.idempotency.execute(playerId, 'workshop-craft-equipment', idempotencyKey, input, async ({ manager, player }) => {
       await this.charge(manager, player, rules.crafting.equipmentSet, attributeType);
       const item = manager.create(InventoryItemEntity, {
         playerId,
@@ -166,10 +169,9 @@ export class WorkshopService {
     };
   }
 
-  async enhance(playerId: string, itemId: string) {
+  async enhance(playerId: string, itemId: string, idempotencyKey?: string) {
     const rules = await this.rules();
-    return this.dataSource.transaction(async (manager) => {
-      const player = await this.lockPlayer(manager, playerId);
+    return this.idempotency.execute(playerId, 'workshop-enhance', idempotencyKey, { itemId }, async ({ manager, player }) => {
       const item = await this.lockEquipment(manager, playerId, itemId);
       const level = Number(item.payload?.enhancementLevel || 0);
       if (level >= rules.enhancement.maxLevel) throw new BadRequestException('equipment is already at max enhancement level');
@@ -187,10 +189,9 @@ export class WorkshopService {
     });
   }
 
-  async breakthrough(playerId: string, itemId: string) {
+  async breakthrough(playerId: string, itemId: string, idempotencyKey?: string) {
     const rules = await this.rules();
-    return this.dataSource.transaction(async (manager) => {
-      const player = await this.lockPlayer(manager, playerId);
+    return this.idempotency.execute(playerId, 'workshop-breakthrough', idempotencyKey, { itemId }, async ({ manager, player }) => {
       const item = await this.lockEquipment(manager, playerId, itemId);
       const level = Number(item.payload?.enhancementLevel || 0);
       const breakthroughs = this.breakthroughs(item);
@@ -249,12 +250,6 @@ export class WorkshopService {
 
   private serializeMaterial(row: InventoryItemEntity) {
     return { itemId: row.id, itemConfigId: row.itemConfigId, materialType: String(row.payload?.materialType || row.itemConfigId), attributeType: row.payload?.attributeType || null, count: row.quantity, payload: row.payload };
-  }
-
-  private async lockPlayer(manager: EntityManager, playerId: string) {
-    const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
-    if (!player) throw new NotFoundException('player not found');
-    return player;
   }
 
   private async lockEquipment(manager: EntityManager, playerId: string, itemId: string) {

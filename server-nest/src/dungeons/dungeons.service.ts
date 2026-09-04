@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { IdempotencyService } from '../common/idempotency.service';
 import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
 export interface OnlineDungeon {
@@ -46,7 +47,7 @@ export class DungeonsService {
   private readonly dungeons = this.buildDungeons();
 
   constructor(
-    private readonly dataSource: DataSource,
+    private readonly idempotency: IdempotencyService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
   ) {}
@@ -133,15 +134,16 @@ export class DungeonsService {
     };
   }
 
-  async sweep(playerId: string, dungeonId: string, characterId: string, count: number) {
+  async sweep(playerId: string, dungeonId: string, characterId: string, count: number, idempotencyKey?: string) {
     const dungeon = this.get(dungeonId);
-    const character = await this.characters.findOne({ where: { id: characterId, playerId } });
-    if (!character) throw new NotFoundException('character not found');
-    this.assertCanEnter(dungeonId, [character]);
     const sweepCount = Math.max(1, Math.min(10, Math.floor(count || 1)));
-    return this.dataSource.transaction(async (manager) => {
-      const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
-      if (!player) throw new NotFoundException('player not found');
+    return this.idempotency.execute(playerId, 'dungeon-sweep', idempotencyKey, { dungeonId, characterId, count: sweepCount }, async ({ manager, player }) => {
+      const character = await manager.findOne(PlayerCharacterEntity, {
+        where: { id: characterId, playerId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!character) throw new NotFoundException('character not found');
+      this.assertCanEnter(dungeonId, [character]);
       let progress = await manager.findOne(DungeonProgressEntity, { where: { playerId, dungeonId }, lock: { mode: 'pessimistic_write' } });
       if (!progress || progress.successfulAttempts < dungeon.sweepUnlockCount) {
         throw new BadRequestException({ message: 'sweep is not unlocked', requiredClears: dungeon.sweepUnlockCount, currentClears: progress?.successfulAttempts || 0 });

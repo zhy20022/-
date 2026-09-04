@@ -41,7 +41,7 @@ services:
       - key: DB_POOL_MAX
         value: "10"
       - key: DB_CONNECT_TIMEOUT_MS
-        value: "10000"
+        value: "30000"
       - key: REDIS_CONNECT_TIMEOUT_MS
         value: "10000"
       - key: TRUST_PROXY_HOPS

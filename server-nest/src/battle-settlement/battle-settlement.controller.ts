@@ -72,9 +72,13 @@ export class BattleSettlementController {
   ) {}
 
   @Post()
-  settle(@Headers('authorization') authorization: string | undefined, @Body() dto: SettleBattleDto) {
+  settle(
+    @Headers('authorization') authorization: string | undefined,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Body() dto: SettleBattleDto,
+  ) {
     this.auth.assertPlayerAccess(authorization, dto.playerId);
-    return this.settlement.settle(dto);
+    return this.settlement.settle(dto, idempotencyKey);
   }
 
   @Get(':playerId/records')

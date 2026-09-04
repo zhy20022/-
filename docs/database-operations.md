@@ -82,3 +82,17 @@ The `Online post-deploy acceptance` workflow builds the server, waits until `/ap
 5. Reload the profile and confirm persistence.
 
 This verifies the actual public frontend proxy, deployed API, Redis, and PostgreSQL path rather than only checking that an HTTP port is open.
+
+## Concurrent mutation safety
+
+Reward-bearing and resource-consuming endpoints accept an `Idempotency-Key` header. Battle settlement uses the `battleSeed` returned by dungeon start; the web client generates a fresh key for gacha, character upgrades, sweeps, idle and daily claims, crafting, enhancement, breakthrough, and dismantling. Reusing a key with the same request returns the original response with `idempotency.replayed=true`; reusing it with a different request returns HTTP 409.
+
+Each protected mutation records its result in `operation_requests`, locks the player row, and commits costs, rewards, progress, and history in one PostgreSQL transaction. Database constraints reject negative gold, negative item quantities, and duplicate stackable inventory rows.
+
+Run the multi-account test locally with:
+
+```bash
+npm run e2e:concurrency
+```
+
+The production post-deploy workflow also runs this test with six accounts. It submits duplicate gacha and settlement requests concurrently, verifies exact replay behavior, and runs distinct mutations against one player to detect lost balance updates.

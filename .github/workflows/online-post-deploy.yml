@@ -57,3 +57,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Wait for deployment and run the public gameplay loop
         run: node server-nest/scripts/e2e-public-release.mjs
+
+  concurrency-acceptance:
+    needs: public-acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      E2E_API_BASE: ${{ vars.PUBLIC_PLAYABLE_URL || 'https://gamer-2d-playable-demo.yicheng430664.chatgpt.site' }}/api
+      E2E_ACCOUNT_COUNT: 6
+      E2E_DUPLICATE_REQUESTS: 6
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run multi-account concurrency and idempotency acceptance
+        run: node server-nest/scripts/e2e-concurrency.mjs

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
+import { IdempotencyService } from '../common/idempotency.service';
 import { GachaRecordEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 import { GameConfigsService } from '../configs/configs.service';
 import { DailyGoalsService } from '../daily-goals/daily-goals.service';
@@ -72,6 +73,7 @@ export class GachaService {
     private readonly configs: GameConfigsService,
     private readonly inventory: InventoryService,
     private readonly dailyGoals: DailyGoalsService,
+    private readonly idempotency: IdempotencyService,
     @InjectRepository(GachaRecordEntity) private readonly records: Repository<GachaRecordEntity>,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
@@ -81,58 +83,66 @@ export class GachaService {
     return this.loadPools();
   }
 
-  async draw(playerId: string, poolKey = 'starter', count = 1) {
+  async draw(playerId: string, poolKey = 'starter', count = 1, idempotencyKey?: string) {
     if (![1, 10, 100].includes(count)) {
       throw new BadRequestException('draw count must be 1, 10, or 100');
     }
-    const player = await this.players.findOne({ where: { id: playerId } });
-    if (!player) throw new NotFoundException('player not found');
     const pool = (await this.loadPools()).find((item) => item.key === poolKey);
     if (!pool) throw new NotFoundException('gacha pool not found');
-
-    const costAmount = Number(pool.cost?.amount || 0) * count;
-    const costCurrency = this.normalizeCurrency(pool.cost?.currency || 'gold');
-    if (costCurrency === 'gold') {
-      if (player.gold < costAmount) {
-        throw new BadRequestException('not enough gold');
+    const characterConfigs = await this.loadCharacterConfigMap();
+    return this.idempotency.execute(playerId, 'gacha-draw', idempotencyKey, { poolKey, count }, async ({ manager, player }) => {
+      const costAmount = Number(pool.cost?.amount || 0) * count;
+      const costCurrency = this.normalizeCurrency(pool.cost?.currency || 'gold');
+      if (costCurrency === 'gold') {
+        if (player.gold < costAmount) {
+          throw new BadRequestException('not enough gold');
+        }
+        player.gold -= costAmount;
+        await manager.save(player);
       }
-      player.gold -= costAmount;
-      await this.players.save(player);
-    }
 
-    const results = [];
-    for (let index = 0; index < count; index += 1) {
-      const entry = this.pickWeighted(pool.entries);
-      results.push(await this.applyEntry(playerId, entry));
-    }
+      const results = [];
+      for (let index = 0; index < count; index += 1) {
+        const entry = this.pickWeighted(pool.entries);
+        results.push(await this.applyEntry(manager, playerId, entry, characterConfigs));
+      }
 
-    const record = await this.records.save(this.records.create({
-      playerId,
-      poolKey,
-      drawCount: count,
-      results,
-      cost: { currency: costCurrency, amount: costAmount },
-    }));
-    await this.dailyGoals.recordEvent(playerId, 'gacha_draw', 1, { recordId: record.id, poolKey, count });
-    return { player, poolKey, count, cost: record.cost, results, recordId: record.id };
+      const record = await manager.save(manager.create(GachaRecordEntity, {
+        playerId,
+        poolKey,
+        drawCount: count,
+        results,
+        cost: { currency: costCurrency, amount: costAmount },
+      }));
+      await this.dailyGoals.recordEvent(playerId, 'gacha_draw', 1, { recordId: record.id, poolKey, count }, manager);
+      return { player, poolKey, count, cost: record.cost, results, recordId: record.id };
+    });
   }
 
-  private async applyEntry(playerId: string, entry: GachaEntry) {
+  private async applyEntry(
+    manager: EntityManager,
+    playerId: string,
+    entry: GachaEntry,
+    characterConfigs: Map<string, CharacterConfig>,
+  ) {
     if (entry.type === 'character') {
       const configId = entry.characterConfigId || entry.entryId;
-      const characterConfig = await this.findCharacterConfig(configId);
+      const characterConfig = characterConfigs.get(configId) || null;
       const rarity = characterConfig?.rarity || entry.rarity;
-      const existing = await this.characters.findOne({ where: { playerId, characterConfigId: configId } });
+      const existing = await manager.findOne(PlayerCharacterEntity, {
+        where: { playerId, characterConfigId: configId },
+        lock: { mode: 'pessimistic_write' },
+      });
       if (existing) {
         const shards = await this.inventory.grant(playerId, [{
           itemConfigId: `${configId}_shard`,
           itemType: 'fragment',
           quantity: rarity === 'epic' ? 30 : 10,
           payload: { duplicateCharacter: configId, rarity },
-        }], 'gacha_duplicate');
+        }], 'gacha_duplicate', manager);
         return { ...entry, ...this.entryFromConfig(characterConfig), duplicate: true, convertedTo: shards[0] };
       }
-      const character = await this.characters.save(this.characters.create({
+      const character = await manager.save(manager.create(PlayerCharacterEntity, {
         playerId,
         characterConfigId: configId,
         attributeType: characterConfig?.attributeType || entry.attributeType || 'FIRE',
@@ -154,7 +164,7 @@ export class GachaService {
       itemType: entry.itemType || 'material',
       quantity: Number(entry.quantity || 1),
       payload: { rarity: entry.rarity, name: entry.name || entry.entryId },
-    }], 'gacha');
+    }], 'gacha', manager);
     return { ...entry, granted: granted[0] };
   }
 
@@ -180,10 +190,10 @@ export class GachaService {
     return payload?.pools?.length ? payload.pools : [DEFAULT_POOL];
   }
 
-  private async findCharacterConfig(configId: string): Promise<CharacterConfig | null> {
+  private async loadCharacterConfigMap() {
     const config = await this.configs.getContentConfig('characters');
     const payload = config.payload as { characters?: CharacterConfig[] } | null;
-    return payload?.characters?.find((character) => character.id === configId) || null;
+    return new Map((payload?.characters || []).map((character) => [character.id, character]));
   }
 
   private entryFromConfig(config: CharacterConfig | null) {

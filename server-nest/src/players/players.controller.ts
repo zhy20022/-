@@ -62,12 +62,13 @@ export class PlayersController {
   @Post(':playerId/characters/:characterId/use-exp')
   useExp(
     @Headers('authorization') authorization: string | undefined,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Param('playerId') playerId: string,
     @Param('characterId') characterId: string,
     @Body() dto: UseCharacterExpDto,
   ) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.players.useExp(playerId, characterId, dto);
+    return this.players.useExp(playerId, characterId, dto, idempotencyKey);
   }
 
   @Get(':playerId/characters/:characterId/skills')

@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
-import { getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, onlineApi } from '../services/onlineGameAdapter'
+import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, onlineApi } from '../services/onlineGameAdapter'
 import './GachaPage.css'
 
 interface GachaResultItem {
@@ -149,7 +149,7 @@ const GachaPage: React.FC = () => {
         const response = await onlineApi.post(`/gacha/${profile.session.player.id}/draw`, {
           poolKey: poolType,
           count: pullCount,
-        })
+        }, { headers: { 'Idempotency-Key': createIdempotencyKey('gacha-draw') } })
         const onlineResults = (response.data.results || []).map((item: any) => ({
           character: {
             name: item.name || item.character?.name || item.characterConfigId || item.entryId,

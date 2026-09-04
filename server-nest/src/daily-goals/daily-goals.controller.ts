@@ -32,10 +32,11 @@ export class DailyGoalsController {
   @Post(':playerId/claim')
   claim(
     @Headers('authorization') authorization: string | undefined,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Param('playerId') playerId: string,
     @Body() dto: ClaimDailyGoalDto,
   ) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.dailyGoals.claim(playerId, dto.goalKey, dto.dateKey);
+    return this.dailyGoals.claim(playerId, dto.goalKey, dto.dateKey, idempotencyKey);
   }
 }

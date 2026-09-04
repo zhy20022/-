@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { GameConfigsService } from '../configs/configs.service';
+import { IdempotencyService } from '../common/idempotency.service';
 import { DailyGoalsService } from '../daily-goals/daily-goals.service';
 import { IdleClaimEntity, IdleSessionEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 import { InventoryGrantItem, InventoryService } from '../inventory/inventory.service';
@@ -24,6 +25,7 @@ export class IdleService {
     private readonly configs: GameConfigsService,
     private readonly inventory: InventoryService,
     private readonly dailyGoals: DailyGoalsService,
+    private readonly idempotency: IdempotencyService,
     @InjectRepository(IdleSessionEntity) private readonly sessions: Repository<IdleSessionEntity>,
     @InjectRepository(IdleClaimEntity) private readonly claims: Repository<IdleClaimEntity>,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
@@ -76,41 +78,46 @@ export class IdleService {
     return { session, preview: this.previewForSession(session, stage, new Date()) };
   }
 
-  async claim(playerId: string) {
-    const player = await this.assertPlayer(playerId);
-    const session = await this.sessions.findOne({ where: { playerId, status: 'active' }, order: { createdAt: 'DESC' } });
-    if (!session) throw new NotFoundException('active idle session not found');
-    const stage = await this.getStage(session.stageId);
-    const now = new Date();
-    const preview = this.previewForSession(session, stage, now);
-    const minClaimSeconds = Number(stage.minClaimSeconds ?? 60);
-    if (preview.cappedSeconds < minClaimSeconds) {
-      throw new BadRequestException(`idle rewards require at least ${minClaimSeconds} seconds`);
-    }
+  async claim(playerId: string, idempotencyKey?: string) {
+    return this.idempotency.execute(playerId, 'idle-claim', idempotencyKey, { playerId }, async ({ manager, player }) => {
+      const session = await manager.findOne(IdleSessionEntity, {
+        where: { playerId, status: 'active' },
+        order: { createdAt: 'DESC' },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!session) throw new NotFoundException('active idle session not found');
+      const stage = await this.getStage(session.stageId, manager);
+      const now = new Date();
+      const preview = this.previewForSession(session, stage, now);
+      const minClaimSeconds = Number(stage.minClaimSeconds ?? 60);
+      if (preview.cappedSeconds < minClaimSeconds) {
+        throw new BadRequestException(`idle rewards require at least ${minClaimSeconds} seconds`);
+      }
 
-    let grantedItems: InventoryItemEntity[] = [];
-    if (preview.rewards.length > 0) {
-      grantedItems = await this.inventory.grant(playerId, preview.rewards, 'idle_claim');
-    }
-    if (preview.gold > 0) {
-      player.gold += preview.gold;
-      await this.players.save(player);
-    }
+      let grantedItems: InventoryItemEntity[] = [];
+      if (preview.rewards.length > 0) {
+        grantedItems = await this.inventory.grant(playerId, preview.rewards, 'idle_claim', manager);
+      }
+      if (preview.gold > 0) {
+        player.gold += preview.gold;
+        await manager.save(player);
+      }
 
-    session.lastClaimedAt = now;
-    await this.sessions.save(session);
-    const claim = await this.claims.save(this.claims.create({
-      playerId,
-      sessionId: session.id,
-      stageId: session.stageId,
-      elapsedSeconds: preview.elapsedSeconds,
-      cappedSeconds: preview.cappedSeconds,
-      rewards: preview.rewards,
-      goldGranted: preview.gold,
-    }));
-    await this.dailyGoals.recordEvent(playerId, 'idle_claim', 1, { sessionId: session.id, claimId: claim.id });
+      session.lastClaimedAt = now;
+      await manager.save(session);
+      const claim = await manager.save(manager.create(IdleClaimEntity, {
+        playerId,
+        sessionId: session.id,
+        stageId: session.stageId,
+        elapsedSeconds: preview.elapsedSeconds,
+        cappedSeconds: preview.cappedSeconds,
+        rewards: preview.rewards,
+        goldGranted: preview.gold,
+      }));
+      await this.dailyGoals.recordEvent(playerId, 'idle_claim', 1, { sessionId: session.id, claimId: claim.id }, manager);
 
-    return { claim, session, rewards: grantedItems, gold: preview.gold };
+      return { claim, session, rewards: grantedItems, gold: preview.gold };
+    });
   }
 
   async stop(playerId: string) {
@@ -162,8 +169,8 @@ export class IdleService {
     return Number((1 + Math.max(0, bonus)).toFixed(4));
   }
 
-  private async getStage(stageId: string): Promise<IdleStageConfig> {
-    const config = await this.configs.getContentConfig('idle_stages');
+  private async getStage(stageId: string, manager?: EntityManager): Promise<IdleStageConfig> {
+    const config = await this.configs.getContentConfig('idle_stages', manager);
     const payload = config.payload as { stages?: IdleStageConfig[] } | null;
     const stage = payload?.stages?.find((item) => item.stageId === stageId);
     if (stage) return stage;

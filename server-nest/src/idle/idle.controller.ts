@@ -35,9 +35,13 @@ export class IdleController {
   }
 
   @Post(':playerId/claim')
-  claim(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string) {
+  claim(
+    @Headers('authorization') authorization: string | undefined,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Param('playerId') playerId: string,
+  ) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.idle.claim(playerId);
+    return this.idle.claim(playerId, idempotencyKey);
   }
 
   @Post(':playerId/stop')

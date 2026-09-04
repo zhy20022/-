@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { PlayerEntity, RankingEntryEntity } from '../database/entities';
 
 const SERVER_AUTHORITATIVE_RANKINGS = new Set(['damage_weekly', 'battle_damage', 'world_boss_damage']);
@@ -31,8 +31,9 @@ export class RankingService {
     score: number,
     seasonId = 'default',
     payload: Record<string, unknown> = {},
+    manager: EntityManager = this.rankings.manager,
   ) {
-    return this.upsertScore(playerId, rankingKey, score, seasonId, { ...payload, source: 'server' });
+    return this.upsertScore(playerId, rankingKey, score, seasonId, { ...payload, source: 'server' }, manager);
   }
 
   private async upsertScore(
@@ -41,23 +42,26 @@ export class RankingService {
     score: number,
     seasonId = 'default',
     payload: Record<string, unknown> = {},
+    manager: EntityManager = this.rankings.manager,
   ) {
     if (!rankingKey) throw new BadRequestException('rankingKey is required');
     if (!Number.isFinite(score) || score < 0) throw new BadRequestException('score must be non-negative');
-    const player = await this.players.findOne({ where: { id: playerId } });
+    const players = manager.getRepository(PlayerEntity);
+    const rankings = manager.getRepository(RankingEntryEntity);
+    const player = await players.findOne({ where: { id: playerId } });
     if (!player) throw new NotFoundException('player not found');
 
-    let row = await this.rankings.findOne({ where: { playerId, rankingKey, seasonId } });
+    let row = await rankings.findOne({ where: { playerId, rankingKey, seasonId } });
     const shouldUpdate = !row || score > row.score;
     if (!row) {
-      row = this.rankings.create({ playerId, playerName: player.displayName, rankingKey, seasonId, score, payload });
+      row = rankings.create({ playerId, playerName: player.displayName, rankingKey, seasonId, score, payload });
     } else if (shouldUpdate) {
       row.score = score;
       row.playerName = player.displayName;
       row.payload = payload;
     }
-    const saved = shouldUpdate ? await this.rankings.save(row) : row;
-    return { entry: saved, updated: shouldUpdate, rank: await this.getPlayerRank(playerId, rankingKey, seasonId) };
+    const saved = shouldUpdate ? await rankings.save(row) : row;
+    return { entry: saved, updated: shouldUpdate, rank: await this.getPlayerRank(playerId, rankingKey, seasonId, manager) };
   }
 
   async leaderboard(rankingKey: string, seasonId = 'default', limit = 100) {
@@ -70,10 +74,11 @@ export class RankingService {
     return rows.map((entry, index) => ({ rank: index + 1, ...entry }));
   }
 
-  async getPlayerRank(playerId: string, rankingKey: string, seasonId = 'default') {
-    const entry = await this.rankings.findOne({ where: { playerId, rankingKey, seasonId } });
+  async getPlayerRank(playerId: string, rankingKey: string, seasonId = 'default', manager: EntityManager = this.rankings.manager) {
+    const rankings = manager.getRepository(RankingEntryEntity);
+    const entry = await rankings.findOne({ where: { playerId, rankingKey, seasonId } });
     if (!entry) return null;
-    const ahead = await this.rankings
+    const ahead = await rankings
       .createQueryBuilder('ranking')
       .where('ranking.rankingKey = :rankingKey', { rankingKey })
       .andWhere('ranking.seasonId = :seasonId', { seasonId })

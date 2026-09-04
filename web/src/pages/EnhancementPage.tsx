@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { isFormalOnlineMode } from '../config'
 import { useAuthStore } from '../stores/authStore'
-import { onlineApi } from '../services/onlineApi'
+import { createIdempotencyKey, onlineApi } from '../services/onlineApi'
 import { loadOnlineInventory, mapOnlineEnhancementPreview, mapOnlineInventoryItem } from '../services/onlineInventoryAdapter'
 import './EnhancementPage.css'
 
@@ -80,7 +80,9 @@ const EnhancementPage: React.FC = () => {
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineInventory(player)
         const action = preview?.requires_breakthrough ? 'breakthrough' : 'enhance'
-        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/equipment/${selectedEquipment.item_id}/${action}`)
+        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/equipment/${selectedEquipment.item_id}/${action}`, {}, {
+          headers: { 'Idempotency-Key': createIdempotencyKey(`workshop-${action}`) },
+        })
         setFeedback({ type: response.data?.success ? 'success' : 'error', message: response.data?.message || (action === 'breakthrough' ? '突破完成' : '强化完成') })
         setSelectedEquipment(mapOnlineInventoryItem(response.data?.equipment))
         window.dispatchEvent(new Event('gamer:resources-changed'))

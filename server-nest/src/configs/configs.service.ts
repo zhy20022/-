@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { GameConfigEntity } from '../database/entities';
 
 @Injectable()
@@ -21,8 +21,9 @@ export class GameConfigsService {
     };
   }
 
-  async getContentConfig(key: string) {
-    const dbConfig = await this.configs.findOne({ where: { configKey: key, enabled: true } });
+  async getContentConfig(key: string, manager?: EntityManager) {
+    const configs = manager?.getRepository(GameConfigEntity) || this.configs;
+    const dbConfig = await configs.findOne({ where: { configKey: key, enabled: true } });
     if (dbConfig) {
       return { source: 'database', key, version: dbConfig.version, payload: dbConfig.payload };
     }

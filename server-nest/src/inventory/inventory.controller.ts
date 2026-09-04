@@ -88,8 +88,8 @@ export class InventoryController {
   }
 
   @Post(':playerId/items/:itemId/dismantle')
-  dismantle(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
+  dismantle(@Headers('authorization') authorization: string | undefined, @Headers('idempotency-key') idempotencyKey: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.inventory.dismantle(playerId, itemId);
+    return this.inventory.dismantle(playerId, itemId, idempotencyKey);
   }
 }

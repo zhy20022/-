@@ -4,7 +4,7 @@ import axios from 'axios'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { useAuthStore } from '../stores/authStore'
-import { getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, loadOnlineProfile, mapOnlineCharacter, onlineApi } from '../services/onlineGameAdapter'
+import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, loadOnlineProfile, mapOnlineCharacter, onlineApi } from '../services/onlineGameAdapter'
 import { mapOnlineInventoryItem } from '../services/onlineInventoryAdapter'
 import './CharacterPage.css'
 
@@ -978,7 +978,9 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
       setExpShortage(null)
       if (isFormalOnlineMode()) {
         const profile = await loadOnlineProfile(player)
-        const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/use-exp`, { amount })
+        const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/use-exp`, { amount }, {
+          headers: { 'Idempotency-Key': createIdempotencyKey('character-use-exp') },
+        })
         completeNewPlayerGuideStep('level_character')
         onCharacterUpdated(response.data.character)
         setMaterials({
@@ -1026,7 +1028,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         const profile = await loadOnlineProfile(player)
         const response = await onlineApi.post(`/players/${profile.session.player.id}/characters/${character.character_id}/use-exp`, {
           levelDelta: normalizedLevelDelta
-        })
+        }, { headers: { 'Idempotency-Key': createIdempotencyKey('character-use-exp') } })
         completeNewPlayerGuideStep('level_character')
         onCharacterUpdated(mapOnlineCharacter(response.data.character))
         setMaterials({
@@ -1084,7 +1086,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         const response = await onlineApi.post(`/dungeons/${profile.session.player.id}/${sweepableExperienceDungeon.dungeon_id}/sweep`, {
           characterId: character.character_id,
           count: 1,
-        })
+        }, { headers: { 'Idempotency-Key': createIdempotencyKey('dungeon-sweep') } })
         setExpFeedback(`已扫荡 ${sweepableExperienceDungeon.name}，获得经验结晶 ${response.data?.rewards?.expCrystals || 0}、金币 ${response.data?.rewards?.gold || 0}`)
         window.dispatchEvent(new Event('gamer:resources-changed'))
         await loadMaterials()

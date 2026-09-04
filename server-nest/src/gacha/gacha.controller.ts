@@ -27,8 +27,13 @@ export class GachaController {
   }
 
   @Post(':playerId/draw')
-  draw(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Body() dto: DrawDto) {
+  draw(
+    @Headers('authorization') authorization: string | undefined,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Param('playerId') playerId: string,
+    @Body() dto: DrawDto,
+  ) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.gacha.draw(playerId, dto.poolKey || 'starter', dto.count || 1);
+    return this.gacha.draw(playerId, dto.poolKey || 'starter', dto.count || 1, idempotencyKey);
   }
 }

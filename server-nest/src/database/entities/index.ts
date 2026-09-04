@@ -13,6 +13,7 @@ export * from './idle-claim.entity';
 export * from './idle-session.entity';
 export * from './inventory-item.entity';
 export * from './mail.entity';
+export * from './operation-request.entity';
 export * from './player-character.entity';
 export * from './player.entity';
 export * from './ranking-entry.entity';

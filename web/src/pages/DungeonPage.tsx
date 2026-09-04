@@ -4,7 +4,7 @@ import axios from 'axios'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { useAuthStore } from '../stores/authStore'
-import { getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
+import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import './DungeonPage.css'
 
 interface DungeonProgress {
@@ -288,7 +288,7 @@ const DungeonPage: React.FC = () => {
           alert('请选择当前在线账号拥有的角色')
           return
         }
-        await onlineApi.post(`/dungeons/${payload.session.player.id}/${selectedDungeon.dungeon_id}/start`, { characterIds: selectedCharacters })
+        const startResponse = await onlineApi.post(`/dungeons/${payload.session.player.id}/${selectedDungeon.dungeon_id}/start`, { characterIds: selectedCharacters })
         completeNewPlayerGuideStep('learn_dungeons')
         if (normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE') {
           completeNewPlayerGuideStep('run_exp_dungeon')
@@ -301,6 +301,7 @@ const DungeonPage: React.FC = () => {
             dungeon: selectedDungeon,
             character_ids: selectedCharacters,
             characters: [character],
+            settlement_key: startResponse.data.battleSeed,
           }
         })
         return
@@ -450,7 +451,7 @@ const DungeonPage: React.FC = () => {
         const response = await onlineApi.post(`/dungeons/${payload.session.player.id}/${dungeon.dungeon_id}/sweep`, {
           characterId: character.character_id,
           count,
-        })
+        }, { headers: { 'Idempotency-Key': createIdempotencyKey('dungeon-sweep') } })
         completeNewPlayerGuideStep('run_exp_dungeon')
         alert(`扫荡成功：经验结晶 ${response.data?.rewards?.expCrystals || 0}，金币 ${response.data?.rewards?.gold || 0}`)
         window.dispatchEvent(new Event('gamer:resources-changed'))

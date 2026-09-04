@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { applyCharacterExp, getExpForNextLevel, getExpRequiredToLevel, MAX_CHARACTER_LEVEL } from '../common/leveling';
+import { IdempotencyService } from '../common/idempotency.service';
 import { GameConfigsService } from '../configs/configs.service';
 import { InventoryItemEntity, MailEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
@@ -16,6 +17,7 @@ export class PlayersService {
     @InjectRepository(InventoryItemEntity) private readonly inventory: Repository<InventoryItemEntity>,
     @InjectRepository(MailEntity) private readonly mails: Repository<MailEntity>,
     private readonly configs: GameConfigsService,
+    private readonly idempotency: IdempotencyService,
   ) {}
 
   async getProfile(playerId: string) {
@@ -59,55 +61,71 @@ export class PlayersService {
     };
   }
 
-  async useExp(playerId: string, characterId: string, dto: { amount?: number; levelDelta?: number }) {
-    const player = await this.assertPlayer(playerId);
-    const character = await this.getOwnedCharacter(playerId, characterId);
-    if (character.level >= MAX_CHARACTER_LEVEL) {
+  async useExp(
+    playerId: string,
+    characterId: string,
+    dto: { amount?: number; levelDelta?: number },
+    idempotencyKey?: string,
+  ) {
+    return this.idempotency.execute(playerId, 'character-use-exp', idempotencyKey, { characterId, ...dto }, async ({ manager, player }) => {
+      const character = await manager.findOne(PlayerCharacterEntity, {
+        where: { id: characterId, playerId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!character) throw new NotFoundException('character not found');
+      if (character.level >= MAX_CHARACTER_LEVEL) {
+        return {
+          success: true,
+          message: 'character already at max level',
+          character: this.serializeCharacter(character),
+          consumedGold: 0,
+        };
+      }
+
+      const requestedExpPackages = dto.levelDelta
+        ? getExpRequiredToLevel(
+          character.level,
+          character.exp,
+          Math.min(MAX_CHARACTER_LEVEL, character.level + Math.max(1, Math.floor(dto.levelDelta))),
+        )
+        : Math.max(1, Math.floor(dto.amount || 0));
+      const requestedGold = this.calculateUpgradeGoldCost(requestedExpPackages);
+      const expItem = await manager.findOne(InventoryItemEntity, {
+        where: { playerId, itemConfigId: CHARACTER_EXP_ITEM_ID },
+        lock: { mode: 'pessimistic_write' },
+      });
+      const ownedExpPackages = Number(expItem?.quantity || 0);
+      if (requestedExpPackages <= 0 || ownedExpPackages < requestedExpPackages || player.gold < requestedGold) {
+        throw new BadRequestException({
+          message: 'not enough upgrade resources',
+          requiredExpPackages: requestedExpPackages,
+          ownedExpPackages,
+          requiredGold: requestedGold,
+          ownedGold: player.gold,
+          needMoreExpPackages: Math.max(0, requestedExpPackages - ownedExpPackages),
+          needMoreGold: Math.max(0, requestedGold - player.gold),
+        });
+      }
+
+      expItem!.quantity -= requestedExpPackages;
+      if (expItem!.quantity <= 0) await manager.remove(expItem!);
+      else await manager.save(expItem!);
+      player.gold -= requestedGold;
+      await manager.save(player);
+      const growth = applyCharacterExp(character.level, character.exp, requestedExpPackages);
+      character.level = growth.afterLevel;
+      character.exp = growth.afterExp;
+      const saved = await manager.save(character);
       return {
         success: true,
-        message: 'character already at max level',
-        character: this.serializeCharacter(character),
-        consumedGold: 0,
+        consumedGold: requestedGold,
+        consumedExpPackages: requestedExpPackages,
+        growth,
+        character: this.serializeCharacter(saved),
+        player,
+        ownedExpPackages: Math.max(0, expItem!.quantity),
       };
-    }
-
-    const requestedExpPackages = dto.levelDelta
-      ? getExpRequiredToLevel(
-        character.level,
-        character.exp,
-        Math.min(MAX_CHARACTER_LEVEL, character.level + Math.max(1, Math.floor(dto.levelDelta))),
-      )
-      : Math.max(1, Math.floor(dto.amount || 0));
-    const requestedGold = this.calculateUpgradeGoldCost(requestedExpPackages);
-    const ownedExpPackages = await this.getExpPackageQuantity(playerId);
-    if (requestedExpPackages <= 0 || ownedExpPackages < requestedExpPackages || player.gold < requestedGold) {
-      throw new BadRequestException({
-        message: 'not enough upgrade resources',
-        requiredExpPackages: requestedExpPackages,
-        ownedExpPackages,
-        requiredGold: requestedGold,
-        ownedGold: player.gold,
-        needMoreExpPackages: Math.max(0, requestedExpPackages - ownedExpPackages),
-        needMoreGold: Math.max(0, requestedGold - player.gold),
-      });
-    }
-
-    await this.consumeExpPackages(playerId, requestedExpPackages);
-    player.gold -= requestedGold;
-    await this.players.save(player);
-    const growth = applyCharacterExp(character.level, character.exp, requestedExpPackages);
-    character.level = growth.afterLevel;
-    character.exp = growth.afterExp;
-    const saved = await this.characters.save(character);
-    return {
-      success: true,
-      consumedGold: requestedGold,
-      consumedExpPackages: requestedExpPackages,
-      growth,
-      character: this.serializeCharacter(saved),
-      player,
-      ownedExpPackages: await this.getExpPackageQuantity(playerId),
-    };
+    });
   }
 
   async getSkills(playerId: string, characterId: string) {
@@ -301,19 +319,6 @@ export class PlayersService {
   private async getExpPackageQuantity(playerId: string) {
     const row = await this.inventory.findOne({ where: { playerId, itemConfigId: CHARACTER_EXP_ITEM_ID } });
     return Number(row?.quantity || 0);
-  }
-
-  private async consumeExpPackages(playerId: string, amount: number) {
-    const row = await this.inventory.findOne({ where: { playerId, itemConfigId: CHARACTER_EXP_ITEM_ID } });
-    if (!row || row.quantity < amount) {
-      throw new BadRequestException('not enough character experience packages');
-    }
-    row.quantity -= amount;
-    if (row.quantity <= 0) {
-      await this.inventory.remove(row);
-      return null;
-    }
-    return this.inventory.save(row);
   }
 
   private async assertPlayer(playerId: string) {

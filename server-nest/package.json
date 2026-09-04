@@ -11,6 +11,7 @@
     "e2e:http": "node scripts/e2e-http.mjs",
     "e2e:online-loop": "node scripts/e2e-online-loop.mjs",
     "e2e:public-release": "node scripts/e2e-public-release.mjs",
+    "e2e:concurrency": "node scripts/e2e-concurrency.mjs",
     "e2e:workshop-loop": "node scripts/e2e-workshop-loop.mjs",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",

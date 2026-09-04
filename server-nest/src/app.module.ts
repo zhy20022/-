@@ -8,6 +8,7 @@ import { AuthService } from './auth/auth.service';
 import { BattleSettlementController } from './battle-settlement/battle-settlement.controller';
 import { BattleSettlementService } from './battle-settlement/battle-settlement.service';
 import { RedisService } from './common/redis.service';
+import { IdempotencyService } from './common/idempotency.service';
 import { GameConfigsController } from './configs/configs.controller';
 import { GameConfigsService } from './configs/configs.service';
 import { gameEntities } from './database/entities-list';
@@ -91,6 +92,7 @@ import { WorkshopService } from './workshop/workshop.service';
     GameConfigsService,
     GuildService,
     IdleService,
+    IdempotencyService,
     InventoryService,
     PlayersService,
     RankingService,

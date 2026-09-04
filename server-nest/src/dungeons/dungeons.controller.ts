@@ -50,11 +50,12 @@ export class DungeonsController {
   @Post(':playerId/:dungeonId/sweep')
   sweep(
     @Headers('authorization') authorization: string | undefined,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Param('playerId') playerId: string,
     @Param('dungeonId') dungeonId: string,
     @Body() dto: SweepDungeonDto,
   ) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.dungeons.sweep(playerId, dungeonId, dto.characterId, dto.count);
+    return this.dungeons.sweep(playerId, dungeonId, dto.characterId, dto.count, idempotencyKey);
   }
 }

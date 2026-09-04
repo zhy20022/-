@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { getOnlineApiBase } from '../config'
-import { OnlineSession, ensureOnlineSession, getApiErrorMessage, onlineApi } from '../services/onlineApi'
+import { OnlineSession, createIdempotencyKey, ensureOnlineSession, getApiErrorMessage, onlineApi } from '../services/onlineApi'
 import './OnlineProgressPage.css'
 
 type FeedbackType = 'success' | 'error' | 'info'
@@ -219,7 +219,9 @@ const OnlineProgressPage: React.FC = () => {
   const claimIdle = async () => {
     if (!currentPlayerId) return
     try {
-      const response = await onlineApi.post(`/idle/${currentPlayerId}/claim`, {})
+      const response = await onlineApi.post(`/idle/${currentPlayerId}/claim`, {}, {
+        headers: { 'Idempotency-Key': createIdempotencyKey('idle-claim') },
+      })
       const itemText = formatItems(response.data.rewards || [])
       const goldText = response.data.gold > 0 ? `金币 +${formatNumber(response.data.gold)}` : ''
       const rewardText = [goldText, itemText].filter(Boolean).join('，') || '暂无可领取物品'
@@ -250,7 +252,9 @@ const OnlineProgressPage: React.FC = () => {
     if (!currentPlayerId) return
     try {
       setOnlineLoopBusy(true)
-      const response = await onlineApi.post(`/gacha/${currentPlayerId}/draw`, { poolKey: 'starter', count: 10 })
+      const response = await onlineApi.post(`/gacha/${currentPlayerId}/draw`, { poolKey: 'starter', count: 10 }, {
+        headers: { 'Idempotency-Key': createIdempotencyKey('gacha-draw') },
+      })
       const characterCount = (response.data?.results || []).filter((item: { type?: string }) => item.type === 'character').length
       setFeedback({ type: 'success', message: `在线十连完成，消耗金币 ${formatNumber(response.data?.cost?.amount || 0)}，获得角色 ${characterCount} 名` })
       await refreshPlayerData(currentPlayerId)
@@ -266,7 +270,9 @@ const OnlineProgressPage: React.FC = () => {
     const dungeonId = getExperienceDungeonId(selectedLoopCharacter.attributeType)
     try {
       setOnlineLoopBusy(true)
-      await onlineApi.post(`/dungeons/${currentPlayerId}/${dungeonId}/start`, {})
+      const started = await onlineApi.post(`/dungeons/${currentPlayerId}/${dungeonId}/start`, {
+        characterIds: [selectedLoopCharacter.id],
+      })
       const response = await onlineApi.post('/battle-settlement', {
         playerId: currentPlayerId,
         dungeonId,
@@ -275,8 +281,8 @@ const OnlineProgressPage: React.FC = () => {
         duration: 60,
         singleMonstersKilled: 10,
         groupMonstersKilled: 50,
-        clientTrace: { source: 'online-progress-page' },
-      })
+        clientTrace: { source: 'online-progress-page', battleSeed: started.data.battleSeed },
+      }, { headers: { 'Idempotency-Key': started.data.battleSeed } })
       setFeedback({
         type: 'success',
         message: `经验本通关：经验包 +${formatNumber(response.data?.serverRewards?.expCrystals || 0)}，金币 +${formatNumber(response.data?.serverRewards?.gold || 0)}，角色经验 +${formatNumber(response.data?.serverRewards?.directCharacterExp || 0)}`,
@@ -303,7 +309,9 @@ const OnlineProgressPage: React.FC = () => {
         })
         return
       }
-      const response = await onlineApi.post(`/players/${currentPlayerId}/characters/${selectedLoopCharacter.id}/use-exp`, { levelDelta: 1 })
+      const response = await onlineApi.post(`/players/${currentPlayerId}/characters/${selectedLoopCharacter.id}/use-exp`, { levelDelta: 1 }, {
+        headers: { 'Idempotency-Key': createIdempotencyKey('character-use-exp') },
+      })
       setFeedback({
         type: 'success',
         message: `升级成功：Lv.${response.data?.character?.level}，消耗经验包 ${formatNumber(response.data?.consumedExpPackages || 0)}，金币 ${formatNumber(response.data?.consumedGold || 0)}`,
@@ -319,7 +327,9 @@ const OnlineProgressPage: React.FC = () => {
   const claimDailyGoal = async (goalKey: string) => {
     if (!currentPlayerId) return
     try {
-      const response = await onlineApi.post(`/daily-goals/${currentPlayerId}/claim`, { goalKey })
+      const response = await onlineApi.post(`/daily-goals/${currentPlayerId}/claim`, { goalKey }, {
+        headers: { 'Idempotency-Key': createIdempotencyKey('daily-goal-claim') },
+      })
       const goldText = response.data?.rewards?.gold > 0 ? `金币 +${formatNumber(response.data.rewards.gold)}` : ''
       const itemText = formatItems(response.data?.rewards?.items || [])
       setFeedback({

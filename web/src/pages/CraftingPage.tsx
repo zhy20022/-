@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { isFormalOnlineMode } from '../config'
 import { useAuthStore } from '../stores/authStore'
-import { onlineApi } from '../services/onlineApi'
+import { createIdempotencyKey, onlineApi } from '../services/onlineApi'
 import { loadOnlineMaterials } from '../services/onlineInventoryAdapter'
 import { loadOnlineProfile } from '../services/onlineGameAdapter'
 import './CraftingPage.css'
@@ -129,7 +129,9 @@ const CraftingPage: React.FC = () => {
       setFeedback({ type: 'info', message: '正在制作专属道具...' })
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineMaterials(player)
-        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/crafting/exclusive`, { characterId: selectedCharacter })
+        const response = await onlineApi.post(`/workshop/${payload.session.player.id}/crafting/exclusive`, { characterId: selectedCharacter }, {
+          headers: { 'Idempotency-Key': createIdempotencyKey('workshop-craft-exclusive') },
+        })
         setFeedback({ type: 'success', message: response.data?.message || '专属武器制作成功' })
         setCraftedItem({ ...response.data?.item?.payload, item_id: response.data?.item?.id, item_name: response.data?.item?.payload?.name })
         window.dispatchEvent(new Event('gamer:resources-changed'))
@@ -174,7 +176,7 @@ const CraftingPage: React.FC = () => {
           attributeType: selectedAttribute,
           professionCategory: selectedCategory,
           slot: selectedSlot,
-        })
+        }, { headers: { 'Idempotency-Key': createIdempotencyKey('workshop-craft-equipment') } })
         setFeedback({ type: 'success', message: response.data?.message || '套装部件制作成功' })
         setCraftedItem({ ...response.data?.item?.payload, item_id: response.data?.item?.id, item_name: response.data?.item?.payload?.name })
         window.dispatchEvent(new Event('gamer:resources-changed'))

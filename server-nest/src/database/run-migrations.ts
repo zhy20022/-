@@ -33,6 +33,11 @@ async function runMigrations() {
 }
 
 async function adoptLegacySchema(connection: DataSource) {
+  const migrationTableExists = await connection.query(
+    `SELECT to_regclass(current_schema() || '.typeorm_migrations') IS NOT NULL AS exists`,
+  ) as Array<{ exists: boolean }>;
+  if (migrationTableExists[0]?.exists) return;
+
   const rows = await connection.query(
     `SELECT table_name FROM information_schema.tables
      WHERE table_schema = current_schema() AND table_name = ANY($1::text[])`,
@@ -46,11 +51,6 @@ async function adoptLegacySchema(connection: DataSource) {
   if (missingTables.length > 0) {
     throw new Error(`partial legacy schema detected; missing tables: ${missingTables.join(', ')}`);
   }
-
-  const migrationTableExists = await connection.query(
-    `SELECT to_regclass(current_schema() || '.typeorm_migrations') IS NOT NULL AS exists`,
-  ) as Array<{ exists: boolean }>;
-  if (migrationTableExists[0]?.exists) return;
 
   await assertCoreColumns(connection);
   await connection.transaction(async (manager) => {

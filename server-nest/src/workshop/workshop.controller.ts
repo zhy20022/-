@@ -48,15 +48,15 @@ export class WorkshopController {
   }
 
   @Post(':playerId/crafting/exclusive')
-  craftExclusive(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Body() dto: CraftExclusiveDto) {
+  craftExclusive(@Headers('authorization') authorization: string | undefined, @Headers('idempotency-key') idempotencyKey: string | undefined, @Param('playerId') playerId: string, @Body() dto: CraftExclusiveDto) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.workshop.craftExclusive(playerId, dto.characterId);
+    return this.workshop.craftExclusive(playerId, dto.characterId, idempotencyKey);
   }
 
   @Post(':playerId/crafting/equipment')
-  craftEquipment(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Body() dto: CraftEquipmentDto) {
+  craftEquipment(@Headers('authorization') authorization: string | undefined, @Headers('idempotency-key') idempotencyKey: string | undefined, @Param('playerId') playerId: string, @Body() dto: CraftEquipmentDto) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.workshop.craftEquipment(playerId, dto);
+    return this.workshop.craftEquipment(playerId, dto, idempotencyKey);
   }
 
   @Get(':playerId/equipment/:itemId/enhancement')
@@ -66,14 +66,14 @@ export class WorkshopController {
   }
 
   @Post(':playerId/equipment/:itemId/enhance')
-  enhance(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
+  enhance(@Headers('authorization') authorization: string | undefined, @Headers('idempotency-key') idempotencyKey: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.workshop.enhance(playerId, itemId);
+    return this.workshop.enhance(playerId, itemId, idempotencyKey);
   }
 
   @Post(':playerId/equipment/:itemId/breakthrough')
-  breakthrough(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
+  breakthrough(@Headers('authorization') authorization: string | undefined, @Headers('idempotency-key') idempotencyKey: string | undefined, @Param('playerId') playerId: string, @Param('itemId') itemId: string) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.workshop.breakthrough(playerId, itemId);
+    return this.workshop.breakthrough(playerId, itemId, idempotencyKey);
   }
 }

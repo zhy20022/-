@@ -572,7 +572,7 @@ const BattlePage: React.FC = () => {
       setLoading(false)
       return
     }
-    const newBattleId = `online-${Date.now()}`
+    const newBattleId = location.state?.settlement_key || `online-${Date.now()}`
     setBattleId(newBattleId)
     setLoading(false)
     setBattleResult(null)
@@ -640,7 +640,7 @@ const BattlePage: React.FC = () => {
 
       if (currentTime >= duration) {
         stopOnlineBattleTimer()
-        void settleOnlineExperienceBattle(playerId, dungeonId, selectedCharacter?.character_id, duration, singleKills, groupKills)
+        void settleOnlineExperienceBattle(playerId, dungeonId, selectedCharacter?.character_id, duration, singleKills, groupKills, newBattleId)
       }
     }
 
@@ -655,6 +655,7 @@ const BattlePage: React.FC = () => {
     duration: number,
     singleMonstersKilled: number,
     groupMonstersKilled: number,
+    settlementKey: string,
   ) => {
     try {
       const response = await onlineApi.post('/battle-settlement', {
@@ -665,8 +666,8 @@ const BattlePage: React.FC = () => {
         duration,
         singleMonstersKilled,
         groupMonstersKilled,
-        clientTrace: { source: 'battle-page-online-mode' },
-      })
+        clientTrace: { source: 'battle-page-online-mode', battleSeed: settlementKey },
+      }, { headers: { 'Idempotency-Key': settlementKey } })
       const serverRewards = response.data?.serverRewards || {}
       const progress = response.data?.progress || {}
       window.dispatchEvent(new Event('gamer:resources-changed'))

@@ -136,9 +136,11 @@ async function main() {
     for (const goalKey of ['battle_clear', 'gacha_draw', 'idle_claim', 'guild_contribute', 'friend_assist']) {
       assert(completedGoalKeys.includes(goalKey), `daily goal ${goalKey} should be complete`);
     }
-    const dailyClaim = await postJson(`/daily-goals/${playerA.id}/claim`, { goalKey: 'idle_claim' }, authA);
+    const dailyClaimKey = `http-daily:${randomUUID()}`;
+    const dailyClaim = await postJson(`/daily-goals/${playerA.id}/claim`, { goalKey: 'idle_claim' }, { ...authA, 'idempotency-key': dailyClaimKey });
     assert(dailyClaim.progress?.claimed === true, 'daily goal claim should mark progress claimed');
-    await expectFailure(`/daily-goals/${playerA.id}/claim`, { goalKey: 'idle_claim' }, 'duplicate daily goal claim should fail', authA);
+    const dailyReplay = await postJson(`/daily-goals/${playerA.id}/claim`, { goalKey: 'idle_claim' }, { ...authA, 'idempotency-key': dailyClaimKey });
+    assert(dailyReplay.idempotency?.replayed === true, 'duplicate daily goal claim should replay the first result');
     await expectGetFailure('/admin/operations', 'admin operations should require admin token');
     const operations = await getJson('/admin/operations', { 'x-admin-token': process.env.ADMIN_TOKEN || 'dev-admin-token' });
     assert(operations.players >= 2, 'admin operations should return player count with admin token');

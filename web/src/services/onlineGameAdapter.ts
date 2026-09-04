@@ -1,5 +1,5 @@
 import { isFormalOnlineMode } from '../config'
-import { LegacyPlayerRef, ensureOnlineSession, getApiErrorMessage, onlineApi } from './onlineApi'
+import { LegacyPlayerRef, createIdempotencyKey, ensureOnlineSession, getApiErrorMessage, onlineApi } from './onlineApi'
 
 export interface OnlineLegacyCharacter {
   character_id: string
@@ -296,4 +296,4 @@ export const loadOnlineDungeons = async (legacyPlayer: LegacyPlayerRef | null | 
 
 export const getOnlineModeError = (error: unknown, fallback: string) => getApiErrorMessage(error, fallback)
 
-export { isFormalOnlineMode, onlineApi, ensureOnlineSession }
+export { createIdempotencyKey, isFormalOnlineMode, onlineApi, ensureOnlineSession }
