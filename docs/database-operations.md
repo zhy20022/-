@@ -19,9 +19,10 @@ The `Database backup and restore verification` GitHub Actions workflow runs ever
 
 1. Calls `GET /api/admin/database/backup` with `x-backup-token`.
 2. Produces a PostgreSQL custom-format logical backup with `pg_dump`.
-3. Restores the dump into a clean PostgreSQL 18 service.
-4. Verifies the migration version, required tables, record counts, and key relationships.
-5. Encrypts the dump with AES-256-CBC and uploads it as a 30-day GitHub Actions artifact.
+3. Encrypts the dump, deletes the plaintext copy, decrypts it again, and checks its SHA-256 hash.
+4. Restores the decrypted artifact into a clean PostgreSQL 18 service.
+5. Verifies the migration version, required tables, record counts, and key relationships.
+6. Deletes plaintext and uploads only the encrypted dump, checksum, and report as a 30-day GitHub Actions artifact.
 
 Required GitHub Actions secrets:
 

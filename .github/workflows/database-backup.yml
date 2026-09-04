@@ -61,7 +61,22 @@ jobs:
           grep -qi '^x-backup-schema-version: InitialOnlineSchema1788502608304' backup/response-headers.txt
           sha256sum backup/gamer.dump > backup/gamer.dump.sha256
 
-      - name: Restore backup into isolated PostgreSQL
+      - name: Encrypt and decrypt the recovery artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in backup/gamer.dump \
+            -out backup/gamer.dump.enc \
+            -pass env:BACKUP_ARCHIVE_PASSWORD
+          rm -f backup/gamer.dump
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
+            -in backup/gamer.dump.enc \
+            -out backup/gamer.dump \
+            -pass env:BACKUP_ARCHIVE_PASSWORD
+          sha256sum --check backup/gamer.dump.sha256
+
+      - name: Restore decrypted backup into isolated PostgreSQL
         shell: bash
         run: |
           set -euo pipefail
@@ -85,15 +100,10 @@ jobs:
               > backup/restore-verification.txt
           cat backup/restore-verification.txt
 
-      - name: Encrypt backup artifact
-        if: success()
+      - name: Remove plaintext backup
+        if: always()
         shell: bash
         run: |
-          set -euo pipefail
-          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
-            -in backup/gamer.dump \
-            -out backup/gamer.dump.enc \
-            -pass env:BACKUP_ARCHIVE_PASSWORD
           rm -f backup/gamer.dump backup/response-headers.txt
 
       - name: Upload encrypted backup and verification report
