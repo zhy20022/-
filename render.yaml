@@ -6,7 +6,6 @@ services:
     region: singapore
     dockerfilePath: ./deploy/render/Dockerfile
     dockerContext: .
-    dockerCommand: sh -c "node dist/database/bootstrap-schema.js && node dist/main.js"
     healthCheckPath: /api/health/ready
     envVars:
       - key: NODE_ENV

@@ -17,5 +17,4 @@ RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 COPY data/content /workspace/data/content
 USER node
-CMD ["node", "dist/main.js"]
-
+CMD ["npm", "run", "start:render"]

@@ -6,6 +6,7 @@
   "scripts": {
     "build": "nest build",
     "schema:init": "node dist/database/bootstrap-schema.js",
+    "start:render": "node dist/database/bootstrap-schema.js && node dist/main.js",
     "e2e:http": "node scripts/e2e-http.mjs",
     "e2e:online-loop": "node scripts/e2e-online-loop.mjs",
     "e2e:workshop-loop": "node scripts/e2e-workshop-loop.mjs",
