@@ -4,6 +4,8 @@
 
 The production process runs `npm run migration:run` before starting NestJS. Migrations use a PostgreSQL advisory lock, so multiple instances cannot apply the same migration concurrently. An existing pre-migration database is adopted only after all required tables and core columns are verified.
 
+Production persistence uses the external Neon `Game` PostgreSQL project. Render runs the NestJS web service and Redis, while `DATABASE_URL` is entered as a secret Render environment variable (`sync: false` in `render.yaml`) and `DB_SSL=true`. Do not commit the Neon connection string. The old Render PostgreSQL service is retained only as a temporary migration rollback point and is not the production source of truth after cutover.
+
 The readiness endpoint reports:
 
 - `schemaVersion`: latest applied migration
