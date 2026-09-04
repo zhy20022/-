@@ -11,7 +11,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     const url = this.config.get<string>('REDIS_URL', 'redis://localhost:6380');
-    this.client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1, retryStrategy: () => null });
+    this.client = new Redis(url, {
+      lazyConnect: true,
+      maxRetriesPerRequest: 1,
+      connectTimeout: Number(this.config.get<string>('REDIS_CONNECT_TIMEOUT_MS', '10000')),
+      retryStrategy: (attempt) => Math.min(500 * attempt, 5000),
+    });
+    this.client.on('ready', () => {
+      this.warnedUnavailable = false;
+    });
     this.client.on('error', (error) => {
       if (!this.warnedUnavailable) {
         this.warnedUnavailable = true;
