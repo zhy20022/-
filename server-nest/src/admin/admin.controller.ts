@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Headers, Param, Post, Query, Res, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query, Res, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import { timingSafeEqual } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Response } from 'express';
 import { AdminService } from './admin.service';
+import { DatabaseBackupService } from '../database/database-backup.service';
 
 class BanUserDto {
   @IsOptional()
@@ -32,6 +34,7 @@ export class AdminController {
   constructor(
     private readonly admin: AdminService,
     private readonly config: ConfigService,
+    private readonly databaseBackup: DatabaseBackupService,
   ) {}
 
   @Get()
@@ -108,6 +111,21 @@ export class AdminController {
     return this.admin.listLogs();
   }
 
+  @Get('database/backup')
+  async databaseBackupDownload(
+    @Headers('x-backup-token') token: string,
+    @Res() response: Response,
+  ) {
+    this.assertBackupToken(token);
+    try {
+      await this.databaseBackup.streamLogicalBackup(response);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!response.headersSent) throw new ServiceUnavailableException(`database backup failed: ${message}`);
+      response.destroy(new Error(`database backup failed: ${message}`));
+    }
+  }
+
   @Post('users/:userId/ban')
   ban(@Headers('x-admin-token') token: string, @Param('userId') userId: string, @Body() dto: BanUserDto) {
     this.assertAdminToken(token);
@@ -124,6 +142,19 @@ export class AdminController {
     const expected = this.config.get<string>('ADMIN_TOKEN', 'dev-admin-token');
     if (token !== expected) {
       throw new UnauthorizedException('invalid admin token');
+    }
+  }
+
+  private assertBackupToken(token?: string) {
+    const expected = this.config.get<string>('BACKUP_TOKEN', '');
+    const receivedBuffer = Buffer.from(token || '');
+    const expectedBuffer = Buffer.from(expected);
+    if (
+      expectedBuffer.length < 32 ||
+      receivedBuffer.length !== expectedBuffer.length ||
+      !timingSafeEqual(receivedBuffer, expectedBuffer)
+    ) {
+      throw new UnauthorizedException('invalid backup token');
     }
   }
 }

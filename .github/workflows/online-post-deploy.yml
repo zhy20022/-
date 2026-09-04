@@ -1,0 +1,56 @@
+name: Online post-deploy acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - server-nest/**
+      - deploy/render/**
+      - render.yaml
+      - .github/workflows/online-post-deploy.yml
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: Optional deployed commit SHA
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-post-deploy
+  cancel-in-progress: true
+
+jobs:
+  verify-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server-nest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server-nest/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint and build
+        run: npm run lint && npm run build
+
+  public-acceptance:
+    needs: verify-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      E2E_API_BASE: ${{ vars.PUBLIC_PLAYABLE_URL || 'https://gamer-2d-playable-demo.yicheng430664.chatgpt.site' }}/api
+      E2E_EXPECTED_COMMIT: ${{ github.event_name == 'push' && github.sha || inputs.expected_commit }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Wait for deployment and run the public gameplay loop
+        run: node server-nest/scripts/e2e-public-release.mjs

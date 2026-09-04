@@ -31,7 +31,7 @@ services:
     build:
       context: ../../server-nest
     restart: "no"
-    command: ["node", "dist/database/bootstrap-schema.js"]
+    command: ["node", "dist/database/run-migrations.js"]
     env_file:
       - ./.env.production
     depends_on:

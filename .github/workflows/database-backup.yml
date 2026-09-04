@@ -1,0 +1,109 @@
+name: Database backup and restore verification
+
+on:
+  schedule:
+    - cron: "17 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: gamer_restore
+          POSTGRES_USER: restore_user
+          POSTGRES_PASSWORD: restore_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U restore_user -d gamer_restore"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      BACKUP_TOKEN: ${{ secrets.BACKUP_TOKEN }}
+      BACKUP_ARCHIVE_PASSWORD: ${{ secrets.BACKUP_ARCHIVE_PASSWORD }}
+      ONLINE_API_URL: ${{ vars.ONLINE_API_URL || 'https://gamer-nest-api.onrender.com' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate backup secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ${#BACKUP_TOKEN} -ge 32
+          test ${#BACKUP_ARCHIVE_PASSWORD} -ge 32
+
+      - name: Download logical backup through the private database network
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+          curl --fail --show-error --silent \
+            --retry 5 --retry-all-errors --connect-timeout 20 --max-time 900 \
+            -H "x-backup-token: ${BACKUP_TOKEN}" \
+            -D backup/response-headers.txt \
+            "${ONLINE_API_URL%/}/api/admin/database/backup" \
+            -o backup/gamer.dump
+          test -s backup/gamer.dump
+          grep -qi '^x-backup-schema-version: InitialOnlineSchema1788502608304' backup/response-headers.txt
+          sha256sum backup/gamer.dump > backup/gamer.dump.sha256
+
+      - name: Restore backup into isolated PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network host \
+            -e PGPASSWORD=restore_test_password \
+            -v "$PWD/backup:/backup:ro" \
+            postgres:18-alpine \
+            pg_restore --exit-on-error --no-owner --no-privileges \
+              -h 127.0.0.1 -U restore_user -d gamer_restore /backup/gamer.dump
+
+      - name: Verify restored schema and relational integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --network host \
+            -e PGPASSWORD=restore_test_password \
+            -v "$PWD:/workspace:ro" \
+            postgres:18-alpine \
+            psql -h 127.0.0.1 -U restore_user -d gamer_restore \
+              -f /workspace/server-nest/scripts/verify-restored-backup.sql \
+              > backup/restore-verification.txt
+          cat backup/restore-verification.txt
+
+      - name: Encrypt backup artifact
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in backup/gamer.dump \
+            -out backup/gamer.dump.enc \
+            -pass env:BACKUP_ARCHIVE_PASSWORD
+          rm -f backup/gamer.dump backup/response-headers.txt
+
+      - name: Upload encrypted backup and verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gamer-postgres-backup-${{ github.run_id }}
+          path: |
+            backup/gamer.dump.enc
+            backup/gamer.dump.sha256
+            backup/restore-verification.txt
+          if-no-files-found: error
+          retention-days: 30

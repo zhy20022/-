@@ -26,6 +26,8 @@ services:
         generateValue: true
       - key: ADMIN_TOKEN
         generateValue: true
+      - key: BACKUP_TOKEN
+        generateValue: true
       - key: ALLOW_GUEST_LOGIN
         value: "false"
       - key: CONTENT_DIR

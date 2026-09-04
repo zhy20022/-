@@ -33,7 +33,7 @@ services:
     build:
       context: ../../server-nest
     restart: "no"
-    command: ["node", "dist/database/bootstrap-schema.js"]
+    command: ["node", "dist/database/run-migrations.js"]
     environment: &api-environment
       NODE_ENV: production
       PORT: 4100
@@ -41,6 +41,7 @@ services:
       REDIS_URL: redis://redis:6379
       AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET}
       ADMIN_TOKEN: ${ADMIN_TOKEN}
+      BACKUP_TOKEN: ${BACKUP_TOKEN}
       ALLOW_GUEST_LOGIN: ${ALLOW_GUEST_LOGIN:-false}
       CONTENT_DIR: /workspace/data/content
       CORS_ORIGIN: ${PUBLIC_WEB_ORIGINS}

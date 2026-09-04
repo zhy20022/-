@@ -37,10 +37,11 @@ export const validateEnvironment = (config: Record<string, unknown>) => {
     throw new Error(`CORS_ORIGIN must use HTTPS in production: ${invalidOrigin}`)
   }
   if (String(config.TYPEORM_SYNCHRONIZE || 'false') === 'true') {
-    throw new Error('TYPEORM_SYNCHRONIZE cannot be enabled in production; run npm run schema:init instead')
+    throw new Error('TYPEORM_SYNCHRONIZE cannot be enabled in production; run npm run migration:run instead')
   }
 
   requireSecret(config, 'AUTH_TOKEN_SECRET')
   requireSecret(config, 'ADMIN_TOKEN')
+  requireSecret(config, 'BACKUP_TOKEN')
   return config
 }

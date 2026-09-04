@@ -10,27 +10,8 @@ import { BattleSettlementService } from './battle-settlement/battle-settlement.s
 import { RedisService } from './common/redis.service';
 import { GameConfigsController } from './configs/configs.controller';
 import { GameConfigsService } from './configs/configs.service';
-import {
-  AdminLogEntity,
-  BattleRecordEntity,
-  DailyGoalProgressEntity,
-  DungeonProgressEntity,
-  FriendAssistRecordEntity,
-  FriendshipEntity,
-  GachaRecordEntity,
-  GameConfigEntity,
-  GuildContributionEntity,
-  GuildEntity,
-  GuildMemberEntity,
-  IdleClaimEntity,
-  IdleSessionEntity,
-  InventoryItemEntity,
-  MailEntity,
-  PlayerCharacterEntity,
-  PlayerEntity,
-  RankingEntryEntity,
-  UserEntity,
-} from './database/entities';
+import { gameEntities } from './database/entities-list';
+import { DatabaseBackupService } from './database/database-backup.service';
 import { DailyGoalsController } from './daily-goals/daily-goals.controller';
 import { DailyGoalsService } from './daily-goals/daily-goals.service';
 import { DungeonsController } from './dungeons/dungeons.controller';
@@ -55,28 +36,6 @@ import { validateEnvironment } from './config/environment';
 import { WorkshopController } from './workshop/workshop.controller';
 import { WorkshopService } from './workshop/workshop.service';
 
-const entities = [
-  AdminLogEntity,
-  BattleRecordEntity,
-  DailyGoalProgressEntity,
-  DungeonProgressEntity,
-  FriendAssistRecordEntity,
-  FriendshipEntity,
-  GachaRecordEntity,
-  GameConfigEntity,
-  GuildContributionEntity,
-  GuildEntity,
-  GuildMemberEntity,
-  IdleClaimEntity,
-  IdleSessionEntity,
-  InventoryItemEntity,
-  MailEntity,
-  PlayerCharacterEntity,
-  PlayerEntity,
-  RankingEntryEntity,
-  UserEntity,
-];
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
@@ -86,7 +45,7 @@ const entities = [
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.get<string>('DATABASE_URL', 'postgres://gamer:gamer_dev_password@localhost:5433/gamer_online'),
-        entities,
+        entities: gameEntities,
         synchronize:
           config.get<string>('TYPEORM_SYNCHRONIZE') === 'true' ||
           (config.get<string>('NODE_ENV') !== 'production' && config.get<string>('TYPEORM_SYNCHRONIZE') !== 'false'),
@@ -100,7 +59,7 @@ const entities = [
         },
       }),
     }),
-    TypeOrmModule.forFeature(entities),
+    TypeOrmModule.forFeature(gameEntities),
   ],
   controllers: [
     AdminController,
@@ -125,6 +84,7 @@ const entities = [
     AuthService,
     BattleSettlementService,
     DailyGoalsService,
+    DatabaseBackupService,
     DungeonsService,
     FriendsAssistService,
     GachaService,
