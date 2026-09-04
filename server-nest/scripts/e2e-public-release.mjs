@@ -10,7 +10,7 @@ async function main() {
   assert(health.schemaReady, `schema is not ready: ${health.schemaVersion}`);
 
   const stamp = Date.now();
-  const username = `ReleaseCheck${stamp}`;
+  const username = `rel_${stamp.toString(36)}`;
   const password = `Release-${stamp}-secure`;
   const registered = await postJson('/auth/register', { username, password });
   const session = await postJson('/auth/login', { username, password });
@@ -113,7 +113,10 @@ async function postJson(path, body, headers = {}) {
 }
 
 async function requestJson(path, init) {
-  const response = await fetch(`${apiBase}${path}`, init);
+  const response = await fetch(`${apiBase}${path}`, {
+    ...init,
+    signal: AbortSignal.timeout(60_000),
+  });
   const text = await response.text();
   const payload = text ? JSON.parse(text) : null;
   if (!response.ok) {

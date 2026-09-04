@@ -4,10 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - server-nest/**
+      - server-nest/src/**
+      - server-nest/package.json
+      - server-nest/package-lock.json
+      - server-nest/Dockerfile
+      - data/content/**
       - deploy/render/**
       - render.yaml
-      - .github/workflows/online-post-deploy.yml
   workflow_dispatch:
     inputs:
       expected_commit:
