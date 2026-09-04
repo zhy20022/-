@@ -1,0 +1,69 @@
+services:
+  - type: web
+    name: gamer-nest-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    dockerCommand: sh -c "node dist/database/bootstrap-schema.js && node dist/main.js"
+    healthCheckPath: /api/health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gamer-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: gamer-redis
+          property: connectionString
+      - key: AUTH_TOKEN_SECRET
+        generateValue: true
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: ALLOW_GUEST_LOGIN
+        value: "false"
+      - key: CONTENT_DIR
+        value: /workspace/data/content
+      - key: CORS_ORIGIN
+        value: https://gamer-2d-playable-demo.yicheng430664.chatgpt.site,https://zhy20022.github.io
+      - key: TYPEORM_SYNCHRONIZE
+        value: "false"
+      - key: TYPEORM_LOGGING
+        value: "false"
+      - key: DB_SSL
+        value: "false"
+      - key: DB_POOL_MAX
+        value: "10"
+      - key: DB_CONNECT_TIMEOUT_MS
+        value: "10000"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: REQUEST_BODY_LIMIT
+        value: 256kb
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "60000"
+      - key: RATE_LIMIT_MAX
+        value: "180"
+
+  - type: keyvalue
+    name: gamer-redis
+    plan: free
+    region: singapore
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+    persistenceMode: off
+
+databases:
+  - name: gamer-postgres
+    plan: free
+    region: singapore
+    databaseName: gamer_online
+    user: gamer
+    ipAllowList: []
+

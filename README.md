@@ -1,5 +1,7 @@
 # 灾异志
 
+[一键部署 NestJS 在线后端到 Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2Fzhy20022%2F-%2Ftree%2Fmain)
+
 ## 🚀 快速启动
 
 ### Windows 用户：直接双击 `启动游戏.bat` 即可！
@@ -168,7 +170,6 @@ Gamer/
 - [ ] 联机系统实现
 - [ ] UI界面设计
 - [ ] 游戏平衡性测试
-
 
 
 
