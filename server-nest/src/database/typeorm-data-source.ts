@@ -20,7 +20,7 @@ export default new DataSource({
     ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
     : false,
   extra: {
-    max: Number(process.env.DB_POOL_MAX || 20),
+    max: Math.max(2, Number(process.env.DB_POOL_MAX || 20)),
     connectionTimeoutMillis: Number(process.env.DB_CONNECT_TIMEOUT_MS || 10000),
   },
 });

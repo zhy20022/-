@@ -38,13 +38,16 @@ async function main() {
 
     const characterA = await ensureCharacter(db, playerA.id, authA, 'http_test_a');
     const characterB = await ensureCharacter(db, playerB.id, authB, 'http_test_b');
-
+    const dungeonPrefixes = { FIRE: 'fire', WOOD: 'wood', WIND: 'wind', WATER: 'water', EARTH: 'earth', THUNDER: 'lightning', LIGHT: 'holy', DARK: 'shadow' };
+    const dungeonId = `${dungeonPrefixes[characterA.attributeType]}_type_single_001`;
+    const started = await postJson(`/dungeons/${playerA.id}/${dungeonId}/start`, { characterIds: [characterA.id] }, authA);
+    await delay(15000);
     const battle = await postJson('/battle-settlement', {
       playerId: playerA.id,
-      dungeonId: 'http_integration_dungeon',
+      dungeonId,
       characterIds: [characterA.id],
       success: true,
-      duration: 42.5,
+      duration: 60,
       damageScore: 1000000 + (stamp % 100000),
       rewards: [
         {
@@ -54,15 +57,15 @@ async function main() {
           payload: { source: 'http-db-test' },
         },
       ],
-      clientTrace: { test: 'http-db-integration' },
+      clientTrace: { test: 'http-db-integration', battleSeed: started.battleSeed },
     }, authA);
     assert(battle.record?.id, 'battle settlement did not return a record id');
     assert(battle.progress?.id, 'battle settlement did not return progress id');
 
     const inventoryA = await getJson(`/inventory/${playerA.id}`, authA);
     assert(Array.isArray(inventoryA) && inventoryA.length > 0, 'player A inventory should contain rewards/items');
-    const authoritativeReward = inventoryA.find((item) => item.itemConfigId === 'server_authority_crystal');
-    assert(authoritativeReward?.quantity >= 3, 'battle settlement should grant server-authoritative configured reward');
+    const authoritativeReward = inventoryA.find((item) => item.itemConfigId === 'character_exp_crystal');
+    assert(authoritativeReward?.quantity >= 531, 'battle settlement should grant server-calculated reward');
     const forgedClientReward = inventoryA.find((item) => item.itemConfigId === 'http_test_crystal');
     assert(!forgedClientReward, 'battle settlement should not trust forged client reward payloads');
     await expectFailure('/ranking/damage_weekly/score', {
@@ -89,11 +92,11 @@ async function main() {
     assert(idleHistory.length >= 1, 'idle history should include the new claim');
 
     const rankingRank = await getJson(`/ranking/damage_weekly/player/${playerA.id}?seasonId=default`);
-    assert(rankingRank?.entry?.payload?.source === 'server', 'battle settlement should write server-owned ranking score');
-    assert(rankingRank.entry.score === battle.record.damageScore, 'server ranking score should match battle record damage');
+    assert(rankingRank === null, 'client-reported damage must not populate server-owned rankings');
+    assert(battle.record.damageScore === 0, 'unverified damage must not become a verified battle score');
 
     const rankingList = await getJson('/ranking/damage_weekly?seasonId=default&limit=5');
-    assert(Array.isArray(rankingList) && rankingList.some((item) => item.playerId === playerA.id), 'ranking list should include battle settlement score');
+    assert(Array.isArray(rankingList) && !rankingList.some((item) => item.playerId === playerA.id), 'ranking list must exclude forged damage');
 
     const guild = await postJson('/guild', { leaderPlayerId: playerA.id, name: `E2E_Guild_${stamp}` }, authA);
     const guildId = guild.guild?.id;
@@ -152,7 +155,7 @@ async function main() {
     assert(Number(counts.idle_sessions) >= 1, 'idle_sessions table should have rows');
     assert(Number(counts.idle_claims) >= 1, 'idle_claims table should have rows');
     assert(Number(counts.daily_goal_progress) >= 5, 'daily_goal_progress table should have rows');
-    assert(Number(counts.ranking_entries) >= 1, 'ranking_entries table should have rows');
+    assert(rankingRank === null, 'unverified battle damage must not create a ranking entry');
     assert(Number(counts.friendships) >= 1, 'friendships table should have rows');
     assert(Number(counts.friend_assist_records) >= 1, 'friend_assist_records table should have rows');
     assert(Number(counts.guilds) >= 1, 'guilds table should have rows');
@@ -174,7 +177,7 @@ async function main() {
         gold: idleClaim.gold,
         history: idleHistory.length,
       },
-      ranking: { rank: rankingRank.rank, score: rankingRank.entry.score, entriesChecked: rankingList.length },
+      ranking: { rank: rankingRank?.rank ?? null, score: rankingRank?.entry?.score ?? null, entriesChecked: rankingList.length, unverifiedScoreRejected: true },
       guild: { id: guildId, members: guildCurrent.members.length, contribution: contribution.guild.contribution },
       friends: { count: friendsA.length, roster: rosterA.length, assistRecord: assist.id, history: assistHistory.length },
       dailyGoals: { completed: completedGoalKeys, claimed: dailyClaim.progress.goalKey },

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { randomUUID } from 'node:crypto';
 import { IdempotencyService } from '../common/idempotency.service';
 import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
@@ -94,7 +95,7 @@ export class DungeonsService {
       Math.max(0, Math.floor(cappedDuration / dungeon.rewardConfig.spawnInterval) + 1),
     );
     const cappedSingleKills = Math.min(Math.max(0, Math.floor(singleMonstersKilled || 0)), maxWaves);
-    const cappedGroupKills = Math.min(Math.max(0, Math.floor(groupMonstersKilled || 0)), maxWaves * 5);
+    const cappedGroupKills = Math.min(Math.max(0, Math.floor(groupMonstersKilled || 0)), (maxWaves - cappedSingleKills) * 5);
     const directCharacterExp =
       cappedSingleKills * dungeon.rewardConfig.characterExpPerSingleKill +
       Math.floor(cappedGroupKills / 5) * dungeon.rewardConfig.characterExpPerFiveGroupKills;
@@ -119,19 +120,26 @@ export class DungeonsService {
     const characters = await this.characters.find({ where: { playerId, id: In(characterIds) } });
     if (characters.length !== characterIds.length) throw new BadRequestException('all characters must belong to player');
     const dungeon = this.assertCanEnter(dungeonId, characters);
-    return {
-      battleSeed: `${playerId}:${dungeonId}:${Date.now()}`,
-      dungeon,
-      characters: characters.map((character) => ({
-        id: character.id,
-        level: character.level,
-        attributeType: character.attributeType,
-        skillSlots: character.skillSlots,
-        equipment: character.equipment,
-        equipmentSkillEffects: this.equipmentSkillEffects(character.equipment),
-      })),
-      serverTime: new Date().toISOString(),
-    };
+    const battleSeed = randomUUID();
+    return this.idempotency.execute(playerId, 'battle-start', battleSeed, { dungeonId, characterIds }, async ({ manager, player }) => {
+      player.flags = { ...player.flags, activeBattleSeed: battleSeed };
+      await manager.save(player);
+      return {
+        battleSeed,
+        playerId,
+        characterIds,
+        dungeon,
+        characters: characters.map((character) => ({
+          id: character.id,
+          level: character.level,
+          attributeType: character.attributeType,
+          skillSlots: character.skillSlots,
+          equipment: character.equipment,
+          equipmentSkillEffects: this.equipmentSkillEffects(character.equipment),
+        })),
+        serverTime: new Date().toISOString(),
+      };
+    });
   }
 
   async sweep(playerId: string, dungeonId: string, characterId: string, count: number, idempotencyKey?: string) {

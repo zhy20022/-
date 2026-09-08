@@ -572,7 +572,12 @@ const BattlePage: React.FC = () => {
       setLoading(false)
       return
     }
-    const newBattleId = location.state?.settlement_key || `online-${Date.now()}`
+    const newBattleId = location.state?.settlement_key
+    if (!newBattleId) {
+      setBattleNotice('缺少开战凭证，请返回副本页重新进入。')
+      setLoading(false)
+      return
+    }
     setBattleId(newBattleId)
     setLoading(false)
     setBattleResult(null)
@@ -581,10 +586,14 @@ const BattlePage: React.FC = () => {
     const totalWaves = Number(dungeon?.reward_config?.spawn_wave_count || 20)
     const spawnInterval = Number(dungeon?.reward_config?.spawn_interval || 3)
     const maxHealth = Math.max(600, 700 + Number(selectedCharacter?.level || 1) * 35)
-    const startedAt = Date.now()
+    let lastTickAt = Date.now()
+    let simulatedTime = 0
 
     const tick = () => {
-      const currentTime = Math.min(duration, ((Date.now() - startedAt) / 1000) * battleSpeedRef.current)
+      const now = Date.now()
+      simulatedTime += Math.max(0, now - lastTickAt) / 1000 * battleSpeedRef.current
+      lastTickAt = now
+      const currentTime = Math.min(duration, simulatedTime)
       const waves = Math.min(totalWaves, Math.max(0, Math.floor(currentTime / spawnInterval) + 1))
       const singleKills = Math.floor(waves / 2)
       const groupKills = (waves - singleKills) * 5
@@ -821,7 +830,7 @@ const BattlePage: React.FC = () => {
       applySnapshot(data.snapshot)
     })
 
-    socket.on('battle_end', (data: { result: BattleResultPayload }) => {
+    socket.on('battle_end', () => {
       stopPolling()
       fetchBattleResult(battleId)
     })
@@ -1211,8 +1220,8 @@ const BattlePage: React.FC = () => {
                         <strong>{battleResult.team_performance.role_profile?.score ?? 0}</strong>
                       </div>
                     </div>
-                    {battleResult.team_record?.record_id && (
-                      <p className="team-record-note">Record saved: {String(battleResult.team_record.record_id)}</p>
+                    {Boolean(battleResult.team_record?.record_id) && (
+                      <p className="team-record-note">Record saved: {String(battleResult.team_record?.record_id)}</p>
                     )}
                   </div>
                 )}

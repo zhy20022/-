@@ -45,7 +45,7 @@ export class InventoryService {
     const inventory = manager.getRepository(InventoryItemEntity);
     const saved: InventoryItemEntity[] = [];
     for (const item of items) {
-      if (!item.itemConfigId || !item.itemType || item.quantity <= 0) {
+      if (!item.itemConfigId || !item.itemType || !Number.isSafeInteger(item.quantity) || item.quantity <= 0 || item.quantity > 999_999_999) {
         throw new BadRequestException('invalid grant item');
       }
       const stackable = ['material', 'currency', 'fragment', 'consumable'].includes(item.itemType);
@@ -75,24 +75,35 @@ export class InventoryService {
   }
 
   async consume(playerId: string, itemConfigId: string, quantity: number) {
-    await this.assertPlayer(playerId);
-    if (quantity <= 0) throw new BadRequestException('quantity must be positive');
-    const row = await this.inventory.findOne({ where: { playerId, itemConfigId } });
-    if (!row || row.quantity < quantity) {
-      throw new BadRequestException('not enough item quantity');
-    }
-    row.quantity -= quantity;
-    if (row.quantity === 0) {
-      await this.inventory.remove(row);
-      return { itemConfigId, quantity: 0, removed: true };
-    }
-    return this.inventory.save(row);
+    if (!Number.isSafeInteger(quantity) || quantity <= 0) throw new BadRequestException('quantity must be a positive integer');
+    return this.inventory.manager.transaction(async (manager) => {
+      const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!player) throw new NotFoundException('player not found');
+      const row = await manager.findOne(InventoryItemEntity, { where: { playerId, itemConfigId }, lock: { mode: 'pessimistic_write' } });
+      if (!row || row.quantity < quantity) {
+        throw new BadRequestException('not enough item quantity');
+      }
+      if (row.locked || !['material', 'currency', 'fragment', 'consumable'].includes(row.itemType)) {
+        throw new BadRequestException('item cannot be consumed');
+      }
+      row.quantity -= quantity;
+      if (row.quantity === 0) {
+        await manager.remove(row);
+        return { itemConfigId, quantity: 0, removed: true };
+      }
+      return manager.save(row);
+    });
   }
 
   async setLocked(playerId: string, itemId: string, locked: boolean) {
-    const item = await this.getOwnedItem(playerId, itemId);
-    item.locked = locked;
-    return { success: true, item: await this.inventory.save(item) };
+    return this.inventory.manager.transaction(async (manager) => {
+      const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!player) throw new NotFoundException('player not found');
+      const item = await manager.findOne(InventoryItemEntity, { where: { id: itemId, playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!item) throw new NotFoundException('inventory item not found');
+      item.locked = locked;
+      return { success: true, item: await manager.save(item) };
+    });
   }
 
   async dismantlePreview(playerId: string, itemId: string) {

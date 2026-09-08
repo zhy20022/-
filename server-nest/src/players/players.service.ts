@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { applyCharacterExp, getExpForNextLevel, getExpRequiredToLevel, MAX_CHARACTER_LEVEL } from '../common/leveling';
 import { IdempotencyService } from '../common/idempotency.service';
 import { GameConfigsService } from '../configs/configs.service';
@@ -24,8 +24,8 @@ export class PlayersService {
     const player = await this.players.findOne({ where: { id: playerId } });
     if (!player) throw new NotFoundException('player not found');
     const [characters, inventory, mails] = await Promise.all([
-      this.characters.find({ where: { playerId }, take: 50 }),
-      this.inventory.find({ where: { playerId }, take: 100 }),
+      this.characters.find({ where: { playerId }, order: { createdAt: 'ASC' } }),
+      this.inventory.find({ where: { playerId }, order: { createdAt: 'ASC' } }),
       this.mails.find({ where: { playerId }, order: { createdAt: 'DESC' }, take: 30 }),
     ]);
     const configMap = await this.getCharacterConfigMap();
@@ -82,13 +82,13 @@ export class PlayersService {
         };
       }
 
-      const requestedExpPackages = dto.levelDelta
+      const requestedExpPackages = Math.min(getExpRequiredToLevel(character.level, character.exp, MAX_CHARACTER_LEVEL), dto.levelDelta
         ? getExpRequiredToLevel(
           character.level,
           character.exp,
           Math.min(MAX_CHARACTER_LEVEL, character.level + Math.max(1, Math.floor(dto.levelDelta))),
         )
-        : Math.max(1, Math.floor(dto.amount || 0));
+        : Math.max(1, Math.floor(dto.amount || 0)));
       const requestedGold = this.calculateUpgradeGoldCost(requestedExpPackages);
       const expItem = await manager.findOne(InventoryItemEntity, {
         where: { playerId, itemConfigId: CHARACTER_EXP_ITEM_ID },
@@ -142,29 +142,34 @@ export class PlayersService {
   }
 
   async configureSkills(playerId: string, characterId: string, skillSlots: Record<string, string[]>) {
-    const character = await this.getOwnedCharacter(playerId, characterId);
-    const unlockedSkills = await this.buildAttributeSkills(character.attributeType);
-    const normalized = this.normalizeSkillSlots(skillSlots);
-    const expected = { low: 5, mid: 3, high: 1 } as const;
-    const skillMap = new Map(unlockedSkills.map((skill) => [skill.skillId, skill]));
-    const allIds = [...normalized.low, ...normalized.mid, ...normalized.high];
-    if ((Object.keys(expected) as Array<keyof typeof expected>).some((tier) => normalized[tier].length !== expected[tier])) {
-      throw new BadRequestException('skill configuration requires 5 low, 3 mid and 1 high slot');
-    }
-    if (new Set(allIds).size !== allIds.length) throw new BadRequestException('the same skill cannot occupy multiple slots');
-    for (const tier of Object.keys(expected) as Array<keyof typeof expected>) {
-      if (normalized[tier].some((id) => !skillMap.has(id) || skillMap.get(id)?.tier.toLowerCase() !== tier)) {
-        throw new BadRequestException(`invalid ${tier} skill selection`);
+    return this.players.manager.transaction(async (manager) => {
+      const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!player) throw new NotFoundException('player not found');
+      const character = await manager.findOne(PlayerCharacterEntity, { where: { id: characterId, playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!character) throw new NotFoundException('character not found');
+      const unlockedSkills = await this.buildAttributeSkills(character.attributeType, manager);
+      const normalized = this.normalizeSkillSlots(skillSlots);
+      const expected = { low: 5, mid: 3, high: 1 } as const;
+      const skillMap = new Map(unlockedSkills.map((skill) => [skill.skillId, skill]));
+      const allIds = [...normalized.low, ...normalized.mid, ...normalized.high];
+      if ((Object.keys(expected) as Array<keyof typeof expected>).some((tier) => normalized[tier].length !== expected[tier])) {
+        throw new BadRequestException('skill configuration requires 5 low, 3 mid and 1 high slot');
       }
-    }
-    character.skillSlots = {
-      ...(character.skillSlots || {}),
-      learnedSkills: unlockedSkills.map((skill) => skill.skillId),
-      skillSlots: normalized,
-      updatedAt: new Date().toISOString(),
-    };
-    const saved = await this.characters.save(character);
-    return { success: true, message: 'skill configuration saved', skillSlots: normalized, character: this.serializeCharacter(saved) };
+      if (new Set(allIds).size !== allIds.length) throw new BadRequestException('the same skill cannot occupy multiple slots');
+      for (const tier of Object.keys(expected) as Array<keyof typeof expected>) {
+        if (normalized[tier].some((id) => !skillMap.has(id) || skillMap.get(id)?.tier.toLowerCase() !== tier)) {
+          throw new BadRequestException(`invalid ${tier} skill selection`);
+        }
+      }
+      character.skillSlots = {
+        ...(character.skillSlots || {}),
+        learnedSkills: unlockedSkills.map((skill) => skill.skillId),
+        skillSlots: normalized,
+        updatedAt: new Date().toISOString(),
+      };
+      const saved = await manager.save(character);
+      return { success: true, message: 'skill configuration saved', skillSlots: normalized, character: this.serializeCharacter(saved) };
+    });
   }
 
   async equipmentOptions(playerId: string, characterId: string) {
@@ -181,41 +186,56 @@ export class PlayersService {
   }
 
   async equip(playerId: string, characterId: string, itemId: string) {
-    const character = await this.getOwnedCharacter(playerId, characterId);
-    const item = await this.inventory.findOne({ where: { id: itemId, playerId } });
-    if (!item) throw new NotFoundException('inventory item not found');
-    if (!['weapon', 'equipment'].includes(item.itemType)) throw new BadRequestException('item cannot be equipped');
-    if (item.itemType === 'weapon' && item.payload?.characterId && item.payload.characterId !== character.id && item.payload?.characterConfigId !== character.characterConfigId) {
-      throw new BadRequestException('exclusive weapon belongs to another character');
-    }
-    const equipment = { ...(character.equipment || {}) };
-    const payload = this.serializeEquippedItem(item);
-    if (item.itemType === 'weapon') {
-      equipment.weapon = payload;
-    } else {
-      const slot = String(item.payload?.slot || 'ACCESSORY').toUpperCase();
-      equipment.equipment_set = { ...((equipment.equipment_set as Record<string, unknown>) || {}), [slot]: payload };
-    }
-    character.equipment = equipment;
-    const saved = await this.characters.save(character);
-    return { success: true, message: 'equipment saved', character: this.serializeCharacter(saved), equipped: payload };
+    return this.players.manager.transaction(async (manager) => {
+      const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!player) throw new NotFoundException('player not found');
+      const character = await manager.findOne(PlayerCharacterEntity, { where: { id: characterId, playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!character) throw new NotFoundException('character not found');
+      const item = await manager.findOne(InventoryItemEntity, { where: { id: itemId, playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!item) throw new NotFoundException('inventory item not found');
+      if (!['weapon', 'equipment'].includes(item.itemType)) throw new BadRequestException('item cannot be equipped');
+      const roster = await manager.find(PlayerCharacterEntity, { where: { playerId } });
+      if (roster.some((other) => other.id !== characterId && this.getEquippedIds(other.equipment).has(itemId))) {
+        throw new BadRequestException('item is already equipped by another character');
+      }
+      if (item.itemType === 'weapon' && item.payload?.characterId && item.payload.characterId !== character.id && item.payload?.characterConfigId !== character.characterConfigId) {
+        throw new BadRequestException('exclusive weapon belongs to another character');
+      }
+      const equipment = { ...(character.equipment || {}) };
+      const payload = this.serializeEquippedItem(item);
+      if (item.itemType === 'weapon') {
+        equipment.weapon = payload;
+      } else {
+        const slot = String(item.payload?.slot || 'ACCESSORY').toUpperCase();
+        equipment.equipment_set = { ...((equipment.equipment_set as Record<string, unknown>) || {}), [slot]: payload };
+      }
+      character.equipment = equipment;
+      const saved = await manager.save(character);
+      return { success: true, message: 'equipment saved', character: this.serializeCharacter(saved), equipped: payload };
+    });
   }
 
   async unequip(playerId: string, characterId: string, input: { itemId?: string; slot?: string }) {
-    const character = await this.getOwnedCharacter(playerId, characterId);
-    const equipment = { ...(character.equipment || {}) };
-    if (input.slot?.toLowerCase() === 'weapon' || (equipment.weapon as { itemId?: string; item_id?: string } | undefined)?.itemId === input.itemId || (equipment.weapon as { item_id?: string } | undefined)?.item_id === input.itemId) {
-      delete equipment.weapon;
-    } else {
-      const pieces = { ...((equipment.equipment_set as Record<string, { itemId?: string; item_id?: string }>) || {}) };
-      for (const [slot, piece] of Object.entries(pieces)) {
-        if (slot === input.slot?.toUpperCase() || piece?.itemId === input.itemId || piece?.item_id === input.itemId) delete pieces[slot];
+    if (!input.itemId && !input.slot) throw new BadRequestException('itemId or slot is required');
+    return this.players.manager.transaction(async (manager) => {
+      const player = await manager.findOne(PlayerEntity, { where: { id: playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!player) throw new NotFoundException('player not found');
+      const character = await manager.findOne(PlayerCharacterEntity, { where: { id: characterId, playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!character) throw new NotFoundException('character not found');
+      const equipment = { ...(character.equipment || {}) };
+      if (input.slot?.toLowerCase() === 'weapon' || (input.itemId && ((equipment.weapon as { itemId?: string } | undefined)?.itemId === input.itemId || (equipment.weapon as { item_id?: string } | undefined)?.item_id === input.itemId))) {
+        delete equipment.weapon;
+      } else {
+        const pieces = { ...((equipment.equipment_set as Record<string, { itemId?: string; item_id?: string }>) || {}) };
+        for (const [slot, piece] of Object.entries(pieces)) {
+          if (slot === input.slot?.toUpperCase() || (input.itemId && (piece?.itemId === input.itemId || piece?.item_id === input.itemId))) delete pieces[slot];
+        }
+        equipment.equipment_set = pieces;
       }
-      equipment.equipment_set = pieces;
-    }
-    character.equipment = equipment;
-    const saved = await this.characters.save(character);
-    return { success: true, message: 'equipment removed', character: this.serializeCharacter(saved) };
+      character.equipment = equipment;
+      const saved = await manager.save(character);
+      return { success: true, message: 'equipment removed', character: this.serializeCharacter(saved) };
+    });
   }
 
   private serializeCharacter(character: PlayerCharacterEntity, config?: Record<string, unknown>) {
@@ -232,8 +252,8 @@ export class PlayersService {
     };
   }
 
-  private async buildAttributeSkills(attributeType: string) {
-    const config = await this.configs.getContentConfig('skills');
+  private async buildAttributeSkills(attributeType: string, manager?: EntityManager) {
+    const config = await this.configs.getContentConfig('skills', manager);
     const payload = config.payload as { templates?: Array<Record<string, unknown>> } | null;
     const attribute = this.normalizeAttribute(attributeType);
     return (payload?.templates || []).map((template) => ({
@@ -313,7 +333,7 @@ export class PlayersService {
   }
 
   private calculateUpgradeGoldCost(expPackages: number) {
-    return Math.max(1, Math.floor(Math.max(0, expPackages) * GOLD_PER_EXP_PACKAGE));
+    return Math.floor(Math.max(0, expPackages) * GOLD_PER_EXP_PACKAGE);
   }
 
   private async getExpPackageQuantity(playerId: string) {

@@ -5,10 +5,9 @@ import { applyCharacterExp } from '../common/leveling';
 import { IdempotencyService } from '../common/idempotency.service';
 import { GameConfigsService } from '../configs/configs.service';
 import { DailyGoalsService } from '../daily-goals/daily-goals.service';
-import { BattleRecordEntity, DungeonProgressEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
+import { BattleRecordEntity, DungeonProgressEntity, OperationRequestEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 import { DungeonsService } from '../dungeons/dungeons.service';
 import { InventoryGrantItem, InventoryService } from '../inventory/inventory.service';
-import { RankingService } from '../ranking/ranking.service';
 
 export interface BattleSettlementInput {
   playerId: string;
@@ -30,7 +29,6 @@ export class BattleSettlementService {
     private readonly idempotency: IdempotencyService,
     private readonly configs: GameConfigsService,
     private readonly dailyGoals: DailyGoalsService,
-    private readonly ranking: RankingService,
     private readonly dungeons: DungeonsService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
@@ -38,12 +36,38 @@ export class BattleSettlementService {
     @InjectRepository(DungeonProgressEntity) private readonly progress: Repository<DungeonProgressEntity>,
   ) {}
 
-  async settle(input: BattleSettlementInput, idempotencyKey?: string) {
+  async settle(input: BattleSettlementInput) {
     if (!input.dungeonId || !input.characterIds?.length) {
       throw new BadRequestException('dungeonId and characterIds are required');
     }
-    if (input.duration < 0) throw new BadRequestException('duration must be non-negative');
-    return this.idempotency.execute(input.playerId, 'battle-settlement', idempotencyKey, input, async ({ manager, player }) => {
+    if (!Number.isFinite(input.duration) || input.duration < 0) throw new BadRequestException('duration must be non-negative');
+    const battleSeed = input.clientTrace?.battleSeed;
+    if (typeof battleSeed !== 'string' || !/^[0-9a-f-]{36}$/i.test(battleSeed)) {
+      throw new BadRequestException('start a dungeon before submitting its battleSeed');
+    }
+    // The battle identity, not a replaceable HTTP header, owns the one-time payout.
+    return this.idempotency.execute(input.playerId, 'battle-settlement', battleSeed, input, async ({ manager, player }) => {
+      if (player.flags?.activeBattleSeed !== battleSeed) {
+        throw new BadRequestException('battle entry is no longer active');
+      }
+      const started = await manager.findOne(OperationRequestEntity, {
+        where: { playerId: input.playerId, operation: 'battle-start', idempotencyKey: battleSeed },
+      });
+      const ticket = started?.response;
+      const dungeon = ticket?.dungeon as { dungeonId?: string } | undefined;
+      if (!ticket || dungeon?.dungeonId !== input.dungeonId ||
+          JSON.stringify(ticket.characterIds) !== JSON.stringify(input.characterIds)) {
+        throw new BadRequestException('battle does not match a server-issued dungeon entry');
+      }
+      const elapsed = (Date.now() - new Date(String(ticket.serverTime)).getTime()) / 1000;
+      if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed > 3600) {
+        throw new BadRequestException('battle entry expired; start the dungeon again');
+      }
+      if (input.duration > elapsed * 4 + 1) {
+        throw new BadRequestException('battle duration exceeds elapsed server time at maximum 4x speed');
+      }
+      player.flags = { ...player.flags, activeBattleSeed: null };
+      await manager.save(player);
       const ownedCharacters = await manager.find(PlayerCharacterEntity, {
         where: { id: In(input.characterIds), playerId: input.playerId },
         lock: { mode: 'pessimistic_write' },
@@ -88,7 +112,7 @@ export class BattleSettlementService {
         dungeonId: input.dungeonId,
         success: effectiveInput.success,
         duration: effectiveInput.duration,
-        damageScore: Number(input.damageScore || 0),
+        damageScore: 0,
         characterIds: input.characterIds,
         rewards: { granted: normalizedRewards, gold: experienceResult?.gold || 0, directCharacterExp: experienceResult?.directCharacterExp || 0 },
         resultPayload: {
@@ -99,13 +123,6 @@ export class BattleSettlementService {
       }));
       if (effectiveInput.success) {
         await this.dailyGoals.recordEvent(input.playerId, 'battle_clear', 1, {
-          battleRecordId: record.id,
-          dungeonId: input.dungeonId,
-        }, manager);
-      }
-      const damageScore = Number(input.damageScore || 0);
-      if (damageScore > 0) {
-        await this.ranking.recordServerScore(input.playerId, 'damage_weekly', damageScore, 'default', {
           battleRecordId: record.id,
           dungeonId: input.dungeonId,
         }, manager);
@@ -180,13 +197,11 @@ export class BattleSettlementService {
     row.totalAttempts += 1;
     if (input.success) row.successfulAttempts += 1;
     else row.failedAttempts += 1;
-    const score = Number(input.damageScore || 0);
-    if (score > row.bestDamageScore) row.bestDamageScore = score;
     if (input.success && (row.bestDuration == null || input.duration < row.bestDuration)) {
       row.bestDuration = input.duration;
       row.bestRecord = {
         duration: input.duration,
-        damageScore: score,
+        damageScore: 0,
         characterIds: input.characterIds,
         settledAt: new Date().toISOString(),
       };

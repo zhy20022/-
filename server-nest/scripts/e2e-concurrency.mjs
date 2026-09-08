@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
+import { setTimeout as delay } from 'node:timers/promises';
 
 const apiBase = (process.env.E2E_API_BASE || 'http://127.0.0.1:4100/api').replace(/\/$/, '');
 const accountCount = Math.max(2, Math.min(12, Number(process.env.E2E_ACCOUNT_COUNT || 6)));
@@ -99,6 +100,7 @@ async function runAccountIdempotency(account) {
     { characterIds: [character.id] },
     account.headers,
   );
+  await delay(15000);
   const settlementBody = {
     playerId: account.playerId,
     dungeonId,
@@ -110,7 +112,7 @@ async function runAccountIdempotency(account) {
     clientTrace: { source: 'concurrency-acceptance', battleSeed: started.battleSeed },
   };
   const settlements = await Promise.all(Array.from({ length: duplicateRequests }, () => (
-    postJson('/battle-settlement', settlementBody, account.headers, started.battleSeed)
+    postJson('/battle-settlement', settlementBody, account.headers, randomUUID())
   )));
   const battleIds = new Set(settlements.map((settlement) => settlement.record.id));
   assert(battleIds.size === 1, `duplicate settlement created ${battleIds.size} battle records`);

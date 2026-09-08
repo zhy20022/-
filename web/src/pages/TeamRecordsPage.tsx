@@ -279,7 +279,7 @@ const TeamRecordsPage: React.FC = () => {
       .map((row) => ({ ...row, value: String(rewardDetail[row.key]) }))
   }, [rewardDetail])
 
-  const phaseRows = phases.length > 0
+  const phaseRows: TeamPhase[] = phases.length > 0
     ? phases
     : Array.from({ length: selectedRecord?.phase_count || 0 }, (_, index) => ({
       index,

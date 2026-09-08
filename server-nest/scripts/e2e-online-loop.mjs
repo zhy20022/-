@@ -40,7 +40,8 @@ async function main() {
     assert(profileAfterDraw.player.gold < session.player.gold, 'gacha should deduct gold');
 
     const dungeonId = dungeonForAttribute(character.attributeType);
-    await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
+    const started = await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
+    await delay(15000);
     const settlement = await postJson('/battle-settlement', {
       playerId,
       dungeonId,
@@ -49,7 +50,7 @@ async function main() {
       duration: 60,
       singleMonstersKilled: 10,
       groupMonstersKilled: 50,
-      clientTrace: { source: 'e2e-online-loop' },
+      clientTrace: { source: 'e2e-online-loop', battleSeed: started.battleSeed },
     }, auth);
     assert(settlement.outcome === 'success', 'experience dungeon settlement should succeed');
     assert(settlement.serverRewards.expCrystals === 531, 'normal experience dungeon should grant 531 exp packs');

@@ -1,5 +1,6 @@
 export const CURRENT_SCHEMA_VERSION = 'ConcurrentMutationSafety1788509000000';
 export const INITIAL_SCHEMA_TIMESTAMP = 1788502608304;
+export const INITIAL_SCHEMA_VERSION = 'InitialOnlineSchema1788502608304';
 
 export const REQUIRED_GAME_TABLES = [
   'admin_logs',

@@ -32,6 +32,7 @@ async function main() {
   const dungeonId = dungeonForAttribute(character.attributeType);
 
   const started = await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
+  await delay(15000);
   const settlement = await postJson('/battle-settlement', {
     playerId,
     dungeonId,

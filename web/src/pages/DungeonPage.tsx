@@ -283,7 +283,7 @@ const DungeonPage: React.FC = () => {
     try {
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineDungeons(player)
-        const character = payload.characters.find((item) => selectedCharacters.includes(item.character_id))
+        const character = payload.characters.find((item: Character) => selectedCharacters.includes(item.character_id))
         if (!character) {
           alert('请选择当前在线账号拥有的角色')
           return
@@ -443,7 +443,7 @@ const DungeonPage: React.FC = () => {
     try {
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineDungeons(player)
-        const character = payload.characters.find((item) => normalizeAttribute(item.attribute_type) === normalizeAttribute(dungeon.attribute_type))
+        const character = payload.characters.find((item: Character) => normalizeAttribute(item.attribute_type) === normalizeAttribute(dungeon.attribute_type))
         if (!character) {
           alert('没有可用于该属性经验副本的角色')
           return

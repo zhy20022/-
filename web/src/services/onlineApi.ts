@@ -25,7 +25,7 @@ const currentSessionKey = 'gamer_online_current_session'
 
 export const onlineApi = axios.create({
   baseURL: base.endsWith('/api') ? base : `${base}/api`,
-  timeout: 10000,
+  timeout: 60000,
 })
 
 export const createIdempotencyKey = (scope: string) => {

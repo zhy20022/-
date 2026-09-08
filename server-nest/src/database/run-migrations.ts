@@ -4,6 +4,7 @@ import dataSource from './typeorm-data-source';
 import {
   CURRENT_SCHEMA_VERSION,
   INITIAL_SCHEMA_TIMESTAMP,
+  INITIAL_SCHEMA_VERSION,
   REQUIRED_CORE_COLUMNS,
   REQUIRED_GAME_TABLES,
 } from './schema-version';
@@ -12,7 +13,9 @@ const MIGRATION_LOCK_ID = 26090302;
 
 async function runMigrations() {
   await dataSource.initialize();
-  await dataSource.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_ID]);
+  const lockRunner = dataSource.createQueryRunner();
+  await lockRunner.connect();
+  await lockRunner.query('SELECT pg_advisory_lock($1)', [MIGRATION_LOCK_ID]);
 
   try {
     await adoptLegacySchema(dataSource);
@@ -27,7 +30,8 @@ async function runMigrations() {
       ? `[migration] applied ${applied.map((migration) => migration.name).join(', ')}`
       : `[migration] schema is current at ${current}`);
   } finally {
-    await dataSource.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]).catch(() => undefined);
+    await lockRunner.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]).catch(() => undefined);
+    await lockRunner.release();
     await dataSource.destroy();
   }
 }
@@ -64,10 +68,10 @@ async function adoptLegacySchema(connection: DataSource) {
     `);
     await manager.query(
       `INSERT INTO "typeorm_migrations" ("timestamp", "name") VALUES ($1, $2)`,
-      [INITIAL_SCHEMA_TIMESTAMP, CURRENT_SCHEMA_VERSION],
+      [INITIAL_SCHEMA_TIMESTAMP, INITIAL_SCHEMA_VERSION],
     );
   });
-  console.log(`[migration] adopted verified legacy schema as ${CURRENT_SCHEMA_VERSION}`);
+  console.log(`[migration] adopted verified legacy schema as ${INITIAL_SCHEMA_VERSION}`);
 }
 
 async function assertCoreColumns(connection: DataSource) {

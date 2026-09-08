@@ -868,7 +868,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
     try {
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineDungeons(player)
-        setExpDungeons(payload.dungeons.filter((dungeon) => dungeon.reward_config?.type === 'experience'))
+        setExpDungeons(payload.dungeons.filter((dungeon: GrowthDungeon) => dungeon.reward_config?.type === 'experience'))
         return
       }
 

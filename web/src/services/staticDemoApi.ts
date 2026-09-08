@@ -191,7 +191,7 @@ const handleDemoRequest = (config: InternalAxiosRequestConfig, url: string) => {
   if (dungeonStart && method === 'post') {
     const validation = validateDungeonEntry(state, dungeonStart[1], body.character_ids || [])
     if (!validation.success) return validation
-    const battle = createBattle(state, dungeonStart[1], body.character_ids || [])
+    const battle = createBattle(state, dungeonStart[1], Array.isArray(body.character_ids) ? body.character_ids.map(String) : [])
     saveState(state)
     return { success: true, battle_id: battle.battle_id }
   }
@@ -230,7 +230,7 @@ const handleDemoRequest = (config: InternalAxiosRequestConfig, url: string) => {
   if (url === '/api/battle/create' && method === 'post') {
     const validation = validateDungeonEntry(state, String(body.dungeon_id || ''), body.character_ids || [])
     if (!validation.success) return validation
-    const battle = createBattle(state, body.dungeon_id, body.character_ids || [])
+    const battle = createBattle(state, String(body.dungeon_id || ''), Array.isArray(body.character_ids) ? body.character_ids.map(String) : [])
     saveState(state)
     return { success: true, battle_id: battle.battle_id }
   }

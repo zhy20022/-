@@ -267,32 +267,7 @@ const OnlineProgressPage: React.FC = () => {
 
   const challengeOnlineExperienceDungeon = async () => {
     if (!currentPlayerId || !selectedLoopCharacter) return
-    const dungeonId = getExperienceDungeonId(selectedLoopCharacter.attributeType)
-    try {
-      setOnlineLoopBusy(true)
-      const started = await onlineApi.post(`/dungeons/${currentPlayerId}/${dungeonId}/start`, {
-        characterIds: [selectedLoopCharacter.id],
-      })
-      const response = await onlineApi.post('/battle-settlement', {
-        playerId: currentPlayerId,
-        dungeonId,
-        characterIds: [selectedLoopCharacter.id],
-        success: true,
-        duration: 60,
-        singleMonstersKilled: 10,
-        groupMonstersKilled: 50,
-        clientTrace: { source: 'online-progress-page', battleSeed: started.data.battleSeed },
-      }, { headers: { 'Idempotency-Key': started.data.battleSeed } })
-      setFeedback({
-        type: 'success',
-        message: `经验本通关：经验包 +${formatNumber(response.data?.serverRewards?.expCrystals || 0)}，金币 +${formatNumber(response.data?.serverRewards?.gold || 0)}，角色经验 +${formatNumber(response.data?.serverRewards?.directCharacterExp || 0)}`,
-      })
-      await refreshPlayerData(currentPlayerId)
-    } catch (error) {
-      setFeedback({ type: 'error', message: getApiErrorMessage(error, '在线经验本结算失败') })
-    } finally {
-      setOnlineLoopBusy(false)
-    }
+    navigate('/dungeons')
   }
 
   const upgradeOnlineCharacter = async () => {
@@ -573,20 +548,6 @@ const formatDailyRewards = (goal: DailyGoal) => {
   const goldText = goal.rewards.gold ? `金币 x${formatNumber(goal.rewards.gold)}` : ''
   const itemText = formatItems(goal.rewards.items || [])
   return [goldText, itemText].filter(Boolean).join('，') || '无奖励'
-}
-
-const getExperienceDungeonId = (attributeType: string) => {
-  const map: Record<string, string> = {
-    FIRE: 'fire_type_single_001',
-    WOOD: 'wood_type_single_001',
-    WIND: 'wind_type_single_001',
-    WATER: 'water_type_single_001',
-    EARTH: 'earth_type_single_001',
-    THUNDER: 'lightning_type_single_001',
-    LIGHT: 'holy_type_single_001',
-    DARK: 'shadow_type_single_001',
-  }
-  return map[String(attributeType || '').toUpperCase()] || 'fire_type_single_001'
 }
 
 const translateTrustError = (message: string) => {

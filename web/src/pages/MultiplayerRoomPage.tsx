@@ -589,9 +589,8 @@ const MultiplayerRoomPage: React.FC = () => {
   }
 
   const dungeonName = (dungeonId: string) => dungeons.find((dungeon) => dungeon.dungeon_id === dungeonId)?.name || dungeonId
-  const characterName = (characterId: string) => characters.find((character) => character.character_id === characterId)?.name || characterId
   const memberCharacterLabel = (member: RoomMember) => {
-    const selected = member.selected_characters && member.selected_characters.length > 0
+    const selected: Partial<Character>[] = member.selected_characters && member.selected_characters.length > 0
       ? member.selected_characters
       : member.character_ids.map((characterId) => characters.find((character) => character.character_id === characterId) || { character_id: characterId, name: characterId })
     return selected.map((character) => {
