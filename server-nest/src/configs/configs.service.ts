@@ -53,6 +53,7 @@ export class GameConfigsService {
       'characters',
       'dungeons',
       'monsters',
+      'monster-catalog',
       'bosses',
       'drops',
       'gacha_pools',

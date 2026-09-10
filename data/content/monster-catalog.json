@@ -1,0 +1,4326 @@
+{
+  "schema_version": 1,
+  "rules_version": "2026-09-09",
+  "encounters": [
+    {
+      "id": "single_fire_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "FIRE",
+      "name": "参芝灵",
+      "phases": [
+        [
+          {
+            "name": "灵孢播种",
+            "effects": [
+              {
+                "kind": "hot",
+                "target": "allies",
+                "value": 0.015,
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "allies",
+                "value": 0.15,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WOOD",
+      "interval": 6
+    },
+    {
+      "id": "single_fire_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "FIRE",
+      "name": "枯木蟒",
+      "phases": [
+        [
+          {
+            "name": "荆棘囚笼",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "single",
+                "value": 0.3,
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WOOD",
+      "interval": 6
+    },
+    {
+      "id": "single_wood_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "WOOD",
+      "name": "风狸子",
+      "phases": [
+        [
+          {
+            "name": "风缚爪击",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WIND",
+      "interval": 6
+    },
+    {
+      "id": "single_wood_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "WOOD",
+      "name": "青翎雏鸾",
+      "phases": [
+        [
+          {
+            "name": "风障鸣音",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.15,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WIND",
+      "interval": 6
+    },
+    {
+      "id": "single_wind_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "WIND",
+      "name": "赤火蚁",
+      "phases": [
+        []
+      ],
+      "death_skill": {
+        "name": "火油爆裂",
+        "effects": [
+          {
+            "kind": "damage",
+            "target": "all",
+            "value": 0.8,
+            "school": "mixed"
+          }
+        ]
+      },
+      "element": "FIRE",
+      "interval": 6
+    },
+    {
+      "id": "single_wind_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "WIND",
+      "name": "丹焰稚雀",
+      "phases": [
+        [
+          {
+            "name": "丹火弹幕",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.15,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "FIRE",
+      "interval": 6
+    },
+    {
+      "id": "single_water_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "WATER",
+      "name": "石灵丸",
+      "phases": [
+        [
+          {
+            "name": "滚石冲撞",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "EARTH",
+      "interval": 6
+    },
+    {
+      "id": "single_water_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "WATER",
+      "name": "黄牙土狈",
+      "phases": [
+        [
+          {
+            "name": "地鸣共振",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.15,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "EARTH",
+      "interval": 6
+    },
+    {
+      "id": "single_earth_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "EARTH",
+      "name": "雷珠精",
+      "phases": [
+        [
+          {
+            "name": "雷殛弹射",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "THUNDER",
+      "interval": 6
+    },
+    {
+      "id": "single_earth_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "EARTH",
+      "name": "雷纹蝠",
+      "phases": [
+        [
+          {
+            "name": "雷网封锁",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.15,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "THUNDER",
+      "interval": 6
+    },
+    {
+      "id": "single_thunder_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "THUNDER",
+      "name": "霜玉蟾",
+      "phases": [
+        [
+          {
+            "name": "玄珠凝霜",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WATER",
+      "interval": 6
+    },
+    {
+      "id": "single_thunder_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "THUNDER",
+      "name": "沧溟伥鬼",
+      "phases": [
+        [
+          {
+            "name": "伥鬼拖足",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WATER",
+      "interval": 6
+    },
+    {
+      "id": "single_light_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "LIGHT",
+      "name": "影魅",
+      "phases": [
+        [
+          {
+            "name": "噬影咒",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "single",
+                "value": 0.3,
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "DARK",
+      "interval": 6
+    },
+    {
+      "id": "single_light_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "LIGHT",
+      "name": "魑魅散",
+      "phases": [
+        [
+          {
+            "name": "暗语低喃",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.15,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "DARK",
+      "interval": 6
+    },
+    {
+      "id": "single_dark_1",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "DARK",
+      "name": "流萤曜精",
+      "phases": [
+        [
+          {
+            "name": "耀光侵蚀",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "random",
+                "value": 0.3,
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.15,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "LIGHT",
+      "interval": 6
+    },
+    {
+      "id": "single_dark_2",
+      "dungeon_type": "SINGLE",
+      "dungeon_attribute": "DARK",
+      "name": "三足乌雏",
+      "phases": [
+        [
+          {
+            "name": "烈日辉光",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "allies",
+                "value": 0.02
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.15,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "LIGHT",
+      "interval": 6
+    },
+    {
+      "id": "squad_fire_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "FIRE",
+      "name": "苍木灵鹤",
+      "phases": [
+        [
+          {
+            "name": "树种催生",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.2,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "青木之息",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.25,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "寄生之种",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "single",
+                "value": 0.45,
+                "casts": 2,
+                "drain": true
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WOOD",
+      "interval": 4
+    },
+    {
+      "id": "squad_fire_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "FIRE",
+      "name": "通天建木",
+      "phases": [
+        [
+          {
+            "name": "通天根须",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "万木穿刺",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "枯木逢春",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.08
+              },
+              {
+                "kind": "cleanse",
+                "target": "self",
+                "value": 999
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WOOD",
+      "interval": 4
+    },
+    {
+      "id": "squad_wood_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "WOOD",
+      "name": "八风玄禽",
+      "phases": [
+        [
+          {
+            "name": "八风齐斩",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "巽风蚀骨",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "attack",
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "御风而行",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WIND",
+      "interval": 4
+    },
+    {
+      "id": "squad_wood_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "WOOD",
+      "name": "云兽风兽",
+      "phases": [
+        [
+          {
+            "name": "云遮眼",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "巽风斩",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.35,
+                "school": "mixed",
+                "hits": 3
+              }
+            ]
+          },
+          {
+            "name": "风兽之怒",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.4,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WIND",
+      "interval": 4
+    },
+    {
+      "id": "squad_wind_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "WIND",
+      "name": "赤鳞火蛟",
+      "phases": [
+        [
+          {
+            "name": "火丹流星",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "火蛟翻身",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "燃血之怒",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.5,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2,
+                "scaling": "missing_health"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "FIRE",
+      "interval": 4
+    },
+    {
+      "id": "squad_wind_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "WIND",
+      "name": "祸斗獒",
+      "phases": [
+        [
+          {
+            "name": "食火",
+            "effects": [
+              {
+                "kind": "absorb_fire",
+                "target": "self",
+                "value": 0.5,
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "炎獒扑杀",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "random",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "焚身领域",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "all",
+                "value": 0.35,
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "FIRE",
+      "interval": 4
+    },
+    {
+      "id": "squad_water_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "WATER",
+      "name": "负岳巨犀",
+      "phases": [
+        [
+          {
+            "name": "搬山掷岳",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "踏地震慑",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.8,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "岩丘之肤",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "EARTH",
+      "interval": 4
+    },
+    {
+      "id": "squad_water_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "WATER",
+      "name": "荒骸牛",
+      "phases": [
+        [
+          {
+            "name": "旱魃之息",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "裂地冲撞",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 1.0,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "枯木逢春（伪）",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": -0.25,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.5,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "EARTH",
+      "interval": 4
+    },
+    {
+      "id": "squad_earth_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "EARTH",
+      "name": "雷翎玄鹄",
+      "phases": [
+        [
+          {
+            "name": "五雷齐降",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "random",
+                "value": 0.4,
+                "school": "mixed",
+                "hits": 5
+              }
+            ]
+          },
+          {
+            "name": "雷印咒杀",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.25,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "御雷之羽",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "THUNDER",
+      "interval": 4
+    },
+    {
+      "id": "squad_earth_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "EARTH",
+      "name": "雷毛犼",
+      "phases": [
+        [
+          {
+            "name": "雷毛护体",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "行雷之体",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "all",
+                "value": 0.35,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "雷暴狂热",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": -0.25,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.5,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "THUNDER",
+      "interval": 4
+    },
+    {
+      "id": "squad_thunder_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "THUNDER",
+      "name": "沧鳞玄蛟",
+      "phases": [
+        [
+          {
+            "name": "沧浪吐息",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "水环缚灵",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "single",
+                "value": 0.5,
+                "casts": 2
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "玄蛟汲水",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              },
+              {
+                "kind": "cleanse",
+                "target": "self",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WATER",
+      "interval": 4
+    },
+    {
+      "id": "squad_thunder_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "THUNDER",
+      "name": "沧溟甲螈",
+      "phases": [
+        [
+          {
+            "name": "玄甲护体",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.3,
+                "casts": 2
+              }
+            ],
+            "recovery": 8
+          },
+          {
+            "name": "潮汐拍击",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.0,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "赤筋绞杀",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.25,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WATER",
+      "interval": 4
+    },
+    {
+      "id": "squad_light_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "LIGHT",
+      "name": "惑心翼虎",
+      "phases": [
+        [
+          {
+            "name": "暗影扑杀",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "蛊惑之言",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "噬善之影",
+            "effects": [
+              {
+                "kind": "steal",
+                "target": "single",
+                "value": 1
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.25,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "DARK",
+      "interval": 4
+    },
+    {
+      "id": "squad_light_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "LIGHT",
+      "name": "九首蛇婴",
+      "phases": [
+        [
+          {
+            "name": "暗蚀毒雾",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "九首乱射",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.35,
+                "school": "mixed",
+                "hits": 3
+              }
+            ]
+          },
+          {
+            "name": "蛇蜕之术",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.15,
+                "casts": 2
+              },
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "DARK",
+      "interval": 4
+    },
+    {
+      "id": "squad_dark_1",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "DARK",
+      "name": "日曜灵鹤",
+      "phases": [
+        [
+          {
+            "name": "日轮冲击",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "耀光烙印",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "光速之翼",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "LIGHT",
+      "interval": 4
+    },
+    {
+      "id": "squad_dark_2",
+      "dungeon_type": "SQUAD",
+      "dungeon_attribute": "DARK",
+      "name": "破妄相（白泽）",
+      "phases": [
+        [
+          {
+            "name": "照世",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "破邪之光",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1,
+                "school": "mixed",
+                "versus_dark": 3
+              }
+            ]
+          },
+          {
+            "name": "光速反应",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.5,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "LIGHT",
+      "interval": 4
+    },
+    {
+      "id": "team_fire_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "FIRE",
+      "name": "断木元灵",
+      "phases": [
+        [
+          {
+            "name": "木叶风暴",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.3,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "青龙吐息",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.65,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "苍龙七宿",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.12,
+                "school": "mixed",
+                "hits": 7
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.25,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WOOD",
+      "interval": 5
+    },
+    {
+      "id": "team_fire_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "FIRE",
+      "name": "扶桑与若木",
+      "members": [
+        {
+          "name": "扶桑",
+          "phases": [
+            [
+              {
+                "name": "日曜光环",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "allies",
+                    "value": 0.25,
+                    "stats": [
+                      "attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "若木",
+          "phases": [
+            [
+              {
+                "name": "月华霜冻",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  },
+                  {
+                    "kind": "heal",
+                    "target": "self",
+                    "value": 0.025
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "shared",
+      "common": {
+        "name": "日月同辉",
+        "effects": [
+          {
+            "kind": "damage",
+            "target": "all",
+            "value": 0.6,
+            "school": "mixed"
+          },
+          {
+            "kind": "dispel",
+            "target": "all",
+            "value": 999
+          }
+        ]
+      },
+      "element": "WOOD",
+      "interval": 5
+    },
+    {
+      "id": "team_fire_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "FIRE",
+      "name": "四季灵木",
+      "members": [
+        {
+          "name": "春",
+          "phases": [
+            [
+              {
+                "name": "万物复苏",
+                "effects": [
+                  {
+                    "kind": "heal",
+                    "target": "all_monsters",
+                    "value": 0.02
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all_monsters",
+                    "value": 0.15,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "夏",
+          "phases": [
+            [
+              {
+                "name": "藤蔓狂暴",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.4,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "秋",
+          "phases": [
+            [
+              {
+                "name": "落叶斩",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.4,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "冬",
+          "phases": [
+            [
+              {
+                "name": "枯木庇护",
+                "effects": [
+                  {
+                    "kind": "shield",
+                    "target": "all_monsters",
+                    "value": 0.08,
+                    "casts": 2
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "shared",
+      "element": "WOOD",
+      "interval": 5
+    },
+    {
+      "id": "team_wood_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WOOD",
+      "name": "垂天巨鹏",
+      "phases": [
+        [
+          {
+            "name": "九万里风",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.65,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "扶摇直上",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.15,
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "虚风噬体",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WIND",
+      "interval": 5
+    },
+    {
+      "id": "team_wood_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WOOD",
+      "name": "风袋兽与风轮兽",
+      "members": [
+        {
+          "name": "风袋兽",
+          "phases": [
+            [
+              {
+                "name": "风压禁制",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.2,
+                    "stats": [
+                      "attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "风轮兽",
+          "phases": [
+            [
+              {
+                "name": "风轮切割",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.6,
+                    "school": "mixed"
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "independent",
+      "survivor": "heal75",
+      "element": "WIND",
+      "interval": 5
+    },
+    {
+      "id": "team_wood_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WOOD",
+      "name": "三昧神风",
+      "members": [
+        {
+          "name": "黑风",
+          "phases": [
+            [
+              {
+                "name": "蚀甲黑风",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.2,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "妖风",
+          "phases": [
+            [
+              {
+                "name": "惑心妖风",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "罡风",
+          "phases": [
+            [
+              {
+                "name": "裂体罡风",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "self",
+                    "value": 0.3,
+                    "stats": [
+                      "attack",
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  },
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.7,
+                    "school": "mixed"
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "shared",
+      "element": "WIND",
+      "interval": 5
+    },
+    {
+      "id": "team_wind_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WIND",
+      "name": "南明离雀",
+      "phases": [
+        [
+          {
+            "name": "南明火柱",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.3,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "healing_received",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "火羽千针",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.7,
+                "school": "mixed"
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "火凤旋涡",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.25,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "FIRE",
+      "interval": 5
+    },
+    {
+      "id": "team_wind_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WIND",
+      "name": "赤焰牯与熔岩犼",
+      "members": [
+        {
+          "name": "赤焰牯",
+          "phases": [
+            [
+              {
+                "name": "熔岩喷涌",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.6,
+                    "school": "mixed"
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "熔岩犼",
+          "phases": [
+            [
+              {
+                "name": "烈焰印记",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "independent",
+      "survivor": "fire",
+      "element": "FIRE",
+      "interval": 5
+    },
+    {
+      "id": "team_wind_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WIND",
+      "name": "三昧火灵",
+      "members": [
+        {
+          "name": "君火",
+          "phases": [
+            [
+              {
+                "name": "心火燎原",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "臣火",
+          "phases": [
+            [
+              {
+                "name": "肾火灼甲",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "physical"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "民火",
+          "phases": [
+            [
+              {
+                "name": "气火焚天",
+                "effects": [
+                  {
+                    "kind": "dot",
+                    "target": "all",
+                    "value": 0.3,
+                    "casts": 2
+                  },
+                  {
+                    "kind": "shield",
+                    "target": "self",
+                    "value": 0.1,
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "sequential",
+      "element": "FIRE",
+      "interval": 5
+    },
+    {
+      "id": "team_water_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WATER",
+      "name": "地岳盘蛇",
+      "phases": [
+        [
+          {
+            "name": "落石天降",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "random",
+                "value": 1.5,
+                "school": "mixed"
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "地刺突袭",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.65,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "地龙翻身",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "EARTH",
+      "interval": 5
+    },
+    {
+      "id": "team_water_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WATER",
+      "name": "负天吞火",
+      "members": [
+        {
+          "name": "负天",
+          "phases": [
+            [
+              {
+                "name": "碑文镇封",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "吞火",
+          "phases": [
+            [
+              {
+                "name": "地火喷涌",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.5,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "independent",
+      "survivor": "all_stats",
+      "element": "EARTH",
+      "interval": 5
+    },
+    {
+      "id": "team_water_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "WATER",
+      "name": "四方妖兽",
+      "members": [
+        {
+          "name": "物攻妖兽",
+          "phases": [
+            [
+              {
+                "name": "四极镇杀",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.3,
+                    "school": "mixed"
+                  }
+                ]
+              },
+              {
+                "name": "镇岳之印",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "attack",
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "法攻妖兽",
+          "phases": [
+            [
+              {
+                "name": "四极镇杀",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.3,
+                    "school": "mixed"
+                  }
+                ]
+              },
+              {
+                "name": "镇岳之印",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "attack",
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "物防妖兽",
+          "phases": [
+            [
+              {
+                "name": "四极镇杀",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.3,
+                    "school": "mixed"
+                  }
+                ]
+              },
+              {
+                "name": "镇岳之印",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "attack",
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "法防妖兽",
+          "phases": [
+            [
+              {
+                "name": "四极镇杀",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.3,
+                    "school": "mixed"
+                  }
+                ]
+              },
+              {
+                "name": "镇岳之印",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "attack",
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "independent",
+      "rotate": 30,
+      "element": "EARTH",
+      "interval": 5
+    },
+    {
+      "id": "team_earth_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "EARTH",
+      "name": "紫霄雷犀",
+      "phases": [
+        [
+          {
+            "name": "雷云压顶",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.05,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2,
+                "cap": 9
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "雷鞭横扫",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.7,
+                "school": "mixed"
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "万雷归宗",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.9,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.4,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "visual",
+                "target": "self",
+                "value": 0,
+                "label": "雷暴分身"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "THUNDER",
+      "interval": 5
+    },
+    {
+      "id": "team_earth_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "EARTH",
+      "name": "雷吼与电芒",
+      "members": [
+        {
+          "name": "雷吼",
+          "phases": [
+            [
+              {
+                "name": "天刑引雷",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "电芒",
+          "phases": [
+            [
+              {
+                "name": "电光一闪",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "random",
+                    "value": 1.5,
+                    "school": "mixed"
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "shared",
+      "common": {
+        "name": "雷极天刑",
+        "effects": [
+          {
+            "kind": "damage",
+            "target": "all",
+            "value": 0.6,
+            "school": "mixed"
+          },
+          {
+            "kind": "stat",
+            "target": "allies",
+            "value": 0.2,
+            "stats": [
+              "attack",
+              "magic_attack"
+            ],
+            "casts": 2
+          }
+        ]
+      },
+      "element": "THUNDER",
+      "interval": 5
+    },
+    {
+      "id": "team_earth_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "EARTH",
+      "name": "三霄雷劫",
+      "members": [
+        {
+          "name": "天罡雷",
+          "phases": [
+            [
+              {
+                "name": "破甲雷槌",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "physical"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "地煞雷",
+          "phases": [
+            [
+              {
+                "name": "灭法雷池",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "心魔雷",
+          "phases": [
+            [
+              {
+                "name": "心魔侵蚀",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.25,
+                    "stats": [
+                      "attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "sequential",
+      "element": "THUNDER",
+      "interval": 5
+    },
+    {
+      "id": "team_thunder_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "THUNDER",
+      "name": "九首洪蛇",
+      "phases": [
+        [
+          {
+            "name": "九浊水炮",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "random",
+                "value": 1.3,
+                "school": "mixed"
+              },
+              {
+                "kind": "random_attack_down",
+                "target": "single",
+                "value": -0.2,
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "冰火双涡",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.65,
+                "school": "mixed"
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "灭世浊流",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WATER",
+      "interval": 5
+    },
+    {
+      "id": "team_thunder_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "THUNDER",
+      "name": "玄冥双蛟",
+      "members": [
+        {
+          "name": "寒渊",
+          "phases": [
+            [
+              {
+                "name": "霜寒锁链",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 0.3,
+                    "school": "mixed",
+                    "hits": 3
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.05,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2,
+                    "stacks": 3,
+                    "cap": 9
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "沧澜",
+          "phases": [
+            [
+              {
+                "name": "水幕天华",
+                "effects": [
+                  {
+                    "kind": "shield",
+                    "target": "allies",
+                    "value": 0.08,
+                    "casts": 2
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "allies",
+                    "value": 0.2,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.2,
+                    "stats": [
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "shared",
+      "fusion": true,
+      "element": "WATER",
+      "interval": 5
+    },
+    {
+      "id": "team_thunder_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "THUNDER",
+      "name": "三渊洪鳌",
+      "members": [
+        {
+          "name": "令符洪鳌",
+          "phases": [
+            [
+              {
+                "name": "共负令符",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "allies",
+                    "value": 0.2,
+                    "stats": [
+                      "defense",
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "旋涡洪鳌",
+          "phases": [
+            [
+              {
+                "name": "玄水旋涡",
+                "effects": [
+                  {
+                    "kind": "dot",
+                    "target": "all",
+                    "value": 0.25,
+                    "casts": 2
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "镇封洪鳌",
+          "phases": [
+            [
+              {
+                "name": "水德镇封",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.25,
+                    "stats": [
+                      "attack",
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "shared",
+      "element": "WATER",
+      "interval": 5
+    },
+    {
+      "id": "team_light_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "LIGHT",
+      "name": "浑沌无相",
+      "phases": [
+        [
+          {
+            "name": "无相之躯",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "七窍流血",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.7,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "吞噬黑洞",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.4,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "visual",
+                "target": "self",
+                "value": 0,
+                "label": "吞噬黑洞"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "DARK",
+      "interval": 5
+    },
+    {
+      "id": "team_light_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "LIGHT",
+      "name": "影魍与石魍",
+      "members": [
+        {
+          "name": "影魍",
+          "phases": [
+            [
+              {
+                "name": "暗缚",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.25,
+                    "stats": [
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "石魍",
+          "phases": [
+            [
+              {
+                "name": "地刺穿",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.4,
+                    "school": "mixed"
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "independent",
+      "balance_guard": true,
+      "element": "DARK",
+      "interval": 5
+    },
+    {
+      "id": "team_light_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "LIGHT",
+      "name": "三尸邪神",
+      "members": [
+        {
+          "name": "上尸",
+          "phases": [
+            [
+              {
+                "name": "扰神咒",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.4,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "magic_attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "中尸",
+          "phases": [
+            [
+              {
+                "name": "噬气诀",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.4,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "下尸",
+          "phases": [
+            [
+              {
+                "name": "腐体毒",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "all",
+                    "value": 0.4,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "sequential",
+      "element": "DARK",
+      "interval": 5
+    },
+    {
+      "id": "team_dark_1",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "DARK",
+      "name": "十日余烬",
+      "phases": [
+        [
+          {
+            "name": "灼光柱",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.65,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "光速俯冲",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          }
+        ],
+        [
+          {
+            "name": "大日印",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_attack",
+                  "defense"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.85,
+                "school": "mixed"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "LIGHT",
+      "interval": 5
+    },
+    {
+      "id": "team_dark_2",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "DARK",
+      "name": "阳乌与阴蟾",
+      "members": [
+        {
+          "name": "阳乌",
+          "phases": [
+            [
+              {
+                "name": "纯阳真火",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "cleanse",
+                    "target": "allies",
+                    "value": 1
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "阴蟾",
+          "phases": [
+            [
+              {
+                "name": "太阴寒光",
+                "effects": [
+                  {
+                    "kind": "damage",
+                    "target": "single",
+                    "value": 1.0,
+                    "school": "mixed"
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all",
+                    "value": -0.15,
+                    "stats": [
+                      "attack"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "independent",
+      "common": {
+        "name": "昼夜交替",
+        "effects": [
+          {
+            "kind": "damage",
+            "target": "all",
+            "value": 0.6,
+            "school": "mixed"
+          },
+          {
+            "kind": "alternating_defense_down",
+            "target": "all",
+            "value": -0.2,
+            "casts": 2
+          }
+        ]
+      },
+      "element": "LIGHT",
+      "interval": 5
+    },
+    {
+      "id": "team_dark_3",
+      "dungeon_type": "TEAM",
+      "dungeon_attribute": "DARK",
+      "name": "三光星兽",
+      "members": [
+        {
+          "name": "日曜",
+          "phases": [
+            [
+              {
+                "name": "灼热日光",
+                "effects": [
+                  {
+                    "kind": "dot",
+                    "target": "all",
+                    "value": 0.25,
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "月华",
+          "phases": [
+            [
+              {
+                "name": "清辉治愈",
+                "effects": [
+                  {
+                    "kind": "heal",
+                    "target": "all_monsters",
+                    "value": 0.025
+                  },
+                  {
+                    "kind": "stat",
+                    "target": "all_monsters",
+                    "value": 0.2,
+                    "stats": [
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        {
+          "name": "辰明",
+          "phases": [
+            [
+              {
+                "name": "星轨狙击",
+                "effects": [
+                  {
+                    "kind": "stat",
+                    "target": "single",
+                    "value": -0.2,
+                    "stats": [
+                      "defense",
+                      "magic_defense"
+                    ],
+                    "casts": 2
+                  }
+                ]
+              }
+            ]
+          ]
+        }
+      ],
+      "mode": "shared",
+      "element": "LIGHT",
+      "interval": 5
+    },
+    {
+      "id": "server_boss_fire_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "FIRE",
+      "name": "万木祖庭",
+      "phases": [
+        [
+          {
+            "name": "青木灭绝光线",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "藤海潮生",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "树界降诞",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.12,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "根扎九幽",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.06
+              }
+            ]
+          },
+          {
+            "name": "万木之灵",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.05,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2,
+                "permanent": true,
+                "cap": 999999
+              }
+            ]
+          },
+          {
+            "name": "噬灵根须",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "枯荣诅咒",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "召唤木灵",
+            "effects": [
+              {
+                "kind": "visual",
+                "target": "self",
+                "value": 0,
+                "label": "木灵"
+              },
+              {
+                "kind": "hot",
+                "target": "self",
+                "value": 0.015,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "青木大阵",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.3,
+                "school": "mixed",
+                "hits": 3
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WOOD",
+      "interval": 4
+    },
+    {
+      "id": "server_boss_wood_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "WOOD",
+      "name": "风后九章",
+      "phases": [
+        [
+          {
+            "name": "风神切",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 0.6,
+                "school": "mixed",
+                "hits": 3
+              }
+            ]
+          },
+          {
+            "name": "八门风阵",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "太虚之风",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.15,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "风气流转",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              }
+            ]
+          },
+          {
+            "name": "风后遗泽",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "attack",
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "风缚阵",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "乱流领域",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "虚空裂隙",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "九章·风灾",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "all",
+                "value": 0.45,
+                "casts": 2
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WIND",
+      "interval": 4
+    },
+    {
+      "id": "server_boss_wind_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "WIND",
+      "name": "离火庭王",
+      "phases": [
+        [
+          {
+            "name": "洪荒火种",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "离火燎原",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "all",
+                "value": 0.3,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "薪火之盾",
+            "effects": [
+              {
+                "kind": "health_cost",
+                "target": "self",
+                "value": 0.05
+              },
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.2,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "火中取粟",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              }
+            ]
+          },
+          {
+            "name": "燧皇之志",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_attack",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "灼骨之焰",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "烈焰枷锁",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "薪尽火传",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.7,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "焚天煮海",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 1,
+                "school": "mixed"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "FIRE",
+      "interval": 4
+    },
+    {
+      "id": "server_boss_water_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "WATER",
+      "name": "天柱残魄",
+      "phases": [
+        [
+          {
+            "name": "撑天之手",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "灭世滚石",
+            "effects": [
+              {
+                "kind": "dot",
+                "target": "all",
+                "value": 0.3,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "磐石之躯",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.18,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "地脉汲取",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              }
+            ]
+          },
+          {
+            "name": "天柱屹立",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "重力枷锁",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "息壤侵蚀",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "山河倾倒",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "不周之怒",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.9,
+                "school": "mixed"
+              },
+              {
+                "kind": "dispel",
+                "target": "all",
+                "value": 999
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "EARTH",
+      "interval": 4
+    },
+    {
+      "id": "server_boss_earth_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "EARTH",
+      "name": "万雷妖仙",
+      "phases": [
+        [
+          {
+            "name": "雷剑诛邪",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "万雷朝宗",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "紫霄雷衣",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.12,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "雷元淬体",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              },
+              {
+                "kind": "cleanse",
+                "target": "self",
+                "value": 999
+              }
+            ]
+          },
+          {
+            "name": "雷帝降临",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "magic_attack",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "雷印镇魂",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "感电侵蚀",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "渡劫九重",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "random",
+                "value": 0.6,
+                "school": "mixed",
+                "hits": 3
+              }
+            ]
+          },
+          {
+            "name": "神霄灭世",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 1,
+                "school": "mixed"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "THUNDER",
+      "interval": 4
+    },
+    {
+      "id": "server_boss_thunder_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "THUNDER",
+      "name": "不冻渊主",
+      "phases": [
+        [
+          {
+            "name": "冰眼玄光",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "万古冰川",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "玄冰甲胄",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.12
+              },
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.4,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2,
+                "bound_shield": true
+              }
+            ]
+          },
+          {
+            "name": "归海之息",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              }
+            ]
+          },
+          {
+            "name": "渊主之怒",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "attack",
+                  "magic_attack"
+                ],
+                "casts": 2,
+                "permanent": true
+              }
+            ],
+            "below": 0.5,
+            "once": true
+          },
+          {
+            "name": "髓冷咒印",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "惊涛拍击",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.5,
+                "school": "mixed"
+              },
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "深海重压",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.7,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "闭目·永冻劫",
+            "effects": [
+              {
+                "kind": "hp_damage",
+                "target": "single",
+                "value": 0.6
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "WATER",
+      "interval": 4
+    },
+    {
+      "id": "server_boss_light_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "LIGHT",
+      "name": "幽都冥主",
+      "phases": [
+        [
+          {
+            "name": "幽冥鬼爪",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.8,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "万鬼噬心",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "永夜之袍",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.12,
+                "casts": 2
+              },
+              {
+                "kind": "cleanse",
+                "target": "self",
+                "value": 999
+              }
+            ]
+          },
+          {
+            "name": "噬魂夺魄",
+            "effects": [
+              {
+                "kind": "corpse_heal",
+                "target": "self",
+                "value": 0.02
+              }
+            ]
+          },
+          {
+            "name": "幽都之主",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.3,
+                "stats": [
+                  "attack",
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "九幽寒气",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense",
+                  "magic_defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "幽冥烙印",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "attack"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 1.5,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "六道轮回",
+            "effects": [
+              {
+                "kind": "visual",
+                "target": "self",
+                "value": 0,
+                "label": "六道召唤"
+              },
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.4,
+                "school": "mixed"
+              },
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 0.8,
+                "school": "mixed"
+              },
+              {
+                "kind": "dispel",
+                "target": "all",
+                "value": 999
+              }
+            ]
+          },
+          {
+            "name": "万古长夜",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.3,
+                "school": "mixed",
+                "hits": 3
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "DARK",
+      "interval": 4
+    },
+    {
+      "id": "server_boss_dark_1",
+      "dungeon_type": "SERVER_BOSS",
+      "dungeon_attribute": "DARK",
+      "name": "十日耀君",
+      "phases": [
+        [
+          {
+            "name": "光鞭御日",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "single",
+                "value": 0.6,
+                "school": "mixed",
+                "hits": 3
+              }
+            ]
+          },
+          {
+            "name": "十日凌空",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 0.6,
+                "school": "mixed"
+              }
+            ]
+          },
+          {
+            "name": "金乌之羽",
+            "effects": [
+              {
+                "kind": "shield",
+                "target": "self",
+                "value": 0.12,
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "日耀再生",
+            "effects": [
+              {
+                "kind": "heal",
+                "target": "self",
+                "value": 0.04
+              }
+            ]
+          },
+          {
+            "name": "天帝威能",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "self",
+                "value": 0.05,
+                "stats": [
+                  "attack",
+                  "magic_attack"
+                ],
+                "casts": 2,
+                "permanent": true,
+                "cap": 999999
+              }
+            ]
+          },
+          {
+            "name": "光之锁链",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.2,
+                "stats": [
+                  "defense"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "天光破妄",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "all",
+                "value": -0.2,
+                "stats": [
+                  "magic_defense"
+                ],
+                "casts": 2
+              },
+              {
+                "kind": "dispel",
+                "target": "all",
+                "value": 999
+              }
+            ]
+          },
+          {
+            "name": "天光压制",
+            "effects": [
+              {
+                "kind": "stat",
+                "target": "single",
+                "value": -0.4,
+                "stats": [
+                  "attack",
+                  "magic_attack"
+                ],
+                "casts": 2
+              }
+            ]
+          },
+          {
+            "name": "大日归墟",
+            "effects": [
+              {
+                "kind": "damage",
+                "target": "all",
+                "value": 1,
+                "school": "mixed"
+              }
+            ]
+          }
+        ]
+      ],
+      "element": "LIGHT",
+      "interval": 4
+    }
+  ]
+}

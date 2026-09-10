@@ -8,6 +8,7 @@ import { DailyGoalsService } from '../daily-goals/daily-goals.service';
 import { BattleRecordEntity, DungeonProgressEntity, OperationRequestEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 import { DungeonsService } from '../dungeons/dungeons.service';
 import { InventoryGrantItem, InventoryService } from '../inventory/inventory.service';
+import { ServerBattle } from './battle-simulation.service';
 
 export interface BattleSettlementInput {
   playerId: string;
@@ -63,7 +64,11 @@ export class BattleSettlementService {
       if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed > 3600) {
         throw new BadRequestException('battle entry expired; start the dungeon again');
       }
-      if (input.duration > elapsed * 4 + 1) {
+      const authoritative = ticket.serverBattle as ServerBattle | undefined;
+      if (!authoritative || authoritative.engineVersion !== 'authored-python-v1') {
+        throw new BadRequestException('legacy battle entry; start a new server-computed battle');
+      }
+      if (authoritative.duration > elapsed * 4 + 1) {
         throw new BadRequestException('battle duration exceeds elapsed server time at maximum 4x speed');
       }
       player.flags = { ...player.flags, activeBattleSeed: null };
@@ -77,22 +82,28 @@ export class BattleSettlementService {
       }
 
       const onlineDungeon = this.dungeons.getOptional(input.dungeonId);
-      const experienceResult = onlineDungeon
+      const experienceResult = onlineDungeon?.dungeonType === 'SINGLE'
         ? this.dungeons.calculateExperienceRewards(
           this.dungeons.assertCanEnter(input.dungeonId, ownedCharacters),
-          input.duration,
-          input.singleMonstersKilled,
-          input.groupMonstersKilled,
+          authoritative.duration,
+          authoritative.singleMonstersKilled,
+          authoritative.groupMonstersKilled,
         )
         : null;
+      if (experienceResult) {
+        experienceResult.success = authoritative.success;
+        if (!authoritative.success) experienceResult.gold = 0;
+      }
       const effectiveInput = {
         ...input,
-        success: experienceResult ? experienceResult.success : input.success,
-        duration: experienceResult ? experienceResult.cappedDuration : input.duration,
+        success: authoritative.success,
+        duration: authoritative.duration,
+        damageScore: authoritative.damageScore,
+        rewards: undefined,
       };
       const normalizedRewards = experienceResult
         ? this.buildExperienceRewards(experienceResult.expCrystals)
-        : await this.normalizeRewards(input, manager);
+        : await this.normalizeRewards(effectiveInput, manager);
       const granted = normalizedRewards.length > 0
         ? await this.inventory.grant(input.playerId, normalizedRewards, 'battle_settlement', manager)
         : [];
@@ -112,12 +123,14 @@ export class BattleSettlementService {
         dungeonId: input.dungeonId,
         success: effectiveInput.success,
         duration: effectiveInput.duration,
-        damageScore: 0,
+        damageScore: authoritative.damageScore,
         characterIds: input.characterIds,
         rewards: { granted: normalizedRewards, gold: experienceResult?.gold || 0, directCharacterExp: experienceResult?.directCharacterExp || 0 },
         resultPayload: {
           clientTrace: input.clientTrace || {},
           serverRewards: experienceResult || null,
+          engineVersion: authoritative.engineVersion,
+          serverBattleSeed: battleSeed,
           progressId: progress.id,
         },
       }));
@@ -164,9 +177,6 @@ export class BattleSettlementService {
     const configuredRewards = input.success ? dungeonRule?.successRewards : dungeonRule?.failedRewards;
     if (configuredRewards?.length) {
       return configuredRewards.filter((item) => item.quantity > 0);
-    }
-    if (rules?.allowClientRewards && input.rewards?.length) {
-      return input.rewards.filter((item) => item.quantity > 0);
     }
     if (!input.success) return [];
     return rules?.defaultSuccessRewards?.length ? rules.defaultSuccessRewards : [{

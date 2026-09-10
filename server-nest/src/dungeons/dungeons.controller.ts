@@ -39,12 +39,20 @@ export class DungeonsController {
   @Post(':playerId/:dungeonId/start')
   async start(
     @Headers('authorization') authorization: string | undefined,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
     @Param('playerId') playerId: string,
     @Param('dungeonId') dungeonId: string,
     @Body() dto: StartDungeonDto,
   ) {
     this.auth.assertPlayerAccess(authorization, playerId);
-    return this.dungeons.start(playerId, dungeonId, dto.characterIds);
+    return this.dungeons.start(playerId, dungeonId, dto.characterIds, idempotencyKey);
+  }
+
+  @Get(':playerId/battles/:battleSeed')
+  status(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string,
+    @Param('battleSeed') battleSeed: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.dungeons.battleStatus(playerId, battleSeed);
   }
 
   @Post(':playerId/:dungeonId/sweep')

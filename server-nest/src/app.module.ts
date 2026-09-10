@@ -7,6 +7,7 @@ import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { BattleSettlementController } from './battle-settlement/battle-settlement.controller';
 import { BattleSettlementService } from './battle-settlement/battle-settlement.service';
+import { BattleSimulationService } from './battle-settlement/battle-simulation.service';
 import { RedisService } from './common/redis.service';
 import { IdempotencyService } from './common/idempotency.service';
 import { GameConfigsController } from './configs/configs.controller';
@@ -84,6 +85,7 @@ import { WorkshopService } from './workshop/workshop.service';
     AdminService,
     AuthService,
     BattleSettlementService,
+    BattleSimulationService,
     DailyGoalsService,
     DatabaseBackupService,
     DungeonsService,

@@ -53,8 +53,9 @@ try {
   const results = await Promise.all(Array.from({ length: 6 }, () => request('/battle-settlement', settlement, token)));
   assert.equal(new Set(results.map(r => r.record.id)).size, 1);
   assert.equal(results.filter(r => !r.idempotency.replayed).length, 1);
-  assert.equal(results[0].serverRewards.directCharacterExp, 20);
-  assert.equal(results[0].record.damageScore, 0);
+  const trusted = (await db.query(`SELECT response FROM operation_requests WHERE "playerId"=$1 AND operation='battle-start' AND "idempotencyKey"=$2`, [playerId, started.battleSeed])).rows[0].response.serverBattle;
+  assert.equal(results[0].serverRewards.directCharacterExp, trusted.singleMonstersKilled + Math.floor(trusted.groupMonstersKilled / 5));
+  assert.equal(results[0].record.damageScore, trusted.damageScore);
   assert.equal(await request(`/ranking/damage_weekly/player/${playerId}`, undefined, token), null);
   await request('/battle-settlement', { ...settlement, singleMonstersKilled: 19 }, token, 409);
   checks.push('six different HTTP keys award once; changed payload rejected; kill-wave budget and ranking protected');

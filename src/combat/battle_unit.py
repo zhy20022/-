@@ -63,14 +63,38 @@ class BattleUnit:
 
     def take_damage(self, physical_damage: int, magical_damage: int):
         """Apply all incoming damage to the single HP pool."""
+        from .authored_monsters import absorb_damage
         total_damage = max(0, int(physical_damage or 0)) + max(0, int(magical_damage or 0))
-        self.current_health = max(0, self.current_health - total_damage)
+        entry = getattr(self, "authored_group", None)
+        if entry and entry["definition"].get("balance_guard"):
+            alive = [u for u in entry["units"] if u.is_alive()]
+            self.authored_invulnerable = len(alive) == 2 and any(
+                u.get_total_health_percentage() - self.get_total_health_percentage() > .2 + 1e-9
+                for u in alive if u is not self
+            )
+        total_damage = absorb_damage(self, total_damage)
+        pool = getattr(self, "authored_pool", None)
+        if pool:
+            pool.change(-total_damage)
+        else:
+            self.current_health = max(0, self.current_health - total_damage)
         self._sync_legacy_health_fields()
+        for unit in pool.units if pool else [self]:
+            runtime = getattr(unit, "authored_runtime", None)
+            if runtime and unit.is_alive():
+                runtime.observe_phase(unit)
 
     def heal(self, physical_heal: int, magical_heal: int):
         """Restore HP in the single HP pool."""
+        from .authored_monsters import healing_multiplier
         total_heal = max(0, int(physical_heal or 0)) + max(0, int(magical_heal or 0))
-        self.current_health = min(self.max_health, self.current_health + total_heal)
+        total_heal = int(total_heal * healing_multiplier(self))
+        pool = getattr(self, "authored_pool", None)
+        if pool:
+            if self.is_alive():
+                pool.change(total_heal)
+        else:
+            self.current_health = min(self.max_health, self.current_health + total_heal)
         self._sync_legacy_health_fields()
 
     def is_alive(self) -> bool:
@@ -103,6 +127,7 @@ class BattleUnit:
             self.threat_value[enemy_id] *= decay_rate
 
     def to_dict(self) -> Dict[str, Any]:
+        from .authored_monsters import serialize_effects
         skill_slots = None
         if self.skill_manager:
             skill_slots = {
@@ -123,8 +148,12 @@ class BattleUnit:
             "boss_type": getattr(self, "boss_type_code", None),
             "boss_mechanic": getattr(self, "boss_mechanic", None),
             "boss_group_id": getattr(self, "boss_group_id", None),
+            "authored_skills": getattr(self, "authored_monster", None),
+            "authored_phase": getattr(self, "authored_phase", None),
+            "cast_effects": serialize_effects(self),
+            "shield": sum(s.get("amount", 0) for s in getattr(self, "cast_effects", []) if s["kind"] == "shield"),
             "exclusive_weapon": self._exclusive_weapon_payload(),
-            "skill_slots": skill_slots,
+            "skill_slots": None if hasattr(self, "authored_monster") else skill_slots,
             "health": {
                 "current": self.current_health,
                 "max": self.max_health,
@@ -138,7 +167,7 @@ class BattleUnit:
                 "max": self.max_magical_health,
             },
             "is_alive": self.is_alive(),
-            "health_percentage": self.get_health_percentage(),
+            "health_percentage": {key.value: value for key, value in self.get_health_percentage().items()},
         }
 
     def _exclusive_weapon_payload(self) -> Dict[str, Any] | None:

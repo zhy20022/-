@@ -95,7 +95,7 @@ async function runAccountIdempotency(account) {
   assert(Number(profile.player.gold) === account.initialGold - Number(draws[0].cost.amount), 'idempotent gacha charged gold more than once');
 
   const dungeonId = dungeonForAttribute(character.attributeType);
-  const started = await postJson(
+  const started = await startBattleWithBackpressure(
     `/dungeons/${account.playerId}/${dungeonId}/start`,
     { characterIds: [character.id] },
     account.headers,
@@ -180,6 +180,20 @@ async function postJson(path, body, headers = {}, idempotencyKey) {
     },
     body: JSON.stringify(body),
   });
+}
+
+async function startBattleWithBackpressure(path, body, headers) {
+  const key = randomUUID();
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const result = await postRaw(path, body, headers, key);
+    if (result.status === 503 && attempt < 7 && String(result.payload?.message).includes('workers busy')) {
+      await delay(1000 * (attempt + 1));
+      continue;
+    }
+    assert(result.status === 201, `battle start failed: ${JSON.stringify(result)}`);
+    return result.payload;
+  }
+  throw new Error('battle worker capacity did not recover');
 }
 
 async function expectStatus(path, body, headers, idempotencyKey, expectedStatus) {

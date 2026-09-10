@@ -3,18 +3,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import { IdempotencyService } from '../common/idempotency.service';
-import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
+import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity, OperationRequestEntity } from '../database/entities';
+import { BattleSimulationService, ServerBattle } from '../battle-settlement/battle-simulation.service';
 
 export interface OnlineDungeon {
   dungeonId: string;
   name: string;
-  dungeonType: 'SINGLE';
+  dungeonType: 'SINGLE' | 'SQUAD' | 'TEAM' | 'SERVER_BOSS';
   attributeType: string;
   difficulty: 'normal' | 'hard' | 'nightmare';
   duration: number;
   sweepUnlockCount: number;
   rewardConfig: {
-    type: 'experience';
+    type: 'experience' | 'boss';
     fullExp: number;
     gold: number;
     spawnStartTime: number;
@@ -49,6 +50,7 @@ export class DungeonsService {
 
   constructor(
     private readonly idempotency: IdempotencyService,
+    private readonly simulation: BattleSimulationService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
   ) {}
@@ -72,11 +74,12 @@ export class DungeonsService {
 
   assertCanEnter(dungeonId: string, characters: PlayerCharacterEntity[]) {
     const dungeon = this.get(dungeonId);
-    if (dungeon.dungeonType === 'SINGLE' && characters.length !== 1) {
-      throw new BadRequestException('experience dungeon requires exactly one character');
+    const expected = { SINGLE: 1, SQUAD: 5, TEAM: 20, SERVER_BOSS: 20 }[dungeon.dungeonType];
+    if (characters.length !== expected) {
+      throw new BadRequestException(`dungeon requires exactly ${expected} characters`);
     }
     const character = characters[0];
-    if (character && this.normalizeAttribute(character.attributeType) !== dungeon.attributeType) {
+    if (dungeon.dungeonType === 'SINGLE' && character && this.normalizeAttribute(character.attributeType) !== dungeon.attributeType) {
       throw new BadRequestException(`${dungeon.name} can only be entered by ${dungeon.attributeType} characters`);
     }
     return dungeon;
@@ -113,15 +116,19 @@ export class DungeonsService {
     };
   }
 
-  async start(playerId: string, dungeonId: string, characterIds: string[]) {
+  async start(playerId: string, dungeonId: string, characterIds: string[], idempotencyKey?: string) {
     const player = await this.players.findOne({ where: { id: playerId } });
     if (!player) throw new NotFoundException('player not found');
-    if (!characterIds?.length) throw new BadRequestException('characterIds are required');
-    const characters = await this.characters.find({ where: { playerId, id: In(characterIds) } });
-    if (characters.length !== characterIds.length) throw new BadRequestException('all characters must belong to player');
-    const dungeon = this.assertCanEnter(dungeonId, characters);
-    const battleSeed = randomUUID();
-    return this.idempotency.execute(playerId, 'battle-start', battleSeed, { dungeonId, characterIds }, async ({ manager, player }) => {
+    if (!characterIds?.length || characterIds.length > 20 || new Set(characterIds).size !== characterIds.length) throw new BadRequestException('provide 1-20 unique characterIds');
+    const battleSeed = idempotencyKey || randomUUID();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(battleSeed)) throw new BadRequestException('battle start Idempotency-Key must be a UUID');
+    const ticket = await this.idempotency.execute(playerId, 'battle-start', battleSeed, { dungeonId, characterIds }, async ({ manager, player }) => {
+      const owned = await manager.find(PlayerCharacterEntity, { where: { playerId, id: In(characterIds) }, lock: { mode: 'pessimistic_write' } });
+      if (owned.length !== characterIds.length) throw new BadRequestException('all characters must belong to player');
+      const characters = characterIds.map((id) => owned.find((character) => character.id === id)!);
+      const dungeon = this.assertCanEnter(dungeonId, characters);
+      const snapshots = characters.map((character) => ({ ...character, attributeType: this.normalizeAttribute(character.attributeType) }));
+      const serverBattle = await this.simulation.simulate({ seed: battleSeed, dungeon, characters: snapshots });
       player.flags = { ...player.flags, activeBattleSeed: battleSeed };
       await manager.save(player);
       return {
@@ -129,6 +136,8 @@ export class DungeonsService {
         playerId,
         characterIds,
         dungeon,
+        serverBattle,
+        engineVersion: serverBattle.engineVersion,
         characters: characters.map((character) => ({
           id: character.id,
           level: character.level,
@@ -140,10 +149,32 @@ export class DungeonsService {
         serverTime: new Date().toISOString(),
       };
     });
+    // Persist the result with the ticket, but do not disclose future outcomes at start.
+    const publicTicket: Record<string, unknown> = { ...ticket };
+    delete publicTicket.serverBattle;
+    return publicTicket;
+  }
+
+  async battleStatus(playerId: string, battleSeed: string) {
+    const started = await this.players.manager.findOne(OperationRequestEntity, { where: { playerId, operation: 'battle-start', idempotencyKey: battleSeed } });
+    const ticket = started?.response;
+    const result = ticket?.serverBattle as ServerBattle | undefined;
+    if (!result) throw new NotFoundException('server battle not found');
+    const elapsed = Math.max(0, (Date.now() - Date.parse(String(ticket!.serverTime))) / 1000 * 4);
+    const visible = Math.min(elapsed, result.duration);
+    const frame = result.frames.filter((item) => item.time <= visible).at(-1) || result.frames[0];
+    const ids = new Set(frame.units.map((row) => (row as unknown[])[0]));
+    const rows = new Map(frame.units.map((row) => [(row as unknown[])[0], row as unknown[]]));
+    return { battleSeed, engineVersion: result.engineVersion, speed: 4, ready: elapsed >= result.duration,
+      frame, units: Object.fromEntries(Object.entries(result.units).filter(([id]) => ids.has(id)).map(([id, metadata]) =>
+        [id, { ...(metadata as Record<string, unknown>), name: rows.get(id)?.[5], maxHealth: rows.get(id)?.[6], currentSkillCycle: rows.get(id)?.[7] }])),
+      events: result.events.filter((event) => event.time <= visible),
+      outcome: elapsed >= result.duration ? { success: result.success, duration: result.duration, damageScore: result.damageScore } : null };
   }
 
   async sweep(playerId: string, dungeonId: string, characterId: string, count: number, idempotencyKey?: string) {
     const dungeon = this.get(dungeonId);
+    if (dungeon.dungeonType !== 'SINGLE') throw new BadRequestException('boss sweep is not enabled');
     const sweepCount = Math.max(1, Math.min(10, Math.floor(count || 1)));
     return this.idempotency.execute(playerId, 'dungeon-sweep', idempotencyKey, { dungeonId, characterId, count: sweepCount }, async ({ manager, player }) => {
       const character = await manager.findOne(PlayerCharacterEntity, {
@@ -225,7 +256,7 @@ export class DungeonsService {
   }
 
   private buildDungeons(): OnlineDungeon[] {
-    return ATTRIBUTE_DEFS.flatMap(([idPrefix, attributeType, name]) => (
+    const experience = ATTRIBUTE_DEFS.flatMap(([idPrefix, attributeType, name]) => (
       DIFFICULTIES.map(([difficulty, suffix, fullExp, gold]) => ({
         dungeonId: `${idPrefix}_type_single_001${suffix}`,
         name: difficulty === 'normal' ? name : `${name}-${difficulty}`,
@@ -247,5 +278,15 @@ export class DungeonsService {
         },
       }))
     ));
+    const bosses: OnlineDungeon[] = ATTRIBUTE_DEFS.flatMap(([prefix, attributeType, name]) =>
+      (['SQUAD', 'TEAM', 'SERVER_BOSS'] as const).map((dungeonType) => ({
+        dungeonId: `${prefix}_type_${dungeonType.toLowerCase()}_001`,
+        name: `${name.replace('经验本', '')}-${{ SQUAD: '五人本', TEAM: '二十人本', SERVER_BOSS: '全服Boss挑战' }[dungeonType]}`,
+        attributeType, dungeonType, difficulty: 'normal' as const,
+        duration: dungeonType === 'TEAM' ? 240 : 180, sweepUnlockCount: 50,
+        rewardConfig: { type: 'boss' as const, fullExp: 0, gold: 0, spawnStartTime: 0, spawnInterval: 3,
+          spawnWaveCount: 0, allowedMonsterTypes: ['SINGLE', 'GROUP_5'], characterExpPerSingleKill: 0, characterExpPerFiveGroupKills: 0 },
+      })));
+    return [...experience, ...bosses];
   }
 }

@@ -33,6 +33,8 @@ async function main() {
 
   const started = await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
   await delay(15000);
+  const status = await getJson(`/dungeons/${playerId}/battles/${started.battleSeed}`, auth);
+  assert(status.ready && status.outcome, 'server battle is not ready for settlement');
   const settlement = await postJson('/battle-settlement', {
     playerId,
     dungeonId,
@@ -43,22 +45,28 @@ async function main() {
     groupMonstersKilled: 50,
     clientTrace: { source: 'post-deploy-acceptance', battleSeed: started.battleSeed },
   }, auth, started.battleSeed);
-  assert(settlement.outcome === 'success', 'experience dungeon settlement failed');
-  assert(settlement.serverRewards?.expCrystals === 531, 'experience package reward is incorrect');
+  assert(settlement.record.success === status.outcome.success, 'settlement disagrees with server battle outcome');
+  assert(settlement.record.duration === status.outcome.duration, 'settlement duration is not server-authored');
+  assert(settlement.record.damageScore === status.outcome.damageScore, 'settlement damage is not server-authored');
+  const seconds = status.outcome.duration;
+  const ratio = seconds >= 60 ? 1 : seconds >= 45 ? .65 : seconds >= 30 ? .4 : seconds >= 15 ? .15 : 0;
+  assert(settlement.serverRewards?.expCrystals === Math.floor(531 * ratio), 'experience package reward is incorrect');
 
   const preview = await getJson(`/players/${playerId}/characters/${character.id}/exp-preview?levelDelta=1`, auth);
-  assert(preview.canAfford, 'new player cannot afford the first level upgrade after a full dungeon clear');
-  const upgraded = await postJson(
+  const upgraded = preview.canAfford ? await postJson(
     `/players/${playerId}/characters/${character.id}/use-exp`,
     { levelDelta: 1 },
     auth,
     `release-exp:${randomUUID()}`,
-  );
-  assert(upgraded.character.level >= character.level + 1, 'character upgrade was not persisted');
+  ) : null;
+  if (upgraded) assert(upgraded.character.level >= character.level + 1, 'character upgrade was not persisted');
 
   const finalProfile = await getJson(`/players/${playerId}/profile`, auth);
   const finalCharacter = finalProfile.characters.find((item) => item.id === character.id);
-  assert(finalCharacter?.level === upgraded.character.level, 'reloaded character level does not match');
+  assert(finalCharacter, 'reloaded character is missing');
+  if (upgraded) assert(finalCharacter.level === upgraded.character.level, 'reloaded character level does not match');
+  const records = await getJson(`/battle-settlement/${playerId}/records`, auth);
+  assert(records.some((record) => record.id === settlement.record.id), 'server battle record was not persisted');
 
   console.log(JSON.stringify({
     ok: true,
@@ -68,7 +76,9 @@ async function main() {
     playerId,
     characterId: character.id,
     dungeonId,
-    goldSpent: draw.cost.amount + upgraded.consumedGold,
+    goldSpent: draw.cost.amount + (upgraded?.consumedGold || 0),
+    battleSuccess: status.outcome.success,
+    firstUpgradeAvailable: Boolean(upgraded),
     finalLevel: finalCharacter.level,
   }, null, 2));
 }

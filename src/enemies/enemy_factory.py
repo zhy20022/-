@@ -42,6 +42,13 @@ class EnemyFactory:
     
     # 基础属性配置（根据副本类型）
     BASE_STATS = {
+        DungeonType.SERVER_BOSS: {
+            "base_hp": 120000,
+            "base_attack": 240,
+            "base_defense": 50,
+            "base_magic_attack": 300,
+            "base_magic_defense": 50
+        },
         DungeonType.SINGLE: {
             "base_hp": 500,
             "base_attack": 50,
@@ -67,6 +74,7 @@ class EnemyFactory:
     
     # 怪物等级配置（根据副本类型）
     ENEMY_LEVELS = {
+        DungeonType.SERVER_BOSS: 100,
         DungeonType.SINGLE: 10,
         DungeonType.SQUAD: 20,
         DungeonType.TEAM: 30

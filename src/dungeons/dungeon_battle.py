@@ -486,7 +486,7 @@ class DungeonBattleFlow:
                 
                 # 检查战斗状态
                 if self.battle.state == BattleState.VICTORY:
-                    if self._has_pending_spawns():
+                    if self._has_pending_spawns() or any(unit.is_alive() for unit in self.battle.enemy_units):
                         self.battle.state = BattleState.IN_PROGRESS
                     else:
                         self._on_battle_victory()
@@ -591,6 +591,10 @@ class DungeonBattleFlow:
                 enemy.battle_unit.exp_kill_unit_type = "single" if enemy_type == EnemyType.SINGLE else "group"
                 enemy.battle_unit.exp_group_size = 1 if enemy_type == EnemyType.SINGLE else (3 if enemy_type == EnemyType.GROUP_3 else 5)
                 self.battle.add_enemy_unit(enemy.battle_unit)
+                from ..enemies.authored_catalog import encounters
+                options = encounters("SINGLE", self.dungeon.attribute_type.name)
+                definition = options[0 if enemy_type == EnemyType.SINGLE else 1]
+                self.battle.monster_runtime.attach(enemy.battle_unit, definition, definition["interval"])
                 print(f"生成怪物: {enemy.name}")
         
         # 注意：击杀统计在敌人死亡时更新，这里只是生成
@@ -603,6 +607,9 @@ class DungeonBattleFlow:
         from ..enemies.boss_skill_config import build_boss_skill_loadout
 
         configured_boss = (self.dungeon.monster_config or {}).get("boss_config") or {}
+        if not configured_boss:
+            self._spawn_authored_boss()
+            return
         boss_type_str = configured_boss.get("boss_type") or spawn_info.get("boss_type", "SINGLE")
         boss_type_enum = BossType.__members__.get(boss_type_str, BossType.SINGLE)
         mechanic = get_boss_mechanic_template(boss_type_str)
@@ -703,6 +710,33 @@ class DungeonBattleFlow:
 
         # 注意：bosses_killed是击杀数量，不是生成数量
         # 这里不增加，只有在Boss被击杀时才增加
+
+    def _spawn_authored_boss(self):
+        """Select one authored encounter per existing scheduled boss wave."""
+        import random
+        from ..enemies.authored_catalog import encounters
+        from ..enemies.enemy_factory import EnemyFactory
+
+        definition = random.choice(encounters(self.dungeon.dungeon_type.name, self.dungeon.attribute_type.name))
+        members = definition.get("members", [definition])
+        group_id = f"authored_{len(self.battle.monster_runtime.groups)}_{len(self.battle.enemy_units)}"
+        units = []
+        for member in members:
+            enemy = EnemyFactory.create_boss(self.dungeon, "SINGLE", self.current_time, len(self.battle.enemy_units))
+            unit = enemy.battle_unit
+            # Encounter HP budget is independent of the number of portraits.
+            unit.max_health = max(1, int(unit.max_health / len(members)))
+            unit.current_health = unit.max_health
+            unit._sync_legacy_health_fields()
+            unit.spawn_category = "boss"
+            unit.boss_group_id = group_id
+            unit.boss_type_code = definition.get("mode", "SINGLE")
+            unit.boss_mechanic = dict(name=definition["name"], shared_health=definition.get("mode") == "shared", sequential_activation=definition.get("mode") == "sequential", active=True)
+            self.battle.add_enemy_unit(unit)
+            self.battle.monster_runtime.attach(unit, member, definition["interval"])
+            units.append(unit)
+        self.battle.monster_runtime.add_group(units, definition)
+        self.battle._log(f"【怪物配置】{definition['name']}登场", "boss_mechanic", {"name": definition["name"], "members": len(units)})
 
     def _update_boss_mechanics(self):
         """Apply first-pass multi-boss mechanics."""
@@ -871,11 +905,11 @@ class DungeonBattleFlow:
         # 更新击杀统计
         character_name = enemy_unit.character.name
         
-        if "Boss" in character_name:
+        if getattr(enemy_unit, "spawn_category", None) == "boss" or "Boss" in character_name:
             # Boss被击杀
             self.bosses_killed += 1
             print(f"Boss被击杀！当前Boss击杀数: {self.bosses_killed}")
-        elif "群体" in character_name:
+        elif getattr(enemy_unit, "exp_kill_unit_type", None) == "group" or "群体" in character_name:
             self.monsters_killed += 1
             self.group_monsters_killed += 1
         else:

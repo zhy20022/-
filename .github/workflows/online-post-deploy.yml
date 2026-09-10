@@ -11,6 +11,10 @@ on:
       - data/content/**
       - deploy/render/**
       - render.yaml
+      - scripts/nest_battle_worker.py
+      - src/combat/**
+      - src/enemies/**
+      - src/dungeons/**
   workflow_dispatch:
     inputs:
       expected_commit:
@@ -42,8 +46,14 @@ jobs:
           cache-dependency-path: server-nest/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Setup battle worker Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Lint and build
         run: npm run lint && npm run build
+      - name: Verify real battle worker
+        run: node scripts/test-battle-worker.mjs
 
   public-acceptance:
     needs: verify-build

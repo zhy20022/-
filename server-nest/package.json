@@ -5,6 +5,8 @@
   "description": "NestJS online-game backend skeleton for Gamer.",
   "scripts": {
     "build": "nest build",
+    "test:battle-worker": "npm run build && node scripts/test-battle-worker.mjs",
+    "e2e:authoritative-battle": "npm run build && node scripts/e2e-authoritative-battle.mjs",
     "schema:init": "node dist/database/run-migrations.js",
     "migration:run": "node dist/database/run-migrations.js",
     "start:render": "node dist/database/run-migrations.js && node dist/main.js",

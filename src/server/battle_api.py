@@ -373,6 +373,10 @@ def _battle_unit_payload(unit) -> Dict[str, Any]:
         "boss_group_id": getattr(unit, "boss_group_id", None),
         "exclusive_weapon": unit_payload.get("exclusive_weapon"),
         "skill_slots": unit_payload.get("skill_slots"),
+        "authored_skills": unit_payload.get("authored_skills"),
+        "authored_phase": unit_payload.get("authored_phase"),
+        "cast_effects": unit_payload.get("cast_effects", []),
+        "shield": unit_payload.get("shield", 0),
         "is_alive": unit.is_alive(),
     }
 

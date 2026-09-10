@@ -114,6 +114,8 @@ class Battle:
         
         # 敌人死亡回调（用于副本系统）
         self.on_enemy_killed_callback = None
+        from .authored_monsters import MonsterRuntime
+        self.monster_runtime = MonsterRuntime(self)
     
     def start(self):
         """开始战斗"""
@@ -213,6 +215,7 @@ class Battle:
     
     def _process_skill_casting(self, delta_time: float):
         """处理技能释放"""
+        self.monster_runtime.update()
         # 处理玩家单位的技能释放（按照底→中→高循环）
         for player_unit in self.player_units:
             if not player_unit.is_alive():
@@ -224,10 +227,13 @@ class Battle:
             self._try_cast_exclusive_weapon_skill(player_unit)
         
         # 处理怪物单位的技能释放（使用AI）
-        for enemy_unit in self.enemy_units:
+        for enemy_unit in list(self.enemy_units):
             if not enemy_unit.is_alive():
                 continue
             if getattr(enemy_unit, "mechanic_inactive", False):
+                continue
+            if getattr(enemy_unit, "authored_monster", None) is not None:
+                self.monster_runtime.step(enemy_unit)
                 continue
             
             # 获取可用技能（简化：使用技能管理器的下一个技能）
@@ -243,6 +249,11 @@ class Battle:
                     )
                     if ai_skill:
                         self._cast_skill(enemy_unit, ai_skill, self.player_units, self.enemy_units)
+
+        # Shared-pool lethals may kill members that were not the direct target.
+        for enemy_unit in list(self.enemy_units):
+            if enemy_unit.is_dead():
+                self._on_enemy_killed(enemy_unit)
 
     def _build_exclusive_weapon_skill(self, caster: BattleUnit) -> Optional[Skill]:
         weapon = getattr(caster.character, "exclusive_weapon", None)
@@ -344,6 +355,8 @@ class Battle:
         
         if not targets:
             return
+        from .authored_monsters import begin_cast, end_cast, modifiers, states
+        before_cast = begin_cast(caster)
         
         is_boss_skill = getattr(caster, "spawn_category", None) == "boss"
         is_exclusive_weapon_skill = source == "exclusive_weapon" or "exclusive_weapon" in getattr(skill, "effect_tags", [])
@@ -398,12 +411,19 @@ class Battle:
                     skill.physical_damage_ratio,
                     skill.magical_damage_ratio,
                     skill.skill_multiplier,
-                    caster.status_manager.get_stat_modifiers() if caster.status_manager else {},
-                    target.status_manager.get_stat_modifiers() if target.status_manager else {}
+                    modifiers(caster),
+                    modifiers(target)
                 )
                 
                 # 造成伤害
                 pre_damage_health = target.current_health
+                if caster.character.attribute.attribute_type.name == "FIRE":
+                    absorption = min(1, sum(s["value"] for s in states(target) if s["kind"] == "absorb_fire"))
+                    if absorption:
+                        target.heal(int(damage_result["total_damage"] * absorption), 0)
+                        damage_result["physical_damage"] = int(damage_result["physical_damage"] * (1 - absorption))
+                        damage_result["magical_damage"] = int(damage_result["magical_damage"] * (1 - absorption))
+                        pre_damage_health = target.current_health
                 target.take_damage(
                     damage_result["physical_damage"],
                     damage_result["magical_damage"]
@@ -420,7 +440,7 @@ class Battle:
                         "caster_id": caster.character.character_id,
                         "caster_name": caster.character.name,
                         "target_id": target.character.character_id,
-                        "amount": effective_damage or damage_result["total_damage"],
+                        "amount": effective_damage,
                         "raw_amount": damage_result["total_damage"],
                         "physical_damage": damage_result["physical_damage"],
                         "magical_damage": damage_result["magical_damage"],
@@ -458,6 +478,7 @@ class Battle:
                         {"skill_id": skill.skill_id, "target_id": target.character.character_id}
                     )
         
+        end_cast(self, caster, before_cast)
         # 检查目标是否死亡
         for target in targets:
             if target.is_dead():
@@ -467,6 +488,10 @@ class Battle:
     
     def _on_enemy_killed(self, enemy_unit: BattleUnit):
         """敌人死亡时的回调"""
+        if enemy_unit.is_player or getattr(enemy_unit, "battle_death_reported", False) or getattr(enemy_unit, "authored_retired", False):
+            return
+        enemy_unit.battle_death_reported = True
+        self.monster_runtime.on_death(enemy_unit)
         if self.on_enemy_killed_callback:
             self.on_enemy_killed_callback(enemy_unit)
     
