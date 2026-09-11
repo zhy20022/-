@@ -86,7 +86,7 @@ def simulate(request):
     events = []
 
     def log(message, event_type='info', payload=None):
-        if event_type in {'boss_skill', 'boss_mechanic', 'death'}:
+        if event_type in {'boss_skill', 'boss_mechanic', 'death', 'skill', 'exclusive_weapon_skill'}:
             events.append({'time': battle.current_time, 'event_type': event_type, 'message': message, 'payload': payload or {}})
             if len(events) > 512:
                 del events[0]
@@ -103,7 +103,8 @@ def simulate(request):
              round(sum(s.get('amount', 0) for s in getattr(u, 'cast_effects', []) if s['kind'] == 'shield'), 2),
              getattr(u, 'authored_phase', 0), bool(getattr(u, 'mechanic_inactive', False)),
              u.character.name, u.max_health,
-             [s['name'] for s in u.authored_monster['phases'][u.authored_phase]] if hasattr(u, 'authored_monster') else []]
+             [s['name'] for s in u.authored_monster['phases'][u.authored_phase]] if hasattr(u, 'authored_monster') else [],
+             bool(getattr(u, 'authored_group', {}).get('pool')), kind != DungeonType.SINGLE and not u.is_player]
             for u in units if u.is_alive() or u.is_player]})
 
     frame()

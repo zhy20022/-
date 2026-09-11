@@ -32,12 +32,15 @@ function App() {
   const location = useLocation()
   const { isPortrait, isMobile } = useOrientation()
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [sessionReady, setSessionReady] = useState(() => !isFormalOnlineMode() || isAuthenticated)
 
   const shellHiddenRoutes = ['/login', '/register', '/battle', '/dungeons/multiplayer']
   const showMobileShell = isAuthenticated && !shellHiddenRoutes.some((path) => location.pathname.startsWith(path))
 
   useEffect(() => {
-    if (isFormalOnlineMode() && !isAuthenticated) void loadPlayer()
+    if (isFormalOnlineMode() && !isAuthenticated) {
+      void loadPlayer().finally(() => setSessionReady(true))
+    } else setSessionReady(true)
   }, [])
 
   // 监听方向变化，添加过渡动画
@@ -61,6 +64,8 @@ function App() {
   ]
     .filter(Boolean)
     .join(' ')
+
+  if (!sessionReady) return <div role="status">正在恢复登录状态…</div>
 
   return (
     <div className={containerClassName}>

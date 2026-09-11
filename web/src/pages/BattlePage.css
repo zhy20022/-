@@ -871,12 +871,32 @@
 }
 
 .boss-unit-card {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  min-height: 140px;
+  gap: 8px;
   border-color: #d69e2e;
   background: #fffaf0;
 }
 
 .boss-unit-card h3 {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 14px;
   color: #975a16;
+}
+
+.enemy-unit-card.boss-unit-card .health-bar {
+  height: 24px;
+}
+
+.enemy-unit-card.boss-unit-card .health-text {
+  display: block;
+  font-size: 12px;
+}
+
+.battle-controls button {
+  white-space: nowrap;
 }
 
 .boss-unit-badges {
@@ -1029,6 +1049,12 @@
   background: #ecfdf5;
   border-left-color: #10b981;
   color: #065f46;
+}
+
+.server-skill-cycle {
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .loading {
