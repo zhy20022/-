@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, Injectable, Logger, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcryptjs';
@@ -39,31 +39,38 @@ export class AuthService {
   }
 
   async register(username: string, password: string, email?: string) {
-    const normalized = username.trim().toLowerCase();
-    const accountId = `password:${normalized}`;
-    if (await this.users.findOne({ where: { accountId } })) {
-      throw new ConflictException('username already exists');
-    }
-    if (await this.players.findOne({ where: { displayName: username.trim() } })) {
-      throw new ConflictException('display name already exists');
-    }
-
-    const user = this.users.create({
-      accountId,
-      provider: 'password',
-      passwordHash: await hash(password, 12),
-      metadata: email ? { email: email.trim().toLowerCase() } : {},
-    });
-    await this.users.save(user);
+    const accountId = `password:${username.trim().toLowerCase()}`;
+    // Hash before acquiring a database connection or opening a transaction.
+    const passwordHash = await hash(password, 12);
     try {
-      const player = await this.players.save(this.players.create({
-        userId: user.id,
-        displayName: username.trim(),
-        gold: 100000,
-      }));
-      return this.buildSession(user, player);
+      return await this.users.manager.transaction(async (manager) => {
+        const users = manager.getRepository(UserEntity);
+        const players = manager.getRepository(PlayerEntity);
+        if (await users.findOne({ where: { accountId } })) throw new ConflictException('username already exists');
+        if (await players.findOne({ where: { displayName: username.trim() } })) throw new ConflictException('display name already exists');
+        const user = await users.save(users.create({
+          accountId, provider: 'password', passwordHash,
+          metadata: email ? { email: email.trim().toLowerCase() } : {},
+        }));
+        const player = await players.save(players.create({
+          userId: user.id, displayName: username.trim(), gold: 100000,
+        }));
+        return this.buildSession(user, player);
+      });
     } catch (error) {
-      await this.users.delete(user.id);
+      const failure = error as { code?: string; driverError?: { code?: string }; errors?: Array<{ code?: string }>; name?: string };
+      const code = failure.driverError?.code || failure.code;
+      if (code === '23505') throw new ConflictException('username or display name already exists');
+      if (!(error instanceof HttpException)) {
+        // Codes only: never log passwords, SQL parameters or connection strings.
+        new Logger(AuthService.name).error(JSON.stringify({
+          operation: 'register', name: failure.name, code,
+          causes: failure.errors?.map(item => item.code),
+        }));
+        if (failure.name === 'AggregateError' || ['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EAI_AGAIN', 'ENETUNREACH', '53300', '57P01'].includes(code || '')) {
+          throw new ServiceUnavailableException('registration temporarily unavailable; please retry');
+        }
+      }
       throw error;
     }
   }
