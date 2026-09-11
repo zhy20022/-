@@ -8,6 +8,10 @@
 - 本地实际PostgreSQL验收：6个不同账号并发成功；6个同名请求为1成功+5冲突；注入档案写入故障后账号回滚。
 - 线上版本6fa41f981d680069e40ea3cf448bda88e4bd933b的GitHub运行34575886087全部通过：6账号、125请求、每项6次重复请求。
 - p95约15.6秒，说明正确性验收通过不代表容量和响应速度达标。旧日志只有AggregateError，无法倒推出原先每次网络错误的完整根因。
+- 后续47f69ce复测再次失败；新增诊断明确捕获ETIMEDOUT及ENETUNREACH，说明单次通过不足以证明连接稳定。
+- 第二轮修复：地址自动选择的单次尝试等待延长为2秒；注册仅在取得连接、事务尚未开始前进行最多3次有限重试，不重放事务或提交结果不明的写入。
+- Node地址尝试及AggregateError行为参考：https://nodejs.org/api/net.html#netsetdefaultautoselectfamilyattempttimeoutvalue
+- 连接重试单测：node scripts/test-acquire-connection.mjs，验证重试上限、资源释放及认证错误不重试。
 
 复测：server-nest目录运行 node scripts/e2e-registration.mjs，E2E_DATABASE_URL必须指向隔离本地库。
 

@@ -5,6 +5,7 @@ import { compare, hash } from 'bcryptjs';
 import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
 import { Repository } from 'typeorm';
 import { PlayerEntity, UserEntity } from '../database/entities';
+import { acquireConnection } from '../database/acquire-connection';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +44,9 @@ export class AuthService {
     // Hash before acquiring a database connection or opening a transaction.
     const passwordHash = await hash(password, 12);
     try {
-      return await this.users.manager.transaction(async (manager) => {
+      const runner = await acquireConnection(() => this.users.manager.connection.createQueryRunner());
+      try {
+        return await runner.manager.transaction(async (manager) => {
         const users = manager.getRepository(UserEntity);
         const players = manager.getRepository(PlayerEntity);
         if (await users.findOne({ where: { accountId } })) throw new ConflictException('username already exists');
@@ -56,7 +59,10 @@ export class AuthService {
           userId: user.id, displayName: username.trim(), gold: 100000,
         }));
         return this.buildSession(user, player);
-      });
+        });
+      } finally {
+        await runner.release();
+      }
     } catch (error) {
       const failure = error as { code?: string; driverError?: { code?: string }; errors?: Array<{ code?: string }>; name?: string };
       const code = failure.driverError?.code || failure.code;
