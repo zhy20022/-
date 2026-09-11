@@ -104,7 +104,7 @@ def simulate(request):
              getattr(u, 'authored_phase', 0), bool(getattr(u, 'mechanic_inactive', False)),
              u.character.name, u.max_health,
              [s['name'] for s in u.authored_monster['phases'][u.authored_phase]] if hasattr(u, 'authored_monster') else [],
-             bool(getattr(u, 'authored_group', {}).get('pool')), kind != DungeonType.SINGLE and not u.is_player]
+             bool(getattr(u, 'authored_group', {}).get('pool')), getattr(u, 'spawn_category', None) == 'boss']
             for u in units if u.is_alive() or u.is_player]})
 
     frame()

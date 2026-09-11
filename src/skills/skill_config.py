@@ -53,6 +53,9 @@ class SkillConfig:
                         skill_manager.add_skill(skill)
         else:
             configured_slots = getattr(character, "saved_skill_slots", None)
+            # Growth metadata shares this JSON field but is not a skill loadout.
+            if configured_slots and not any(key in configured_slots for key in ("low", "mid", "high")):
+                configured_slots = None
             if configured_slots:
                 for tier_key in ["low", "mid", "high"]:
                     for skill_id in configured_slots.get(tier_key, []):

@@ -13,6 +13,7 @@ on:
       - render.yaml
       - scripts/nest_battle_worker.py
       - src/combat/**
+      - src/skills/**
       - src/enemies/**
       - src/dungeons/**
   workflow_dispatch:
