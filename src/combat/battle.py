@@ -116,6 +116,9 @@ class Battle:
         self.on_enemy_killed_callback = None
         from .authored_monsters import MonsterRuntime
         self.monster_runtime = MonsterRuntime(self)
+        from ..skills.characters.registry import hook
+        for unit in self.player_units + self.enemy_units:
+            hook('attach', self, unit)
     
     def start(self):
         """开始战斗"""
@@ -133,6 +136,7 @@ class Battle:
         from ..skills.skill_config import SkillConfig
         
         unit.status_manager = StatusManager(unit)
+        unit._battle = self
         unit.skill_manager = SkillManager(unit)
         unit.ai_system = AISystem(unit) if not unit.is_player else None
         
@@ -190,7 +194,7 @@ class Battle:
                 self._log(f"{unit.character.name} 受到持续回复 {status_result['heal']} HP", "heal")
             
             if status_result["damage"] > 0:
-                unit.take_damage(status_result["damage"], 0)
+                unit.take_damage(status_result["damage"], 0, is_attack=False)
                 self._log(f"{unit.character.name} 受到持续伤害 {status_result['damage']} HP", "dot")
             
             # 更新技能管理器
@@ -212,6 +216,8 @@ class Battle:
         elif self._check_defeat():
             self.state = BattleState.DEFEAT
             self._log("战斗失败", "system")
+        if self.state in (BattleState.VICTORY, BattleState.DEFEAT):
+            self._finalize_effects()
     
     def _process_skill_casting(self, delta_time: float):
         """处理技能释放"""
@@ -223,7 +229,10 @@ class Battle:
             
             skill = player_unit.skill_manager.get_next_skill(self.current_time)
             if skill:
-                self._cast_skill(player_unit, skill, self.enemy_units, self.player_units)
+                if not self._cast_skill(player_unit, skill, self.enemy_units, self.player_units):
+                    # Waiting for a target is not a cast and must not skip a tier.
+                    manager = player_unit.skill_manager
+                    manager.current_tier_index = (manager.current_tier_index - 1) % 3
             self._try_cast_exclusive_weapon_skill(player_unit)
         
         # 处理怪物单位的技能释放（使用AI）
@@ -315,6 +324,17 @@ class Battle:
         self._cast_skill(caster, skill, self.enemy_units, self.player_units, source="exclusive_weapon")
     
     def _cast_skill(
+        self, caster: BattleUnit, skill: Skill, enemies: List[BattleUnit],
+        allies: List[BattleUnit], source: str = 'skill'
+    ):
+        from ..skills.characters.registry import hook
+        hook('before_skill', self, caster, skill)
+        try:
+            return self._cast_skill_effects(caster, skill, enemies, allies, source)
+        finally:
+            hook('after_skill', self, caster, skill)
+
+    def _cast_skill_effects(
         self,
         caster: BattleUnit,
         skill: Skill,
@@ -333,6 +353,9 @@ class Battle:
         """
         if not skill.can_use():
             return
+        if hasattr(skill, 'authored_effect'):
+            from ..skills.authored_characters import cast
+            return cast(self, caster, skill, allies, enemies)
         
         # 选择目标
         if skill.is_heal:
@@ -424,11 +447,10 @@ class Battle:
                         damage_result["physical_damage"] = int(damage_result["physical_damage"] * (1 - absorption))
                         damage_result["magical_damage"] = int(damage_result["magical_damage"] * (1 - absorption))
                         pre_damage_health = target.current_health
-                target.take_damage(
+                effective_damage = target.take_damage(
                     damage_result["physical_damage"],
-                    damage_result["magical_damage"]
+                    damage_result["magical_damage"], source=caster
                 )
-                effective_damage = max(0, int(pre_damage_health - target.current_health))
                 if caster.is_player and not target.is_player and effective_damage > 0:
                     self._record_damage(caster, target, effective_damage, damage_result, skill, source)
                 
@@ -486,6 +508,8 @@ class Battle:
                 # 触发敌人死亡事件（用于副本系统统计）
                 self._on_enemy_killed(target)
     
+        return True
+
     def _on_enemy_killed(self, enemy_unit: BattleUnit):
         """敌人死亡时的回调"""
         if enemy_unit.is_player or getattr(enemy_unit, "battle_death_reported", False) or getattr(enemy_unit, "authored_retired", False):
@@ -595,6 +619,14 @@ class Battle:
         # 超时判定为失败
         self.state = BattleState.DEFEAT
         self._log("战斗超时，判定为失败", "system")
+        self._finalize_effects()
+
+    def _finalize_effects(self):
+        if getattr(self, '_effects_finalized', False):
+            return
+        self._effects_finalized = True
+        from ..skills.characters.registry import hook
+        hook('battle_end', self)
     
     def set_battle_speed(self, speed: BattleSpeed):
         """设置战斗速度"""
@@ -619,6 +651,7 @@ class Battle:
         """获取战斗结果"""
         if self.state not in [BattleState.VICTORY, BattleState.DEFEAT]:
             return None
+        self._finalize_effects()
         
         duration = self.current_time
         is_victory = self.state == BattleState.VICTORY

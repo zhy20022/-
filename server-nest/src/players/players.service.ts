@@ -4,6 +4,7 @@ import { EntityManager, In, Repository } from 'typeorm';
 import { applyCharacterExp, getExpForNextLevel, getExpRequiredToLevel, MAX_CHARACTER_LEVEL } from '../common/leveling';
 import { IdempotencyService } from '../common/idempotency.service';
 import { GameConfigsService } from '../configs/configs.service';
+import { SKILL_SLOT_RULES, skillSlotError } from './skill-slot-rules';
 import { InventoryItemEntity, MailEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
 const CHARACTER_EXP_ITEM_ID = 'character_exp_crystal';
@@ -130,14 +131,15 @@ export class PlayersService {
 
   async getSkills(playerId: string, characterId: string) {
     const character = await this.getOwnedCharacter(playerId, characterId);
-    const unlockedSkills = await this.buildAttributeSkills(character.attributeType);
+    const unlockedSkills = await this.buildCharacterSkills(character);
     const saved = this.extractSkillSlots(character.skillSlots);
+    await this.migrateAuthoredSlots(character, saved, unlockedSkills);
     return {
       success: true,
       unlockedSkills,
-      skillSlots: this.isCompleteSkillConfig(saved) ? saved : this.defaultSkillSlots(unlockedSkills),
-      isValid: this.isCompleteSkillConfig(saved),
-      rules: { low: 5, mid: 3, high: 1, availableFromLevel: 1, uniqueSkills: true },
+      skillSlots: !skillSlotError(saved, unlockedSkills) ? saved : this.defaultSkillSlots(unlockedSkills),
+      isValid: !skillSlotError(saved, unlockedSkills),
+      rules: SKILL_SLOT_RULES,
     };
   }
 
@@ -147,20 +149,10 @@ export class PlayersService {
       if (!player) throw new NotFoundException('player not found');
       const character = await manager.findOne(PlayerCharacterEntity, { where: { id: characterId, playerId }, lock: { mode: 'pessimistic_write' } });
       if (!character) throw new NotFoundException('character not found');
-      const unlockedSkills = await this.buildAttributeSkills(character.attributeType, manager);
+      const unlockedSkills = await this.buildCharacterSkills(character, manager);
       const normalized = this.normalizeSkillSlots(skillSlots);
-      const expected = { low: 5, mid: 3, high: 1 } as const;
-      const skillMap = new Map(unlockedSkills.map((skill) => [skill.skillId, skill]));
-      const allIds = [...normalized.low, ...normalized.mid, ...normalized.high];
-      if ((Object.keys(expected) as Array<keyof typeof expected>).some((tier) => normalized[tier].length !== expected[tier])) {
-        throw new BadRequestException('skill configuration requires 5 low, 3 mid and 1 high slot');
-      }
-      if (new Set(allIds).size !== allIds.length) throw new BadRequestException('the same skill cannot occupy multiple slots');
-      for (const tier of Object.keys(expected) as Array<keyof typeof expected>) {
-        if (normalized[tier].some((id) => !skillMap.has(id) || skillMap.get(id)?.tier.toLowerCase() !== tier)) {
-          throw new BadRequestException(`invalid ${tier} skill selection`);
-        }
-      }
+      const error = skillSlotError(normalized, unlockedSkills);
+      if (error) throw new BadRequestException(error);
       character.skillSlots = {
         ...(character.skillSlots || {}),
         learnedSkills: unlockedSkills.map((skill) => skill.skillId),
@@ -270,6 +262,27 @@ export class PlayersService {
     }));
   }
 
+  private async buildCharacterSkills(character: PlayerCharacterEntity, manager?: EntityManager) {
+    const authored = this.configs.getAuthoredCharacterSkills(character.characterConfigId);
+    if (!authored.length) return this.buildAttributeSkills(character.attributeType, manager);
+    return authored.map(skill => ({
+      skillId: `${character.characterConfigId}:${skill.slot}`, name: skill.name,
+      logic: 'ABC'[skill.slot - 1], tier: ['LOW', 'MID', 'HIGH'][skill.slot - 1],
+      cooldown: 0, skillMultiplier: skill.ratio,
+      targetType: skill.target === 'all' ? 'ALL' : 'SINGLE',
+      description: skill.description, effectTags: [skill.kind], statusEffects: [],
+    }));
+  }
+
+  private async migrateAuthoredSlots(character: PlayerCharacterEntity, slots: { low: string[]; mid: string[]; high: string[] }, skills: Array<{ skillId: string; logic: string }>) {
+    if (!this.configs.getAuthoredCharacterSkills(character.characterConfigId).length) return;
+    const legacy = await this.buildAttributeSkills(character.attributeType);
+    const byId = new Map(legacy.map(skill => [skill.skillId, skill.logic]));
+    for (const tier of ['low', 'mid', 'high'] as const) {
+      slots[tier] = slots[tier].map(id => skills.find(skill => skill.logic === byId.get(id))?.skillId || id);
+    }
+  }
+
   private normalizeAttribute(value: string) {
     const normalized = String(value || 'FIRE').toUpperCase();
     if (normalized === 'LIGHTNING') return 'THUNDER';
@@ -291,11 +304,10 @@ export class PlayersService {
     return this.normalizeSkillSlots(nested || {});
   }
 
-  private isCompleteSkillConfig(slots: { low: string[]; mid: string[]; high: string[] }) {
-    return slots.low.length === 5 && slots.mid.length === 3 && slots.high.length === 1 && new Set([...slots.low, ...slots.mid, ...slots.high]).size === 9;
-  }
-
   private defaultSkillSlots(skills: Array<{ skillId: string; tier: string }>) {
+    if (skills.length === 3 && skills.every(skill => skill.skillId.includes(':'))) {
+      return { low: Array(5).fill(skills[0].skillId) as string[], mid: [skills[1].skillId, skills[1].skillId, skills[2].skillId], high: [skills[2].skillId] };
+    }
     return {
       low: skills.filter((skill) => skill.tier === 'LOW').slice(0, 5).map((skill) => skill.skillId),
       mid: skills.filter((skill) => skill.tier === 'MID').slice(0, 3).map((skill) => skill.skillId),

@@ -5,6 +5,7 @@ import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import pg from 'pg';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const databaseUrl = process.env.E2E_DATABASE_URL;
@@ -37,10 +38,17 @@ try {
   assert(up, tail);
   browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL || 'msedge' });
   const session = await request('/auth/register', { username: 'boss_' + Date.now(), password: randomUUID() });
+  const roster = JSON.parse(readFileSync('../data/content/characters.json', 'utf8').replace(/^\uFEFF/, '')).characters;
+  const party = [25, 31, 27, 28, 32].map(number => {
+    const character = roster.find(row => Number(row.id.split('_')[1]) === number);
+    assert(character, `missing authored character ${number}`);
+    return character;
+  });
   const ids = Array.from({ length: 20 }, () => randomUUID());
   for (const [i, id] of ids.entries()) {
+    const character = party[i % party.length];
     await db.query('INSERT INTO player_characters (id,"playerId","characterConfigId","attributeType","professionType",level) VALUES ($1,$2,$3,$4,$5,100)',
-      [id, session.player.id, 'probe', 'WIND', i % 5 === 1 ? 'HEALER' : 'PHYSICAL_MELEE_DPS']);
+      [id, session.player.id, character.id, character.attributeType, character.professionType]);
   }
   const catalog = await request('/dungeons');
   const bosses = catalog.dungeons.filter(row => row.dungeonType !== 'SINGLE');

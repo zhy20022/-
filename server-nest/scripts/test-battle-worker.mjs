@@ -22,3 +22,13 @@ for (const [dungeonType, count, duration] of [['SINGLE', 1, 60], ['SQUAD', 5, 18
     frames: first.frames.length, bytes: Buffer.byteLength(JSON.stringify(first)), damage: first.damageScore }));
 }
 console.log('battle worker integration passed');
+const authoredId = 'char_008_water_support';
+const authored = await service.simulate({ seed: 'authored-healer-probe',
+  dungeon: { dungeonId: 'probe-healer', name: 'probe', attributeType: 'WIND', dungeonType: 'SQUAD', duration: 180, difficulty: 'normal' },
+  characters: [{ ...row(0), characterConfigId: authoredId, attributeType: 'WATER', professionType: 'SUPPORT',
+    skillSlots: { skillSlots: { low: Array(5).fill(`${authoredId}:1`), mid: [`${authoredId}:2`, `${authoredId}:2`], high: [`${authoredId}:3`, `${authoredId}:3`] } },
+  }, ...[1, 2, 3, 4].map(row)],
+});
+for (const slot of [1, 2, 3]) assert(authored.events.some(event => event.payload?.skill_id === `${authoredId}:${slot}`), `authored skill ${slot} must execute`);
+assert(authored.frames.some(frame => frame.units.some(([id, , shield]) => id.startsWith('character-') && shield > 0)), 'authored shield must reach replay');
+console.log('authored healer: configured ABC casts and shield replay passed');

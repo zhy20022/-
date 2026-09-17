@@ -559,6 +559,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   const [unlockedSkills, setUnlockedSkills] = useState<SkillInfo[]>([])
   const [skillSlots, setSkillSlots] = useState<Record<'low' | 'mid' | 'high', string[]>>({ low: [], mid: [], high: [] })
   const [skillFeedback, setSkillFeedback] = useState<string | null>(null)
+  const [skillConfigLoading, setSkillConfigLoading] = useState(true)
   const [weaponActionItemId, setWeaponActionItemId] = useState<string | null>(null)
   const [materials, setMaterials] = useState<Record<string, MaterialEntry>>({})
   const [expAmount, setExpAmount] = useState(100)
@@ -1115,6 +1116,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   })
 
   const loadSkillConfig = async () => {
+    setSkillConfigLoading(true)
     if (isFormalOnlineMode()) {
       try {
         const profile = await loadOnlineProfile(player)
@@ -1134,6 +1136,8 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         setSkillFeedback('正式在线技能配置已加载，9 个技能槽从 1 级起开放。')
       } catch (error) {
         setSkillFeedback(getOnlineModeError(error, '加载技能配置失败'))
+      } finally {
+        setSkillConfigLoading(false)
       }
       return
     }
@@ -1154,6 +1158,8 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
       }
     } catch (error: any) {
       setSkillFeedback(error.response?.data?.message || '加载技能配置失败')
+    } finally {
+      setSkillConfigLoading(false)
     }
   }
 
@@ -1197,13 +1203,18 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
 
   const renderSkillSelectors = (tier: 'low' | 'mid' | 'high', label: string, count: number) => {
     const tierName = tier === 'low' ? '底级别' : tier === 'mid' ? '中级别' : '高级别'
-    const options = unlockedSkills.filter((skill) => skill.skill_tier.toLowerCase() === tier || skill.skill_tier === tierName)
+    const allowed = tier === 'low' ? ['A', 'B'] : tier === 'mid' ? ['A', 'B', 'C'] : ['B', 'C']
+    const options = unlockedSkills.filter((skill) => isFormalOnlineMode()
+      ? allowed.includes(skill.skill_logic.slice(0, 1))
+      : skill.skill_tier.toLowerCase() === tier || skill.skill_tier === tierName)
     return (
       <div className="skill-slot-group">
         <h4>{label}</h4>
         {Array.from({ length: count }).map((_, index) => (
           <select
             key={`${tier}_${index}`}
+            aria-label={`${label}第${index + 1}槽`}
+            disabled={skillConfigLoading}
             value={skillSlots[tier][index] || ''}
             onChange={(event) => updateSkillSlot(tier, index, event.target.value)}
           >
@@ -1463,12 +1474,34 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
             <div className="detail-section">
               <h3>9格技能配置</h3>
               {skillFeedback && <div className="skill-config-feedback">{skillFeedback}</div>}
+              {isFormalOnlineMode() && (
+                <label>
+                  槽位分配
+                  <select
+                    aria-label="槽位分配"
+                    disabled={skillConfigLoading || unlockedSkills.length === 0}
+                    value={[skillSlots.low.length, skillSlots.mid.length, skillSlots.high.length].join('/')}
+                    onChange={(event) => {
+                      const sizes = event.target.value.split('/').map(Number)
+                      setSkillSlots(prev => ({
+                        low: Array.from({ length: sizes[0] }, (_, i) => prev.low[i] || ''),
+                        mid: Array.from({ length: sizes[1] }, (_, i) => prev.mid[i] || ''),
+                        high: Array.from({ length: sizes[2] }, (_, i) => prev.high[i] || ''),
+                      }))
+                    }}
+                  >
+                    {['5/3/1', '5/2/2', '4/4/1', '4/3/2', '3/3/3'].map(value => (
+                      <option key={value} value={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <div className="skill-config-grid">
-                {renderSkillSelectors('low', '底级别技能 5格', 5)}
-                {renderSkillSelectors('mid', '中级别技能 3格', 3)}
-                {renderSkillSelectors('high', '高级别技能 1格', 1)}
+                {renderSkillSelectors('low', '底级别技能', isFormalOnlineMode() ? skillSlots.low.length : 5)}
+                {renderSkillSelectors('mid', '中级别技能', isFormalOnlineMode() ? skillSlots.mid.length : 3)}
+                {renderSkillSelectors('high', '高级别技能', isFormalOnlineMode() ? skillSlots.high.length : 1)}
               </div>
-              <button className="save-skill-config-btn" onClick={saveSkillConfig}>
+              <button className="save-skill-config-btn" disabled={skillConfigLoading || unlockedSkills.length === 0} onClick={saveSkillConfig}>
                 保存技能配置
               </button>
               <div className="skills-detail-list">

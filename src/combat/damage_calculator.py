@@ -53,15 +53,20 @@ class DamageCalculator:
         
         attacker_modifiers = attacker_modifiers or {}
         defender_modifiers = defender_modifiers or {}
+        defended_as_physical = is_physical and not defender_modifiers.get('damage_to_magical')
 
         # 1. 获取攻击和防御属性
         if is_physical:
             attack_stat = attacker.attack + attacker_modifiers.get("attack", 0)
-            defense_stat = defender.defense + defender_modifiers.get("defense", 0)
         else:
             attack_stat = attacker.magic_attack + attacker_modifiers.get("magic_attack", 0)
+        if defended_as_physical:
+            defense_stat = defender.defense + defender_modifiers.get("defense", 0)
+        else:
             defense_stat = defender.magic_defense + defender_modifiers.get("magic_defense", 0)
         attack_stat = max(1, attack_stat)
+        penetration = min(1, max(0, attacker_modifiers.get('ignore_defense', 0)))
+        defense_stat *= 1 - penetration
         
         # 2. 计算基础伤害（攻击力 × 技能倍率）
         base_damage_value = attack_stat * skill_multiplier
@@ -82,21 +87,26 @@ class DamageCalculator:
         attribute_multiplier = attacker_attr.calculate_damage_multiplier(defender_attr)
         
         # 如果克制关系，暴击倍率为1.5倍（用户需求）
-        if attribute_multiplier == 1.5:  # 克制关系
+        immune = defender_modifiers.get('crit_immune_physical' if defended_as_physical else 'crit_immune_magical', 0) > 0
+        crit_rate = min(1, max(0, self.base_crit_rate + attacker_modifiers.get('crit_rate', 0)))
+        crit_bonus = attacker_modifiers.get('crit_damage', 0)
+        if immune:
+            is_crit, crit_multiplier = False, 1.0
+        elif attribute_multiplier == 1.5:  # 克制关系
             # 克制关系下必定暴击
             is_crit = True
-            crit_multiplier = 1.5
+            crit_multiplier = max(1, 1.5 + crit_bonus)
         else:
             # 否则按暴击率计算
-            is_crit = random.random() < self.base_crit_rate
-            crit_multiplier = self.base_crit_multiplier if is_crit else 1.0
+            is_crit = random.random() < crit_rate
+            crit_multiplier = max(1, self.base_crit_multiplier + crit_bonus) if is_crit else 1.0
         
         # 5. 应用属性倍率和暴击倍率
         final_damage = damage_after_reduction * attribute_multiplier * crit_multiplier
         
         # 6. 确保最小伤害（攻击力的10%）
-        min_damage = attack_stat * 0.1
-        final_damage = max(final_damage, min_damage)
+        min_damage = 0 if attacker_modifiers.get('no_damage_floor') else attack_stat * 0.1
+        final_damage = max(final_damage, min_damage) if skill_multiplier > 0 else 0
         
         # 7. 返回结果
         result = {
@@ -106,7 +116,8 @@ class DamageCalculator:
             "is_crit": is_crit,
             "crit_multiplier": crit_multiplier,
             "final_damage": int(final_damage),
-            "is_physical": is_physical
+            "is_physical": defended_as_physical,
+            "original_is_physical": is_physical
         }
         
         return result

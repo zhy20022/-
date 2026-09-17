@@ -218,6 +218,10 @@ class SkillDatabase:
         return [self.skills[skill_id] for skill_id in skill_ids if skill_id in self.skills]
 
     def get_skill(self, skill_id: str) -> Optional[Skill]:
+        # Nest uses enum names; legacy saves use localized attribute prefixes.
+        prefix, separator, suffix = skill_id.partition('_')
+        if separator and prefix in AttributeType.__members__:
+            skill_id = f"{AttributeType[prefix].value}_{suffix}"
         return self.skills.get(skill_id)
 
     def get_unlock_condition(self, skill_id: str) -> Optional[SkillUnlockCondition]:

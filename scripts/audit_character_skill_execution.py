@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.nest_battle_worker import character_from_snapshot
 from src.combat.battle_unit import BattleUnit
 from src.skills.skill_config import SkillConfig
+from src.skills.authored_characters import DEFINITIONS
 from scripts.build_character_content import extract_skills, read_docx_paragraphs
 
 
@@ -60,9 +61,9 @@ def main():
                 "currentWordDescription": word_skills.get(skill["slot"], {}).get("effect"),
                 "runtimeSkills": runtime, "thirtyCastSelectionProbe": sequence,
                 "matchingRuntimeNames": overlapping,
-                "status": "name_overlap_requires_effect_review" if overlapping else "authored_skill_not_in_default_runtime",
-                "implementation": "src/skills/skill_config.py -> src/skills/skill_database.py (attribute fallback)",
-                "test": "tests/test_character_skill_audit.py",
+                "status": "explicit_authored_runtime" if definition['id'] in DEFINITIONS else "authored_skill_not_in_default_runtime",
+                "implementation": "src/skills/authored_characters.py" if definition['id'] in DEFINITIONS else "src/skills/skill_config.py -> src/skills/skill_database.py (attribute fallback)",
+                "test": "tests/test_authored_characters.py" if definition['id'] in DEFINITIONS else "tests/test_character_skill_audit.py",
                 "growthMetadataRegression": "passed" if len(runtime) == 9 else "failed",
                 "effectVerification": "not_verified",
             })
@@ -90,7 +91,7 @@ def main():
                   "| 技能 | 描述 | 代码对应 | 测试结果 |", "| --- | --- | --- | --- |"]
         for row in selected:
             description = row["description"].replace("|", "／").replace("\n", "<br>")
-            match = "名称重合，效果待人工核对" if row["matchingRuntimeNames"] else "未映射；目前执行属性通用技能"
+            match = "已接入专属执行器；效果回归见tests/test_authored_characters.py" if row['characterId'] in DEFINITIONS else "未映射；目前执行属性通用技能"
             word = "Word描述匹配" if row["descriptionFoundInCurrentWord"] else "Word描述待复核"
             lines.append(f"| {row['slot']} {row['skill']} | {description} | {match} | 技能装载回归{row['growthMetadataRegression']}；{word}；特殊效果未验收 |")
     (ROOT / "docs/character-skill-execution-audit.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

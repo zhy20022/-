@@ -12,6 +12,7 @@
 - 第二轮修复：地址自动选择的单次尝试等待延长为2秒；注册仅在取得连接、事务尚未开始前进行最多3次有限重试，不重放事务或提交结果不明的写入。
 - Node地址尝试及AggregateError行为参考：https://nodejs.org/api/net.html#netsetdefaultautoselectfamilyattempttimeoutvalue
 - 连接重试单测：node scripts/test-acquire-connection.mjs，验证重试上限、资源释放及认证错误不重试。
+- 第二轮线上复测：e404e0ddfb5c6bbdd45ea9f2c0d8016c240b996b的GitHub运行34578510312通过构建、公开验收及并发验收；这是一次正确性回归，不代表长期稳定性或容量上限。
 
 复测：server-nest目录运行 node scripts/e2e-registration.mjs，E2E_DATABASE_URL必须指向隔离本地库。
 
@@ -38,3 +39,14 @@
 - 下一步：按角色逐项实现专属技能，先明确角色3技能与现有9槽的映射，再验证施法计数、叠层、护盾、复活和触发条件；不能仅替换通用技能名字。
 
 重新生成核对表：python scripts/audit_character_skill_execution.py。
+
+## 2026-09-14 技能存档恢复回归
+
+- 发现正式Nest保存的配置位于skillSlots.skillSlots内，战斗装载器此前只识别顶层low/mid/high，导致保存配置被默认配置替代。
+- 兼容skillSlots和skill_slots两种嵌套字段，同时保留旧版顶层配置及仅成长元数据的默认装载逻辑。
+- 使用反转槽位顺序的配置防止默认配置掩盖问题：修复前64角色两种格式共128个子用例失败，修复后通过。
+- Python回归：22项测试、256个子用例通过。Nest构建及真实worker的SINGLE、SQUAD、TEAM、SERVER_BOSS四类战斗回归通过。
+- 本轮为本地修复，尚未部署。未新增192个专属技能的执行效果。
+- 待确认：游戏设定.txt第18至32行规定3个ABC技能配置9槽、按底中高梯度随机轮换；此前角色模拟使用固定1→2→3循环。需要确认正式战斗采用哪种规则，再实现专属技能映射，避免改变印记和爆发节奏。
+
+后续用户已确认正式战斗采用ABC可重复9槽、底中高随机轮换。本轮已实现规则接管，并接入玉尘子3个专属技能，剩余189个待接入；最新范围、回归与未完成项见character-abc-progress-2026-09-14.md，以上“待确认”和192个全未接入为此前历史记录。

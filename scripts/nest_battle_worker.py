@@ -37,6 +37,7 @@ def character_from_snapshot(row):
                           GameVersion('online', 'Online', 'Online', 0, datetime(2026, 1, 1)),
                           level=int(row['level']))
     character.saved_skill_slots = row.get('skillSlots') or None
+    character.character_config_id = row.get('characterConfigId', row['id'])
     equipment = row.get('equipment') or {}
     seen = set()
 

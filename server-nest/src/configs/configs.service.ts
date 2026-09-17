@@ -21,6 +21,15 @@ export class GameConfigsService {
     };
   }
 
+  getAuthoredCharacterSkills(characterId: string) {
+    // Executable definitions must match the worker's bundled version, not a DB override.
+    const file = this.getContentFilePath('authored-character-skills');
+    const payload = JSON.parse(readFileSync(file, 'utf-8').replace(/^\uFEFF/, '')) as {
+      characters: Record<string, Array<{ slot: number; name: string; description: string; target: string; kind: string; ratio: number }>>;
+    };
+    return payload.characters[characterId] || [];
+  }
+
   async getContentConfig(key: string, manager?: EntityManager) {
     const configs = manager?.getRepository(GameConfigEntity) || this.configs;
     const dbConfig = await configs.findOne({ where: { configKey: key, enabled: true } });

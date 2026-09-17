@@ -1,0 +1,1 @@
+"""Explicit authored character groups."""

@@ -61,10 +61,38 @@ class BattleUnit:
         self.max_magical_health = 0
         self.current_magical_health = 0
 
-    def take_damage(self, physical_damage: int, magical_damage: int):
+    def take_damage(self, physical_damage: int, magical_damage: int, *, is_attack: bool = True, source=None, is_true: bool = False):
         """Apply all incoming damage to the single HP pool."""
-        from .authored_monsters import absorb_damage
-        total_damage = max(0, int(physical_damage or 0)) + max(0, int(magical_damage or 0))
+        from .authored_monsters import absorb_damage, states, modifiers
+        from ..skills.characters.registry import hook, before_damage
+        if self.is_dead():
+            return 0
+        physical_damage, magical_damage = max(0, physical_damage), max(0, magical_damage)
+        context = dict(battle=getattr(self, '_battle', None), source=source, is_attack=is_attack,
+                       original_physical=physical_damage, original_magical=magical_damage,
+                       is_true=is_true, physical=physical_damage, magical=magical_damage, old_health=self.current_health)
+        if not is_true:
+            target_modifiers = modifiers(self)
+            source_modifiers = modifiers(source) if source else {}
+            factor = max(0, 1 + source_modifiers.get('damage_out', 0)) * max(0, 1 + target_modifiers.get('damage_in', 0))
+            if source:
+                element = source.character.attribute.attribute_type.name
+                factor *= max(0, 1 + source_modifiers.get('element_out_' + element, 0))
+                factor *= max(0, 1 + target_modifiers.get('element_in_' + element, 0))
+                factor *= max(0, 1 - target_modifiers.get('element_resist_' + element, 0))
+            factor *= max(0, 1 - target_modifiers.get('damage_reduction', 0))
+            converted = bool(target_modifiers.get('damage_to_magical'))
+            physical_damage *= factor * max(0, 1 - target_modifiers.get('magical_reduction' if converted else 'physical_reduction', 0))
+            magical_damage *= factor * max(0, 1 - target_modifiers.get('magical_reduction', 0))
+            context['original_physical'] = physical_damage
+            context['original_magical'] = magical_damage
+            physical_damage, magical_damage = before_damage(self, physical_damage, magical_damage, context)
+            if converted:
+                physical_damage, magical_damage = 0, physical_damage + magical_damage
+        total_damage = max(0, int(physical_damage)) + max(0, int(magical_damage))
+        if is_attack and not is_true:
+            reduction = sum(s['value'] for s in states(self) if s['kind'] == 'attack_reduction')
+            total_damage = int(total_damage * max(0, 1 - reduction))
         entry = getattr(self, "authored_group", None)
         if entry and entry["definition"].get("balance_guard"):
             alive = [u for u in entry["units"] if u.is_alive()]
@@ -78,15 +106,25 @@ class BattleUnit:
             pool.change(-total_damage)
         else:
             self.current_health = max(0, self.current_health - total_damage)
+        context['dealt'] = max(0, context['old_health'] - self.current_health)
+        hook('after_damage', self, context)
+        if self.is_dead():
+            self.death_time = getattr(context['battle'], 'current_time', 0)
+            self.death_serial = getattr(self, 'death_serial', 0) + 1
+            if context['battle']:
+                hook('on_death', context['battle'], self)
         self._sync_legacy_health_fields()
         for unit in pool.units if pool else [self]:
             runtime = getattr(unit, "authored_runtime", None)
             if runtime and unit.is_alive():
                 runtime.observe_phase(unit)
+        return int(context['dealt'])
 
     def heal(self, physical_heal: int, magical_heal: int):
         """Restore HP in the single HP pool."""
         from .authored_monsters import healing_multiplier
+        if self.is_dead():
+            return
         total_heal = max(0, int(physical_heal or 0)) + max(0, int(magical_heal or 0))
         total_heal = int(total_heal * healing_multiplier(self))
         pool = getattr(self, "authored_pool", None)

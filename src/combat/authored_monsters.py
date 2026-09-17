@@ -15,7 +15,11 @@ def modifiers(unit):
     result = dict(result)
     totals = {}
     for item in states(unit):
-        if item["kind"] != "stat":
+        if item['kind'] == 'damage_conversion' and item.get('school') == 'magical':
+            result['damage_to_magical'] = 1
+        if item['kind'] == 'magical_crit_immunity':
+            result['crit_immune_magical'] = 1
+        if item["kind"] not in {"stat", "mark"} or not item.get('stats'):
             continue
         if item.get("bound_shield") and not any(s["kind"] == "shield" and s["source_skill"] == item["source_skill"] for s in states(unit)):
             continue
@@ -23,7 +27,11 @@ def modifiers(unit):
             totals[name] = totals.get(name, 0) + item["value"]
     for name, value in totals.items():
         # Debuffs cannot make a stat negative. Buffs add, never compound.
-        base = getattr(unit.character, name, 1 if name == "healing_received" else 0)
+        fractional = (name in {'healing_received', 'crit_rate', 'crit_damage', 'ignore_defense',
+                              'physical_reduction', 'magical_reduction', 'damage_reduction',
+                              'damage_out', 'damage_in', 'crit_immune_physical', 'crit_immune_magical'}
+                      or name.startswith(('element_out_', 'element_in_', 'element_resist_')))
+        base = 1 if fractional else getattr(unit.character, name, 0)
         result[name] = result.get(name, 0) + base * max(-.9, value)
     return result
 
@@ -37,11 +45,19 @@ def absorb_damage(unit, amount):
         return 0
     shields = [s for s in states(unit) if s["kind"] == "shield" and s["amount"] > 0]
     total = sum(s["amount"] for s in shields)
-    absorbed = min(total, amount)
+    share = .5 if getattr(unit, 'shield_mode', 'priority') == 'split' else 1
+    absorbed = min(total, amount * share)
+    broken = []
     if total:
         for item in shields:
+            item.setdefault('initial_amount', item['amount'])
             item["amount"] *= max(0, 1 - absorbed / total)
+            if item['amount'] <= 1e-6:
+                broken.append(item)
         unit.cast_effects = [s for s in states(unit) if s["kind"] != "shield" or s["amount"] > 1e-6]
+    from ..skills.characters.registry import hook
+    for item in broken:
+        hook('on_shield_break', unit, item)
     return max(0, amount - absorbed)
 
 
@@ -78,15 +94,14 @@ def end_cast(battle, unit, before):
             continue
         if unit.is_alive():
             if item["kind"] == "dot":
-                old = unit.current_health
-                unit.take_damage(0, item["amount"])
-                dealt = max(0, old - unit.current_health)
+                dealt = unit.take_damage(0, item["amount"], is_attack=False, source=item.get('owner'))
                 battle._log(f"{unit.character.name}：{item['name']}结算 {dealt} 伤害", "dot")
                 owner = item.get("owner")
                 if item.get("drain") and owner and owner.is_alive():
                     owner.heal(dealt, 0)
             elif item["kind"] == "hot":
-                unit.heal(int(unit.max_health * item["value"]), 0)
+                if not item.get('bound_shield') or any(s['kind'] == 'shield' and s.get('source_skill') == item.get('source_skill') for s in states(unit)):
+                    unit.heal(int(item.get('amount', unit.max_health * item.get('value', 0))), 0)
                 battle._log(f"{unit.character.name}：{item['name']}结算治疗", "heal")
         if item.get("remaining") is not None:
             item["remaining"] -= 1
@@ -94,6 +109,10 @@ def end_cast(battle, unit, before):
                 unit.cast_effects = [s for s in states(unit) if s is not item]
     if unit.is_dead() and not unit.is_player:
         battle._on_enemy_killed(unit)
+    from ..skills.characters.registry import hook, sync_max_health
+    unit.cast_count = getattr(unit, 'cast_count', 0) + 1
+    hook('after_cast', battle, unit, before)
+    sync_max_health(unit)
 
 
 class MonsterRuntime:
@@ -277,6 +296,7 @@ class MonsterRuntime:
         item = deepcopy(original)
         kind, value = item["kind"], item.get("value", 0)
         if kind in {"damage", "hp_damage"}:
+            components = None
             if kind == "hp_damage":
                 amount = target.max_health * value
                 physical = False
@@ -288,6 +308,7 @@ class MonsterRuntime:
                         modifiers(caster), modifiers(target),
                     )
                     amount = result["total_damage"]
+                    components = [result['physical_damage'], result['magical_damage']]
                 else:
                     result = self.battle.damage_calculator.calculate_damage(
                         caster.character, target.character, 0, is_physical=physical,
@@ -296,12 +317,15 @@ class MonsterRuntime:
                     amount = result["final_damage"]
                 if target.character.attribute.attribute_type.name == "DARK":
                     amount *= item.get("versus_dark", 1)
-            before = target.current_health
+                    if components is not None:
+                        components = [part * item.get('versus_dark', 1) for part in components]
             amount = max(0, int(amount))
-            target.take_damage(amount if physical else 0, 0 if physical else amount)
-            self.battle._log(f"{target.character.name}受到{int(before - target.current_health)}伤害", "damage", {
+            if components is None:
+                components = [amount if physical else 0, 0 if physical else amount]
+            dealt = target.take_damage(*components, source=caster)
+            self.battle._log(f"{target.character.name}受到{dealt}伤害", "damage", {
                 "caster_id": caster.character.character_id, "target_id": target.character.character_id,
-                "amount": before - target.current_health, "raw_amount": amount, "skill_name": skill["name"], "source": "authored_monster",
+                "amount": dealt, "raw_amount": amount, "skill_name": skill["name"], "source": "authored_monster",
             })
         elif kind == "heal":
             before = target.current_health

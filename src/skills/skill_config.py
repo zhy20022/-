@@ -4,10 +4,12 @@
 """
 
 from typing import List
+from copy import deepcopy
 from ..characters.character import Character
-from ..combat.skill_system import Skill, SkillManager
+from ..combat.skill_system import Skill, SkillManager, SkillTier
 from .skill_learning import SkillLearningSystem
 from .skill_database import get_skill_database, get_skill_by_id
+from .authored_characters import library as authored_library
 
 
 class SkillConfig:
@@ -52,15 +54,25 @@ class SkillConfig:
                     if skill:
                         skill_manager.add_skill(skill)
         else:
+            authored = authored_library(character)
             configured_slots = getattr(character, "saved_skill_slots", None)
+            # Nest persists the loadout inside the character's metadata envelope.
+            if isinstance(configured_slots, dict):
+                configured_slots = (configured_slots.get("skillSlots")
+                                    or configured_slots.get("skill_slots")
+                                    or configured_slots)
             # Growth metadata shares this JSON field but is not a skill loadout.
-            if configured_slots and not any(key in configured_slots for key in ("low", "mid", "high")):
+            if not isinstance(configured_slots, dict) or not any(key in configured_slots for key in ("low", "mid", "high")):
                 configured_slots = None
             if configured_slots:
                 for tier_key in ["low", "mid", "high"]:
                     for skill_id in configured_slots.get(tier_key, []):
                         skill = get_skill_by_id(skill_id)
+                        if authored:
+                            skill = authored.get(skill_id) or next((s for s in authored.values() if skill and s.skill_logic == skill.skill_logic), None)
                         if skill:
+                            skill = deepcopy(skill)
+                            skill.skill_tier = SkillTier[tier_key.upper()]
                             skill_manager.add_skill(skill)
             else:
                 # 默认给出一套合法9技能配置：底5、中3、高1，让1级角色也能完整战斗。
@@ -69,8 +81,16 @@ class SkillConfig:
                 low_skills = [s for s in all_skills if s.skill_tier.value == "底级别"][:5]
                 mid_skills = [s for s in all_skills if s.skill_tier.value == "中级别"][:3]
                 high_skills = [s for s in all_skills if s.skill_tier.value == "高级别"][:1]
-                for skill in low_skills + mid_skills + high_skills:
-                    skill_manager.add_skill(skill)
+                if authored:
+                    by_logic = {s.skill_logic.name: s for s in authored.values()}
+                    for tier, pattern in [('LOW', 'AAAAA'), ('MID', 'BBC'), ('HIGH', 'C')]:
+                        for logic in pattern:
+                            skill = deepcopy(by_logic[logic])
+                            skill.skill_tier = SkillTier[tier]
+                            skill_manager.add_skill(skill)
+                else:
+                    for skill in low_skills + mid_skills + high_skills:
+                        skill_manager.add_skill(deepcopy(skill))
 
         # 验证技能配置
         is_valid, message = skill_manager.validate_skill_configuration()

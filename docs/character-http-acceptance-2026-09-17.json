@@ -1,0 +1,457 @@
+{
+  "passed": true,
+  "characters": 64,
+  "skillLayouts": 320,
+  "isolatedLocalDatabase": true,
+  "clockAdvanced": true,
+  "results": [
+    {
+      "configId": "char_001_water_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_002_water_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_003_water_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_004_water_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_005_water_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_006_water_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_007_water_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_008_water_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_009_earth_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_010_earth_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_011_earth_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_012_earth_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_013_earth_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_014_earth_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_015_earth_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_016_earth_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_017_thunder_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_018_thunder_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_019_thunder_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_020_thunder_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_021_thunder_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_022_thunder_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_023_thunder_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_024_thunder_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_025_wind_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_026_wind_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_027_wind_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_028_wind_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_029_wind_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_030_wind_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_031_wind_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_032_wind_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_033_fire_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_034_fire_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_035_fire_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_036_fire_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_037_fire_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_038_fire_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_039_fire_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_040_fire_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_041_wood_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_042_wood_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_043_wood_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_044_wood_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_045_wood_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_046_wood_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_047_wood_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_048_wood_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_049_light_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_050_light_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_051_light_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_052_light_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_053_light_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_054_light_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_055_light_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_056_light_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_057_dark_physical_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_058_dark_magic_tank",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_059_dark_physical_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_060_dark_magic_melee_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_061_dark_physical_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_062_dark_magic_ranged_dps",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_063_dark_healer",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    },
+    {
+      "configId": "char_064_dark_support",
+      "layouts": 5,
+      "stored": true,
+      "realBattle": true,
+      "settlementOnce": true
+    }
+  ]
+}
