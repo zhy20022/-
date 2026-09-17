@@ -1,3 +1,4 @@
+import { getProfessionLabel } from '../services/professionLabels'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -285,7 +286,7 @@ const GachaPage: React.FC = () => {
             <p>{upPool.description}</p>
             <div className="up-character-list">
               {(upPool.up_characters && upPool.up_characters.length > 0
-                ? upPool.up_characters.map((char) => `${char.name} · ${char.attribute_type} · ${char.profession_type}`)
+                ? upPool.up_characters.map((char) => `${char.name} · ${char.attribute_type} · ${getProfessionLabel(char.profession_type)}`)
                 : upPool.up_character_names
               ).map((text) => (
                 <span key={text}>{text}</span>
@@ -329,7 +330,7 @@ const GachaPage: React.FC = () => {
                 <div key={`${item.character.name}_${index}`} className={`result-card ${item.is_duplicate ? 'duplicate' : 'new'}`}>
                   <div className="result-badge">{item.is_duplicate ? '重复' : '新'}</div>
                   <h4>{item.character.name}</h4>
-                  <p>{item.character.attribute_type} · {item.character.profession_type}</p>
+                  <p>{item.character.attribute_type} · {getProfessionLabel(item.character.profession_type)}</p>
                   {item.is_duplicate && <small>转化精华 +{item.essence_gained}</small>}
                 </div>
               ))}

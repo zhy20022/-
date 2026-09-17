@@ -103,7 +103,7 @@ const MobileGameShell = () => {
           </div>
           <div className="mobile-resource-item exp">
             <span aria-hidden="true">◆</span>
-            <small>经验包</small>
+            <small>经验结晶</small>
             <strong>{compactNumber.format(expPackages)}</strong>
           </div>
         </div>

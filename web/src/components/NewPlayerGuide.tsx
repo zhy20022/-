@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../stores/authStore'
 import {
   NewPlayerGuideStep,
   completeNewPlayerGuideStep,
@@ -33,9 +34,9 @@ const attributeNames: Record<string, string> = {
 const pageTipMap: Record<GuidePage, string> = {
   home: '按顺序完成这些步骤，就能跑通“抽角色 -> 打经验本 -> 升级 -> 理解副本目标”的第一段新手体验。',
   gacha: '这里是角色池。完成任意一次抽取后，下一步会引导你去看副本。',
-  dungeons: '新手优先用输出职业挑战同属性1人经验本。坦克、治疗和辅助可使用输出角色获得的经验包升级，不必亲自刷本。',
-  characters: '经验包由账号内角色共用，不限制属性或职业。在角色详情中消耗经验包和金币，即可为未满级角色升级。',
-  battle: '经验本需在60秒限时内清怪才算通关，仅坚持到结束不算通关。结算获得的经验包由账号内所有角色共用，可留给坦克、治疗或辅助升级。'
+  dungeons: '新手优先用输出职业挑战同属性1人经验本。坦克、治疗和辅助可使用输出角色获得的经验结晶升级，不必亲自刷本。',
+  characters: '经验结晶由账号内角色共用，不限制属性或职业。在角色详情中消耗经验结晶和金币，即可为未满级角色升级。',
+  battle: '经验本需在60秒限时内清怪才算通关，仅坚持到结束不算通关。结算获得的经验结晶由账号内所有角色共用，可留给坦克、治疗或辅助升级。'
 }
 
 const getNextStep = (completed: NewPlayerGuideStep[]) => (
@@ -48,17 +49,19 @@ const NewPlayerGuide: React.FC<NewPlayerGuideProps> = ({
   selectedCharacterAttribute
 }) => {
   const navigate = useNavigate()
+  const accountId = useAuthStore((state) => state.player?.player_id)
   const [guideState, setGuideState] = useState(getNewPlayerGuideState)
 
   useEffect(() => {
     const refresh = () => setGuideState(getNewPlayerGuideState())
+    refresh()
     window.addEventListener(getGuideEventName(), refresh)
     window.addEventListener('storage', refresh)
     return () => {
       window.removeEventListener(getGuideEventName(), refresh)
       window.removeEventListener('storage', refresh)
     }
-  }, [])
+  }, [accountId])
 
   const nextStep = useMemo(() => getNextStep(guideState.completed), [guideState.completed])
   const progressText = `${guideState.completed.length}/${newPlayerGuideSteps.length}`
@@ -109,9 +112,9 @@ const NewPlayerGuide: React.FC<NewPlayerGuideProps> = ({
   }
 
   const attributeTip = selectedCharacterAttribute
-    ? `当前角色属性：${attributeNames[selectedCharacterAttribute] || selectedCharacterAttribute}，只能进入同属性经验本。推荐优先派输出职业挑战，经验包可跨属性培养其他未满级角色。`
+    ? `当前角色属性：${attributeNames[selectedCharacterAttribute] || selectedCharacterAttribute}，只能进入同属性经验本。推荐优先派输出职业挑战，经验结晶可跨属性培养其他未满级角色。`
     : ownedCharacterCount > 0
-      ? '你已经拥有角色了。建议优先培养输出角色，再用其刷到的经验包培养坦克、治疗和辅助；暂时没有输出角色时可继续前往角色池抽取。'
+      ? '你已经拥有角色了。建议优先培养输出角色，再用其刷到的经验结晶培养坦克、治疗和辅助；暂时没有输出角色时可继续前往角色池抽取。'
       : '还没有抽到角色时，先去角色池完成一次抽取。'
 
   return (

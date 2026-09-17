@@ -280,7 +280,7 @@ const OnlineProgressPage: React.FC = () => {
       if (!preview.data?.canAfford) {
         setFeedback({
           type: 'error',
-          message: `升级资源不足：缺经验包 ${formatNumber(preview.data?.needMoreExpPackages || 0)}，缺金币 ${formatNumber(preview.data?.needMoreGold || 0)}`,
+          message: `升级资源不足：缺经验结晶 ${formatNumber(preview.data?.needMoreExpPackages || 0)}，缺金币 ${formatNumber(preview.data?.needMoreGold || 0)}`,
         })
         return
       }
@@ -289,7 +289,7 @@ const OnlineProgressPage: React.FC = () => {
       })
       setFeedback({
         type: 'success',
-        message: `升级成功：Lv.${response.data?.character?.level}，消耗经验包 ${formatNumber(response.data?.consumedExpPackages || 0)}，金币 ${formatNumber(response.data?.consumedGold || 0)}`,
+        message: `升级成功：Lv.${response.data?.character?.level}，消耗经验结晶 ${formatNumber(response.data?.consumedExpPackages || 0)}，金币 ${formatNumber(response.data?.consumedGold || 0)}`,
       })
       await refreshPlayerData(currentPlayerId)
     } catch (error) {
@@ -369,7 +369,7 @@ const OnlineProgressPage: React.FC = () => {
         <section className="online-panel online-loop-panel">
           <div className="panel-title-row">
             <h2>正式在线闭环</h2>
-            <span>金币 + 经验包</span>
+            <span>金币 + 经验结晶</span>
           </div>
           <div className="online-loop-stats">
             <div>
@@ -378,7 +378,7 @@ const OnlineProgressPage: React.FC = () => {
             </div>
             <div>
               <strong>{formatNumber(expPackageCount)}</strong>
-              <span>经验包</span>
+              <span>经验结晶</span>
             </div>
             <div>
               <strong>{selectedLoopCharacter ? `Lv.${selectedLoopCharacter.level}` : '-'}</strong>
@@ -393,7 +393,7 @@ const OnlineProgressPage: React.FC = () => {
               挑战同属性经验本
             </button>
             <button disabled={!currentPlayerId || !selectedLoopCharacter || onlineLoopBusy} onClick={() => void upgradeOnlineCharacter()}>
-              消耗经验包和金币升1级
+              消耗经验结晶和金币升1级
             </button>
           </div>
         </section>

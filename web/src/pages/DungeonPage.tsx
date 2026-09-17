@@ -1,3 +1,4 @@
+import { getProfessionLabel } from '../services/professionLabels'
 import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -813,7 +814,7 @@ const ExperienceRoleWarning: React.FC<{
       <p id="experience-role-warning-description">
         坦克、治疗、辅助职业攻击力较弱，可能导致通关失败。是否继续使用该职业进入经验副本？
       </p>
-      <p>建议优先使用输出职业刷经验包，再为坦克、治疗和辅助升级。</p>
+      <p>建议优先使用输出职业刷经验结晶，再为坦克、治疗和辅助升级。</p>
       <label className="experience-role-warning-preference">
         <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
         当天不再弹出本提示
@@ -875,7 +876,7 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
                 </div>
                 <div className="character-select-info">
                   <h4>{char.name}</h4>
-                  <p>{char.profession_type}</p>
+                  <p>{getProfessionLabel(char.profession_type)}</p>
                   {isExperienceDungeon && !canSelectCharacter(char) && (
                     <small>只能进入同属性经验本</small>
                   )}

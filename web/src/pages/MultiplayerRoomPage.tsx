@@ -1,3 +1,4 @@
+import { getProfessionLabel } from '../services/professionLabels'
 ﻿import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -683,7 +684,7 @@ const MultiplayerRoomPage: React.FC = () => {
                     onClick={() => toggleCharacter(character.character_id)}
                   >
                     <strong>{character.name}</strong>
-                    <span>Lv.{character.level} / {character.attribute_type} / {character.profession_type}</span>
+                    <span>Lv.{character.level} / {character.attribute_type} / {getProfessionLabel(character.profession_type)}</span>
                   </button>
                 ))}
               </div>

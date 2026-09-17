@@ -1,3 +1,4 @@
+import { getProfessionLabel } from '../services/professionLabels'
 import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -100,6 +101,7 @@ interface GrowthDungeon {
 }
 
 interface ExpPreview {
+  required_gold?: number
   target_level: number
   required_exp: number
   owned_exp: number
@@ -472,7 +474,7 @@ const CharacterPage: React.FC = () => {
                     <div className="character-info">
                       <h3 className="character-name">{char.name}</h3>
                       <div className="character-meta">
-                        <span className="profession">{char.profession_type}</span>
+                        <span className="profession">{getProfessionLabel(char.profession_type)}</span>
                         <div className="meta-right">
                           <span className="level">Lv.{char.level}</span>
                           {battleSoulData[char.attribute_type] && (
@@ -902,6 +904,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         setExpPreview({
           target_level: response.data.targetLevel,
           required_exp: response.data.requiredExpPackages,
+          required_gold: response.data.requiredGold,
           owned_exp: response.data.ownedExpPackages,
           need_more: response.data.needMoreExpPackages,
           can_afford: response.data.canAfford,
@@ -1327,7 +1330,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                 <div className="detail-info">
                   <div className="info-row">
                     <span className="info-label">职业：</span>
-                    <span>{character.profession_type}</span>
+                    <span>{getProfessionLabel(character.profession_type)}</span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">属性：</span>
@@ -1388,7 +1391,8 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                       </div>
                       <small>
                         目标 Lv.{expPreview?.target_level || Math.min(character.level + normalizedLevelDelta, maxCharacterLevel)}
-                        ，需要 {expPreview?.required_exp || 0}
+                        ，需要经验结晶 {expPreview?.required_exp ?? '…'}
+                        {isFormalOnlineMode() && <>，金币 {expPreview?.required_gold ?? '…'}</>}
                       </small>
                     </div>
                     <div className="growth-control">
@@ -1415,6 +1419,9 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                           使用
                         </button>
                       </div>
+                      {isFormalOnlineMode() && (
+                        <small>每消耗1个经验结晶，同时消耗1金币；到达满级后多余资源不扣除。</small>
+                      )}
                     </div>
                   </div>
                   {expFeedback && <div className="growth-feedback">{expFeedback}</div>}

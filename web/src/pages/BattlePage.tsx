@@ -657,7 +657,7 @@ const BattlePage: React.FC = () => {
         outcome: { success: response.data.record.success, code: response.data.record.success ? 'success' : 'failed', label: response.data.record.success ? '通关' : '失败' },
         duration: response.data.record.duration,
         rewards: { serverRewards, rewards: {
-          '经验包': Number(serverRewards.expCrystals || 0),
+          '经验结晶': Number(serverRewards.expCrystals || 0),
           '金币': Number(response.data.record.rewards?.gold || 0),
           '角色经验': Number(response.data.record.rewards?.directCharacterExp || 0),
           '累计伤害': Number(response.data.record.damageScore || 0),

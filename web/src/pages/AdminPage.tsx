@@ -1,3 +1,4 @@
+import { getProfessionLabel } from '../services/professionLabels'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -196,7 +197,7 @@ const AdminPage: React.FC = () => {
                     onClick={() => toggleUpCharacter(char.name)}
                   >
                     <strong>{char.name}</strong>
-                    <span>{char.attribute_type} / {char.profession_type}</span>
+                    <span>{char.attribute_type} / {getProfessionLabel(char.profession_type)}</span>
                   </button>
                 ))}
               </div>
