@@ -27,13 +27,13 @@ export const newPlayerGuideSteps: Array<{
   },
   {
     id: 'run_exp_dungeon',
-    title: '挑战对应属性经验本',
-    summary: '选择刚抽到的角色，优先进入同属性经验副本，获得通用经验结晶。'
+    title: '优先用输出角色挑战经验本',
+    summary: '优先选择输出职业进入同属性经验本。每次仅限1名同属性角色参加，须在60秒限时内清怪才算通关；获得的经验包可供所有未满级角色使用。'
   },
   {
     id: 'level_character',
     title: '给角色升级',
-    summary: '回到角色管理页，打开角色详情，用经验结晶手动提升等级。'
+    summary: '回到角色管理页，使用经验包并消耗金币升级。坦克、治疗和辅助无需亲自通关经验本，可直接使用输出角色刷到的通用经验包培养。'
   },
   {
     id: 'learn_elements',

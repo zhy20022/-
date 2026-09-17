@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
+import { isExperienceSupportRole, isExperienceRoleWarningMuted, muteExperienceRoleWarningToday } from '../services/experienceRoleWarning'
 import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import './DungeonPage.css'
@@ -213,6 +214,9 @@ const DungeonPage: React.FC = () => {
   const [selectedDungeon, setSelectedDungeon] = useState<Dungeon | null>(null)
   const [selectedCharacters, setSelectedCharacters] = useState<string[]>([])
   const [showCharacterSelect, setShowCharacterSelect] = useState(false)
+  const [showRoleWarning, setShowRoleWarning] = useState(false)
+  const [muteRoleWarning, setMuteRoleWarning] = useState(false)
+  const startingBattle = useRef(false)
   const [showDetail, setShowDetail] = useState(false)
   const [loading, setLoading] = useState(true)
   
@@ -274,12 +278,23 @@ const DungeonPage: React.FC = () => {
     }
   }
 
-  const handleConfirmStart = async () => {
+  const handleConfirmStart = async (roleConfirmed = false) => {
+    if (startingBattle.current) return
     if (!selectedDungeon || selectedCharacters.length === 0) {
       alert('请选择角色')
       return
     }
 
+    const selectedCharacter = characters.find((item) => selectedCharacters.includes(item.character_id))
+    if (!roleConfirmed && normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE'
+      && selectedCharacter && isExperienceSupportRole(selectedCharacter.profession_type)
+      && !isExperienceRoleWarningMuted(player?.player_id)) {
+      setMuteRoleWarning(false)
+      setShowRoleWarning(true)
+      return
+    }
+
+    startingBattle.current = true
     try {
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineDungeons(player)
@@ -326,7 +341,15 @@ const DungeonPage: React.FC = () => {
       }
     } catch (error: any) {
       alert(getOnlineModeError(error, error.response?.data?.message || '开始副本失败'))
+    } finally {
+      startingBattle.current = false
     }
+  }
+
+  const handleRoleWarningDecision = (proceed: boolean) => {
+    if (muteRoleWarning) muteExperienceRoleWarningToday(player?.player_id)
+    setShowRoleWarning(false)
+    if (proceed) void handleConfirmStart(true)
   }
 
   const handleCharacterToggle = (characterId: string) => {
@@ -724,13 +747,21 @@ const DungeonPage: React.FC = () => {
           </div>
         )}
 
-        {showCharacterSelect && selectedDungeon && (
+        {showRoleWarning && (
+          <ExperienceRoleWarning
+            checked={muteRoleWarning}
+            onChange={setMuteRoleWarning}
+            onDecision={handleRoleWarningDecision}
+          />
+        )}
+
+        {showCharacterSelect && selectedDungeon && !showRoleWarning && (
           <CharacterSelectModal
             characters={characters}
             dungeon={selectedDungeon}
             selectedCharacters={selectedCharacters}
             onToggle={handleCharacterToggle}
-            onConfirm={handleConfirmStart}
+            onConfirm={() => void handleConfirmStart()}
             onClose={() => {
               setShowCharacterSelect(false)
               setSelectedDungeon(null)
@@ -759,6 +790,39 @@ const DungeonPage: React.FC = () => {
         )}
       </div>
     </div>
+  )
+}
+
+const ExperienceRoleWarning: React.FC<{
+  checked: boolean
+  onChange: (checked: boolean) => void
+  onDecision: (proceed: boolean) => void
+}> = ({ checked, onChange, onDecision }) => {
+  const dialog = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const element = dialog.current
+    element?.showModal()
+    return () => element?.close()
+  }, [])
+
+  return (
+    <dialog ref={dialog} className="experience-role-warning" aria-labelledby="experience-role-warning-title"
+      aria-describedby="experience-role-warning-description"
+      onCancel={(event) => { event.preventDefault(); onDecision(false) }}>
+      <h2 id="experience-role-warning-title">确认挑战经验副本</h2>
+      <p id="experience-role-warning-description">
+        坦克、治疗、辅助职业攻击力较弱，可能导致通关失败。是否继续使用该职业进入经验副本？
+      </p>
+      <p>建议优先使用输出职业刷经验包，再为坦克、治疗和辅助升级。</p>
+      <label className="experience-role-warning-preference">
+        <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+        当天不再弹出本提示
+      </label>
+      <div className="experience-role-warning-actions">
+        <button className="btn-cancel" autoFocus onClick={() => onDecision(false)}>否，重新选择</button>
+        <button className="btn-confirm" onClick={() => onDecision(true)}>是，继续进入</button>
+      </div>
+    </dialog>
   )
 }
 
