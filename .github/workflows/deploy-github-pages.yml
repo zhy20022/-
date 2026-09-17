@@ -37,11 +37,11 @@ jobs:
       - name: Build static playable demo
         working-directory: web
         env:
-          VITE_STATIC_DEMO: ${{ vars.VITE_ONLINE_API_URL != '' && 'false' || 'true' }}
-          VITE_FORMAL_ONLINE: ${{ vars.VITE_ONLINE_API_URL != '' && 'true' || 'false' }}
+          VITE_STATIC_DEMO: "false"
+          VITE_FORMAL_ONLINE: "true"
           VITE_PUBLIC_BASE: "/${{ github.event.repository.name }}/"
-          VITE_ONLINE_API_URL: ${{ vars.VITE_ONLINE_API_URL }}
-          VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL }}
+          VITE_ONLINE_API_URL: ${{ vars.VITE_ONLINE_API_URL || 'https://gamer-nest-api.onrender.com' }}
+          VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL || 'https://gamer-nest-api.onrender.com' }}
         run: npm run build:github-pages
 
       - name: Upload Pages artifact

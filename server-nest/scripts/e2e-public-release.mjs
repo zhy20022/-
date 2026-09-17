@@ -29,11 +29,19 @@ async function main() {
   const profileAfterDraw = await getJson(`/players/${playerId}/profile`, auth);
   const character = profileAfterDraw.characters?.[0];
   assert(character?.id, 'drawn character was not persisted');
+  const configuredSkills = await getJson(`/players/${playerId}/characters/${character.id}/skills`, auth);
+  assert(configuredSkills.unlockedSkills?.length === 3, 'drawn character has no authored ABC skills');
+  assert(configuredSkills.skillSlots?.low?.length === 5 && configuredSkills.skillSlots?.mid?.length === 3
+    && configuredSkills.skillSlots?.high?.length === 1, 'drawn character has no nine-slot loadout');
   const dungeonId = dungeonForAttribute(character.attributeType);
 
   const started = await postJson(`/dungeons/${playerId}/${dungeonId}/start`, { characterIds: [character.id] }, auth);
-  await delay(15000);
-  const status = await getJson(`/dungeons/${playerId}/battles/${started.battleSeed}`, auth);
+  let status;
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    await delay(1000);
+    status = await getJson(`/dungeons/${playerId}/battles/${started.battleSeed}`, auth);
+    if (status.ready) break;
+  }
   assert(status.ready && status.outcome, 'server battle is not ready for settlement');
   const settlement = await postJson('/battle-settlement', {
     playerId,
@@ -61,11 +69,16 @@ async function main() {
   ) : null;
   if (upgraded) assert(upgraded.character.level >= character.level + 1, 'character upgrade was not persisted');
 
-  const finalProfile = await getJson(`/players/${playerId}/profile`, auth);
+  const restored = await postJson('/auth/login', { username, password });
+  assert(restored.player.id === playerId, 'second login opened a different account');
+  const restoredAuth = { authorization: `Bearer ${restored.accessToken}` };
+  const finalProfile = await getJson(`/players/${playerId}/profile`, restoredAuth);
   const finalCharacter = finalProfile.characters.find((item) => item.id === character.id);
   assert(finalCharacter, 'reloaded character is missing');
   if (upgraded) assert(finalCharacter.level === upgraded.character.level, 'reloaded character level does not match');
-  const records = await getJson(`/battle-settlement/${playerId}/records`, auth);
+  const savedSkills = await getJson(`/players/${playerId}/characters/${character.id}/skills`, restoredAuth);
+  assert(savedSkills.unlockedSkills?.length === 3, 'authored ABC skills disappeared after login');
+  const records = await getJson(`/battle-settlement/${playerId}/records`, restoredAuth);
   assert(records.some((record) => record.id === settlement.record.id), 'server battle record was not persisted');
 
   console.log(JSON.stringify({
@@ -78,6 +91,8 @@ async function main() {
     dungeonId,
     goldSpent: draw.cost.amount + (upgraded?.consumedGold || 0),
     battleSuccess: status.outcome.success,
+    reloginVerified: true,
+    authoredSkills: savedSkills.unlockedSkills.length,
     firstUpgradeAvailable: Boolean(upgraded),
     finalLevel: finalCharacter.level,
   }, null, 2));
