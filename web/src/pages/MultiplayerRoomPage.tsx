@@ -897,6 +897,10 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
+  const [connectionState, setConnectionState] = useState<'online' | 'offline' | 'reconnecting'>(() => (
+    typeof navigator === 'undefined' || navigator.onLine ? 'online' : 'offline'
+  ))
+  const refreshInFlightRef = useRef(false)
 
   const multiplayerDungeons = useMemo(
     () => dungeons.filter((dungeon) => dungeon.dungeon_type !== 'SINGLE'),
@@ -949,10 +953,30 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
       if (!selectedDungeonId && mappedDungeons.length > 0) {
         setSelectedDungeonId(mappedDungeons[0].dungeon_id)
       }
+      setConnectionState('online')
     } catch (error) {
+      setConnectionState(typeof navigator !== 'undefined' && navigator.onLine ? 'reconnecting' : 'offline')
       setMessage(getOnlineModeError(error, '正式线上多人副本加载失败'))
     } finally {
       setLoading(false)
+    }
+  }
+
+  const refreshFormalState = async () => {
+    if (!player || refreshInFlightRef.current || (typeof navigator !== 'undefined' && !navigator.onLine)) return
+    refreshInFlightRef.current = true
+    try {
+      const [roomResponse, invitationResponse] = await Promise.all([
+        onlineApi.get('/multiplayer-rooms/current'),
+        onlineApi.get('/multiplayer-rooms/invitations?status=pending'),
+      ])
+      setRoom((roomResponse.data || null) as FormalRoom | null)
+      setInvitations((invitationResponse.data || []) as FormalInvitation[])
+      setConnectionState('online')
+    } catch {
+      setConnectionState(typeof navigator !== 'undefined' && navigator.onLine ? 'reconnecting' : 'offline')
+    } finally {
+      refreshInFlightRef.current = false
     }
   }
 
@@ -1073,15 +1097,24 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
 
   useEffect(() => {
     if (!player) return
-    const timer = window.setInterval(async () => {
-      try {
-        const response = await onlineApi.get('/multiplayer-rooms/current')
-        setRoom((response.data || null) as FormalRoom | null)
-        const invites = await onlineApi.get('/multiplayer-rooms/invitations?status=pending')
-        setInvitations((invites.data || []) as FormalInvitation[])
-      } catch { /* transient refresh failure */ }
-    }, 2500)
-    return () => window.clearInterval(timer)
+    const handleOnline = () => {
+      setConnectionState('reconnecting')
+      void refreshFormalState().then(() => void loadFormalData())
+    }
+    const handleOffline = () => setConnectionState('offline')
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void refreshFormalState()
+    }
+    const timer = window.setInterval(() => void refreshFormalState(), 2500)
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [player?.player_id])
 
   const renderCharacterButton = (character: OnlineLegacyCharacter) => (
@@ -1099,12 +1132,15 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   return (
     <div className="multiplayer-page">
       <div className="multiplayer-container">
-        <div className="multiplayer-header">
+          <div className="multiplayer-header">
           <button onClick={() => navigate('/dungeons')} className="room-back">返回副本</button>
           <div>
             <h1>正式线上多人副本</h1>
             <p>邀请好友进入同一房间，双方选择自己的角色并同步准备后开战。</p>
           </div>
+          <span className={`room-connection-state ${connectionState}`}>
+            {connectionState === 'online' ? '线上已连接' : connectionState === 'offline' ? '网络已断开，等待恢复' : '正在重新连接线上服务...'}
+          </span>
         </div>
         {message && <div className="room-message">{message}</div>}
         {loading ? (

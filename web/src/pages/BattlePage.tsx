@@ -356,6 +356,9 @@ const BattlePage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [battleResult, setBattleResult] = useState<BattleResultPayload | null>(null)
   const [battleNotice, setBattleNotice] = useState('')
+  const [connectionState, setConnectionState] = useState<'online' | 'offline' | 'reconnecting'>(() => (
+    typeof navigator === 'undefined' || navigator.onLine ? 'online' : 'offline'
+  ))
   const socketRef = useRef<Socket | null>(null)
   const pollRef = useRef<number | null>(null)
   const endTimeoutRef = useRef<number | null>(null)
@@ -612,6 +615,11 @@ const BattlePage: React.FC = () => {
     setSpeedSyncMessage('服务器回放：4x')
     let disposed = false
     let pending = false
+    const refreshOnlineBattle = () => {
+      if (disposed || (typeof navigator !== 'undefined' && !navigator.onLine)) return
+      setConnectionState('reconnecting')
+      void tick()
+    }
     const tick = async () => {
       if (disposed || pending) return
       pending = true
@@ -621,6 +629,7 @@ const BattlePage: React.FC = () => {
           : await onlineApi.get(`/dungeons/${playerId}/battles/${seed}`)
         if (disposed) return
         const status = response.data as ServerBattleStatus
+        setConnectionState('online')
         applySnapshot(serverBattleSnapshot(status, Number(dungeon?.duration || 60)))
         setLoading(false)
         setBattleNotice(status.ready ? '战斗结束，正在确认奖励。' : '战斗已同步。')
@@ -630,6 +639,7 @@ const BattlePage: React.FC = () => {
         }
       } catch (error) {
         if (disposed) return
+        setConnectionState(typeof navigator !== 'undefined' && navigator.onLine ? 'reconnecting' : 'offline')
         setLoading(false)
         const code = (error as { response?: { status?: number } }).response?.status
         setBattleNotice(getOnlineModeError(error, '同步中断，正在重试；战斗进度已保存在服务器。'))
@@ -640,7 +650,20 @@ const BattlePage: React.FC = () => {
     }
     void tick()
     onlineBattleTimerRef.current = window.setInterval(() => void tick(), 2000)
-    return () => { disposed = true }
+    const handleOnline = () => refreshOnlineBattle()
+    const handleOffline = () => setConnectionState('offline')
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') refreshOnlineBattle()
+    }
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      disposed = true
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }
 
   const settleOnlineExperienceBattle = async (
@@ -1031,6 +1054,11 @@ const BattlePage: React.FC = () => {
           </div>
         </div>
 
+        {isOnlineMode && (
+          <div className={`battle-connection-state ${connectionState}`}>
+            {connectionState === 'online' ? '线上战斗已同步' : connectionState === 'offline' ? '网络已断开，正在等待恢复' : '正在重新同步线上战斗...'}
+          </div>
+        )}
         {battleNotice && <div className="battle-notice">{battleNotice}</div>}
 
         {snapshot && (

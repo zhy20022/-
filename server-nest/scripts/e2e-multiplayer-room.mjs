@@ -71,6 +71,25 @@ async function gold(playerId) {
   return Number(result.rows[0].gold);
 }
 
+async function materialQuantity(playerId, itemConfigId) {
+  const result = await db.query(
+    'SELECT COALESCE(quantity, 0)::int AS quantity FROM inventory_items WHERE "playerId" = $1 AND "itemConfigId" = $2 AND "itemType" = $3',
+    [playerId, itemConfigId, 'material'],
+  );
+  return Number(result.rows[0]?.quantity || 0);
+}
+
+async function progress(playerId, dungeonId) {
+  const result = await db.query(
+    'SELECT "totalAttempts", "successfulAttempts" FROM dungeon_progress WHERE "playerId" = $1 AND "dungeonId" = $2',
+    [playerId, dungeonId],
+  );
+  return {
+    totalAttempts: Number(result.rows[0]?.totalAttempts || 0),
+    successfulAttempts: Number(result.rows[0]?.successfulAttempts || 0),
+  };
+}
+
 try {
   await db.connect();
   let ready = false;
@@ -122,24 +141,60 @@ try {
   await db.query(
     `UPDATE operation_requests
      SET response = jsonb_set(response, '{serverTime}', to_jsonb((now() - interval '10 minutes')::text))
-     WHERE "playerId" = $1 AND operation = 'battle-start' AND "idempotencyKey" = $2`,
-    [leader.player.id, started.battle_seed],
+     WHERE "playerId" = ANY($1::text[]) AND operation = 'battle-start' AND "idempotencyKey" = $2`,
+    [[leader.player.id, teammate.player.id], started.battle_seed],
   );
   const leaderBattle = await request(`/multiplayer-rooms/${room.room_id}/battle`, undefined, leader.accessToken);
   const teammateBattle = await request(`/multiplayer-rooms/${room.room_id}/battle`, undefined, teammate.accessToken);
   assert.equal(teammateBattle.battleSeed, leaderBattle.battleSeed);
   assert.equal(teammateBattle.outcome.success, leaderBattle.outcome.success);
 
+  const leaderGoldBefore = await gold(leader.player.id);
   const teammateGoldBefore = await gold(teammate.player.id);
-  const settledByTeammate = await request(`/multiplayer-rooms/${room.room_id}/settle`, {}, teammate.accessToken, 201);
-  const settledByLeader = await request(`/multiplayer-rooms/${room.room_id}/settle`, {}, leader.accessToken, 201);
-  assert.equal(settledByTeammate.record.id, settledByLeader.record.id);
+  const leaderMaterialBefore = await materialQuantity(leader.player.id, 'generic_battle_material');
+  const teammateMaterialBefore = await materialQuantity(teammate.player.id, 'generic_battle_material');
+  const leaderProgressBefore = await progress(leader.player.id, room.dungeon_id);
+  const teammateProgressBefore = await progress(teammate.player.id, room.dungeon_id);
+  const settled = await Promise.all([
+    request(`/multiplayer-rooms/${room.room_id}/settle`, {}, teammate.accessToken, 201),
+    request(`/multiplayer-rooms/${room.room_id}/settle`, {}, teammate.accessToken, 201),
+    request(`/multiplayer-rooms/${room.room_id}/settle`, {}, leader.accessToken, 201),
+    request(`/multiplayer-rooms/${room.room_id}/settle`, {}, leader.accessToken, 201),
+  ]);
+  assert.equal(settled[0].record.id, settled[1].record.id);
+  assert.equal(settled[2].record.id, settled[3].record.id);
+  assert.notEqual(settled[0].record.id, settled[2].record.id);
+  assert.equal(settled[0].record.playerId, teammate.player.id);
+  assert.equal(settled[2].record.playerId, leader.player.id);
+  assert.equal((await gold(leader.player.id)) - leaderGoldBefore, 100);
   assert.equal((await gold(teammate.player.id)) - teammateGoldBefore, 100);
+  assert.equal((await materialQuantity(leader.player.id, 'generic_battle_material')) - leaderMaterialBefore, 1);
+  assert.equal((await materialQuantity(teammate.player.id, 'generic_battle_material')) - teammateMaterialBefore, 1);
+  const leaderProgressAfter = await progress(leader.player.id, room.dungeon_id);
+  const teammateProgressAfter = await progress(teammate.player.id, room.dungeon_id);
+  assert.equal(leaderProgressAfter.totalAttempts - leaderProgressBefore.totalAttempts, 1);
+  assert.equal(teammateProgressAfter.totalAttempts - teammateProgressBefore.totalAttempts, 1);
+  assert.equal(leaderProgressAfter.successfulAttempts - leaderProgressBefore.successfulAttempts, 1);
+  assert.equal(teammateProgressAfter.successfulAttempts - teammateProgressBefore.successfulAttempts, 1);
   const records = await db.query(
-    `SELECT count(*)::int AS count FROM battle_records WHERE "playerId" = $1 AND id = $2`,
-    [leader.player.id, settledByTeammate.record.id],
+    `SELECT "playerId", count(*)::int AS count FROM battle_records
+     WHERE "playerId" = ANY($1::text[]) AND "resultPayload"->'serverBattleSeed' = to_jsonb($2::text)
+     GROUP BY "playerId" ORDER BY "playerId"`,
+    [[leader.player.id, teammate.player.id], started.battle_seed],
   );
-  assert.equal(records.rows[0].count, 1);
+  assert.deepEqual(records.rows.map((row) => [row.playerId, Number(row.count)]).sort(), [
+    [leader.player.id, 1],
+    [teammate.player.id, 1],
+  ].sort());
+  const assists = await db.query(
+    `SELECT "helperPlayerId", count(*)::int AS count FROM friend_assist_records
+     WHERE payload->>'battleSeed' = $1 GROUP BY "helperPlayerId" ORDER BY "helperPlayerId"`,
+    [started.battle_seed],
+  );
+  assert.deepEqual(assists.rows.map((row) => [row.helperPlayerId, Number(row.count)]).sort(), [
+    [leader.player.id, 1],
+    [teammate.player.id, 1],
+  ].sort());
   const finalRoom = await request('/multiplayer-rooms/current', undefined, leader.accessToken);
   assert.equal(finalRoom.status, 'finished');
 
@@ -152,8 +207,8 @@ try {
       'both members ready',
       'one authoritative battle seed',
       'both accounts read identical battle outcome',
-      'non-leader settlement accepted',
-      'settlement and helper reward replay-safe',
+      'both accounts receive independent rewards and progress',
+      'concurrent settlement is replay-safe per account',
     ],
   }, null, 2));
 } finally {

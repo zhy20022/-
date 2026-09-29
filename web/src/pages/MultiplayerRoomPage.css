@@ -30,6 +30,42 @@
   color: #64748b;
 }
 
+.room-connection-state,
+.battle-connection-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  color: #475569;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.room-connection-state.online,
+.battle-connection-state.online {
+  border-color: #86efac;
+  color: #166534;
+  background: #f0fdf4;
+}
+
+.room-connection-state.reconnecting,
+.battle-connection-state.reconnecting {
+  border-color: #fcd34d;
+  color: #92400e;
+  background: #fffbeb;
+}
+
+.room-connection-state.offline,
+.battle-connection-state.offline {
+  border-color: #fca5a5;
+  color: #991b1b;
+  background: #fef2f2;
+}
+
 .room-back,
 .room-panel button {
   border: 0;

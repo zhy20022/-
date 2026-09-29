@@ -162,6 +162,11 @@ export class MultiplayerRoomsService {
     const key = idempotencyKey && /^[0-9a-f-]{36}$/i.test(idempotencyKey) ? idempotencyKey : randomUUID();
     try {
       const started = await this.dungeons.start(playerId, starting.dungeonId, starting.characterIds, key);
+      const members = await this.members.find({ where: { roomId }, order: { joinedAt: 'ASC' } });
+      for (const member of members) {
+        if (member.playerId === playerId) continue;
+        await this.dungeons.start(member.playerId, starting.dungeonId, starting.characterIds, key);
+      }
       starting.status = 'in_battle';
       starting.battleSeed = started.battleSeed as string;
       await this.rooms.save(starting);
@@ -176,14 +181,14 @@ export class MultiplayerRoomsService {
   async battle(playerId: string, roomId: string) {
     const room = await this.assertMember(roomId, playerId);
     if (!room.battleSeed) throw new ConflictException('room battle has not started');
-    return this.dungeons.battleStatus(room.leaderPlayerId, room.battleSeed);
+    return this.dungeons.battleStatus(playerId, room.battleSeed);
   }
 
   async settle(playerId: string, roomId: string) {
     const room = await this.assertMember(roomId, playerId);
     if (!room.battleSeed) throw new ConflictException('room battle has not started');
     const result = await this.settlement.settle({
-      playerId: room.leaderPlayerId,
+      playerId,
       dungeonId: room.dungeonId,
       characterIds: room.characterIds,
       success: false,
