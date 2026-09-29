@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 import { IdempotencyService } from '../common/idempotency.service';
 import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity, OperationRequestEntity } from '../database/entities';
 import { BattleSimulationService, ServerBattle } from '../battle-settlement/battle-simulation.service';
+import { FriendsAssistService } from '../friends-assist/friends-assist.service';
 
 export interface OnlineDungeon {
   dungeonId: string;
@@ -54,6 +55,7 @@ export class DungeonsService {
   constructor(
     private readonly idempotency: IdempotencyService,
     private readonly simulation: BattleSimulationService,
+    private readonly friends: FriendsAssistService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
   ) {}
@@ -127,9 +129,23 @@ export class DungeonsService {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(battleSeed)) throw new BadRequestException('battle start Idempotency-Key must be a UUID');
     const ticket = await this.idempotency.execute(playerId, 'battle-start', battleSeed, { dungeonId, characterIds }, async ({ manager, player }) => {
       const owned = await manager.find(PlayerCharacterEntity, { where: { playerId, id: In(characterIds) }, lock: { mode: 'pessimistic_write' } });
-      if (owned.length !== characterIds.length) throw new BadRequestException('all characters must belong to player');
-      const characters = characterIds.map((id) => owned.find((character) => character.id === id)!);
-      const dungeon = this.assertCanEnter(dungeonId, characters);
+      const ownedIds = new Set(owned.map((character) => character.id));
+      const assistIds = characterIds.filter((characterId) => !ownedIds.has(characterId));
+      const assistCharacters = await this.friends.resolveAssistCharacters(playerId, assistIds, manager);
+      if (owned.length + assistCharacters.length !== characterIds.length) {
+        throw new BadRequestException('all characters must belong to player or accepted friends');
+      }
+      if (owned.length === 0) throw new BadRequestException('at least one character must belong to player');
+      const dungeon = this.get(dungeonId);
+      if (dungeon.dungeonType === 'SINGLE' && assistCharacters.length > 0) {
+        throw new BadRequestException('friend assist is available for multiplayer dungeons only');
+      }
+      const characters = characterIds.map((id) =>
+        owned.find((character) => character.id === id) ||
+        assistCharacters.find((character) => character.id === id)!,
+      );
+      const characterOwners = Object.fromEntries(characters.map((character) => [character.id, character.playerId]));
+      this.assertCanEnter(dungeonId, characters);
       const snapshots = characters.map((character) => ({ ...character, attributeType: this.normalizeAttribute(character.attributeType) }));
       const serverBattle = await this.simulation.simulate({ seed: battleSeed, dungeon, characters: snapshots });
       player.flags = { ...player.flags, activeBattleSeed: battleSeed };
@@ -138,6 +154,8 @@ export class DungeonsService {
         battleSeed,
         playerId,
         characterIds,
+        characterOwners,
+        assistCharacterIds: assistCharacters.map((character) => character.id),
         dungeon,
         serverBattle,
         engineVersion: serverBattle.engineVersion,

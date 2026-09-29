@@ -10,6 +10,7 @@ import { DungeonsService } from '../dungeons/dungeons.service';
 import { InventoryGrantItem, InventoryService } from '../inventory/inventory.service';
 import { ServerBattle } from './battle-simulation.service';
 import { OnlineFeaturesService } from '../online-features/online-features.service';
+import { FriendsAssistService } from '../friends-assist/friends-assist.service';
 
 export interface BattleSettlementInput {
   playerId: string;
@@ -33,6 +34,7 @@ export class BattleSettlementService {
     private readonly dailyGoals: DailyGoalsService,
     private readonly dungeons: DungeonsService,
     private readonly onlineFeatures: OnlineFeaturesService,
+    private readonly friends: FriendsAssistService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
     @InjectRepository(BattleRecordEntity) private readonly battles: Repository<BattleRecordEntity>,
@@ -75,18 +77,35 @@ export class BattleSettlementService {
       }
       player.flags = { ...player.flags, activeBattleSeed: null };
       await manager.save(player);
+      const characterOwners = ticket.characterOwners as Record<string, string> | undefined;
+      const assistCharacterIds = Array.isArray(ticket.assistCharacterIds) ? ticket.assistCharacterIds.map(String) : [];
+      if (!characterOwners || Object.keys(characterOwners).length !== input.characterIds.length ||
+          input.characterIds.some((characterId) => !characterOwners[characterId])) {
+        throw new BadRequestException('battle entry is missing character ownership data');
+      }
+      const ownedIds = input.characterIds.filter((characterId) => characterOwners[characterId] === input.playerId);
+      const assistIds = input.characterIds.filter((characterId) => characterOwners[characterId] !== input.playerId);
+      if (assistIds.some((characterId) => !assistCharacterIds.includes(characterId))) {
+        throw new BadRequestException('battle entry assist roster does not match characters');
+      }
       const ownedCharacters = await manager.find(PlayerCharacterEntity, {
-        where: { id: In(input.characterIds), playerId: input.playerId },
+        where: { id: In(ownedIds), playerId: input.playerId },
         lock: { mode: 'pessimistic_write' },
       });
-      if (ownedCharacters.length !== input.characterIds.length) {
-        throw new BadRequestException('all battle characters must belong to player');
+      const assistCharacters = await this.friends.resolveAssistCharacters(input.playerId, assistIds, manager);
+      const allCharacters = input.characterIds.map((characterId) =>
+        ownedCharacters.find((character) => character.id === characterId) ||
+        assistCharacters.find((character) => character.id === characterId)!,
+      );
+      if (ownedCharacters.length !== ownedIds.length || assistCharacters.length !== assistIds.length ||
+          allCharacters.some((character, index) => character.playerId !== characterOwners[input.characterIds[index]])) {
+        throw new BadRequestException('battle characters no longer match the server-issued ownership');
       }
 
       const onlineDungeon = this.dungeons.getOptional(input.dungeonId);
       const experienceResult = onlineDungeon?.dungeonType === 'SINGLE'
         ? this.dungeons.calculateExperienceRewards(
-          this.dungeons.assertCanEnter(input.dungeonId, ownedCharacters),
+          this.dungeons.assertCanEnter(input.dungeonId, allCharacters),
           authoritative.duration,
           authoritative.singleMonstersKilled,
           authoritative.groupMonstersKilled,
@@ -119,6 +138,24 @@ export class BattleSettlementService {
           updatedCharacters = await this.applyDirectCharacterExp(manager, ownedCharacters, experienceResult.directCharacterExp);
         }
       }
+      const assistRewards: Array<{ helperPlayerId: string; helperCharacterId: string; recordId: string }> = [];
+      if (effectiveInput.success) {
+        const uniqueHelpers = new Map<string, PlayerCharacterEntity>();
+        for (const character of assistCharacters) {
+          if (!uniqueHelpers.has(character.playerId)) uniqueHelpers.set(character.playerId, character);
+        }
+        for (const helper of uniqueHelpers.values()) {
+          const assist = await this.friends.recordAssist(
+            input.playerId,
+            helper.playerId,
+            helper.id,
+            input.dungeonId,
+            { battleSeed, source: 'online_multiplayer_dungeon' },
+            manager,
+          );
+          assistRewards.push({ helperPlayerId: helper.playerId, helperCharacterId: helper.id, recordId: assist.id });
+        }
+      }
       const progress = await this.updateProgress(manager, effectiveInput);
       const record = await manager.save(manager.create(BattleRecordEntity, {
         playerId: input.playerId,
@@ -131,6 +168,7 @@ export class BattleSettlementService {
         resultPayload: {
           clientTrace: input.clientTrace || {},
           serverRewards: experienceResult || null,
+          assistRewards,
           engineVersion: authoritative.engineVersion,
           serverBattleSeed: battleSeed,
           progressId: progress.id,
@@ -152,6 +190,7 @@ export class BattleSettlementService {
         rewards: granted,
         player,
         characters: updatedCharacters,
+        assistRewards,
         serverRewards: experienceResult,
         outcome: effectiveInput.success ? 'success' : 'failed',
       };

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { DailyGoalsService } from '../daily-goals/daily-goals.service';
 import { FriendAssistRecordEntity, FriendshipEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
@@ -65,13 +65,19 @@ export class FriendsAssistService {
     helperCharacterId?: string,
     dungeonId?: string,
     payload: Record<string, unknown> = {},
+    manager: EntityManager = this.assists.manager,
   ) {
-    await this.assertAcceptedFriends(borrowerPlayerId, helperPlayerId);
-    const helper = await this.assertPlayer(helperPlayerId);
+    await this.assertAcceptedFriends(borrowerPlayerId, helperPlayerId, manager);
+    await this.assertPlayer(helperPlayerId, manager);
     const rewardGold = 100;
-    helper.gold += rewardGold;
-    await this.players.save(helper);
-    const assist = await this.assists.save(this.assists.create({
+    const lockedHelper = await manager.findOne(PlayerEntity, {
+      where: { id: helperPlayerId },
+      lock: { mode: 'pessimistic_write' },
+    });
+    if (!lockedHelper) throw new NotFoundException('player not found');
+    lockedHelper.gold += rewardGold;
+    await manager.save(lockedHelper);
+    const assist = await manager.save(manager.create(FriendAssistRecordEntity, {
       borrowerPlayerId,
       helperPlayerId,
       helperCharacterId: helperCharacterId || null,
@@ -83,8 +89,30 @@ export class FriendsAssistService {
       assistId: assist.id,
       helperPlayerId,
       dungeonId,
-    });
+    }, manager);
     return assist;
+  }
+
+  async resolveAssistCharacters(
+    borrowerPlayerId: string,
+    characterIds: string[],
+    manager: EntityManager = this.characters.manager,
+  ) {
+    const uniqueIds = [...new Set(characterIds)];
+    if (uniqueIds.length !== characterIds.length) throw new BadRequestException('assist characters must be unique');
+    if (uniqueIds.length === 0) return [];
+    const characters = await manager.find(PlayerCharacterEntity, {
+      where: { id: In(uniqueIds) },
+      lock: { mode: 'pessimistic_write' },
+    });
+    if (characters.length !== uniqueIds.length) throw new NotFoundException('assist character not found');
+    for (const character of characters) {
+      if (character.playerId === borrowerPlayerId) {
+        throw new BadRequestException('assist characters must belong to accepted friends');
+      }
+      await this.assertAcceptedFriends(borrowerPlayerId, character.playerId, manager);
+    }
+    return uniqueIds.map((id) => characters.find((character) => character.id === id)!);
   }
 
   async assistHistory(playerId: string) {
@@ -99,24 +127,24 @@ export class FriendsAssistService {
     });
   }
 
-  private async findRelationship(a: string, b: string) {
-    return this.friendships.findOne({
+  private async assertAcceptedFriends(a: string, b: string, manager: EntityManager = this.friendships.manager) {
+    const row = await this.findRelationship(a, b, manager);
+    if (!row || row.status !== 'accepted') throw new BadRequestException('players are not accepted friends');
+    return row;
+  }
+
+  private async assertPlayer(playerId: string, manager: EntityManager = this.players.manager) {
+    const player = await manager.findOne(PlayerEntity, { where: { id: playerId } });
+    if (!player) throw new NotFoundException('player not found');
+    return player;
+  }
+
+  private async findRelationship(a: string, b: string, manager: EntityManager = this.friendships.manager) {
+    return manager.findOne(FriendshipEntity, {
       where: [
         { requesterPlayerId: a, addresseePlayerId: b },
         { requesterPlayerId: b, addresseePlayerId: a },
       ],
     });
-  }
-
-  private async assertAcceptedFriends(a: string, b: string) {
-    const row = await this.findRelationship(a, b);
-    if (!row || row.status !== 'accepted') throw new BadRequestException('players are not accepted friends');
-    return row;
-  }
-
-  private async assertPlayer(playerId: string) {
-    const player = await this.players.findOne({ where: { id: playerId } });
-    if (!player) throw new NotFoundException('player not found');
-    return player;
   }
 }

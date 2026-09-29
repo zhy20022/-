@@ -5,6 +5,8 @@ import axios from 'axios'
 import { io, Socket } from 'socket.io-client'
 import { getSocketUrl } from '../config'
 import { useAuthStore } from '../stores/authStore'
+import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, mapOnlineCharacter, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
+import type { OnlineLegacyCharacter, OnlineLegacyDungeon } from '../services/onlineGameAdapter'
 import './MultiplayerRoomPage.css'
 
 interface Dungeon {
@@ -112,7 +114,7 @@ const getTeamRewardTier = (score: number) => {
   return 'C'
 }
 
-const MultiplayerRoomPage: React.FC = () => {
+const LegacyMultiplayerRoomPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { player } = useAuthStore()
@@ -843,5 +845,229 @@ const MultiplayerRoomPage: React.FC = () => {
     </div>
   )
 }
+
+interface FormalAssistRosterEntry {
+  helperPlayerId: string
+  character: Record<string, unknown>
+  friend?: {
+    id: string
+    displayName?: string
+  }
+}
+
+const FormalOnlineMultiplayerPage: React.FC = () => {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { player } = useAuthStore()
+  const initialDungeonId = (location.state as { dungeon_id?: string } | null)?.dungeon_id
+  const [dungeons, setDungeons] = useState<OnlineLegacyDungeon[]>([])
+  const [characters, setCharacters] = useState<OnlineLegacyCharacter[]>([])
+  const [assistRoster, setAssistRoster] = useState<Array<FormalAssistRosterEntry & { mappedCharacter: OnlineLegacyCharacter }>>([])
+  const [selectedDungeonId, setSelectedDungeonId] = useState(initialDungeonId || '')
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [starting, setStarting] = useState(false)
+
+  const multiplayerDungeons = useMemo(
+    () => dungeons.filter((dungeon) => dungeon.dungeon_type !== 'SINGLE'),
+    [dungeons],
+  )
+  const selectedDungeon = multiplayerDungeons.find((dungeon) => dungeon.dungeon_id === selectedDungeonId)
+  const requiredCount = selectedDungeon?.dungeon_type === 'TEAM' || selectedDungeon?.dungeon_type === 'SERVER_BOSS' ? 20 : 5
+  const selectedCharacters = useMemo(() => {
+    const all = [
+      ...characters.map((character) => ({ character, helperPlayerId: player?.player_id, isAssist: false })),
+      ...assistRoster.map((entry) => ({ character: entry.mappedCharacter, helperPlayerId: entry.helperPlayerId, isAssist: true })),
+    ]
+    return selectedIds
+      .map((id) => all.find((item) => item.character.character_id === id))
+      .filter((item): item is (typeof all)[number] => Boolean(item))
+  }, [assistRoster, characters, player?.player_id, selectedIds])
+  const ownSelectedCount = selectedCharacters.filter((item) => !item.isAssist).length
+  const assistSelectedCount = selectedCharacters.length - ownSelectedCount
+
+  useEffect(() => {
+    void loadFormalData()
+  }, [player?.player_id])
+
+  useEffect(() => {
+    if (!selectedDungeonId && multiplayerDungeons.length > 0) {
+      setSelectedDungeonId(multiplayerDungeons[0].dungeon_id)
+    }
+  }, [multiplayerDungeons, selectedDungeonId])
+
+  const loadFormalData = async () => {
+    if (!player) return
+    setLoading(true)
+    try {
+      const profile = await loadOnlineProfile(player)
+      const [dungeonResponse, rosterResponse] = await Promise.all([
+        onlineApi.get('/dungeons'),
+        onlineApi.get(`/friends-assist/${profile.session.player.id}/assist-roster`),
+      ])
+      const mappedDungeons = (dungeonResponse.data?.dungeons || [])
+        .map((dungeon: unknown) => mapOnlineDungeon(dungeon, [], profile.characters))
+        .filter((dungeon: OnlineLegacyDungeon) => dungeon.dungeon_type !== 'SINGLE')
+      const rawRoster = (rosterResponse.data || []) as FormalAssistRosterEntry[]
+      setDungeons(mappedDungeons)
+      setCharacters(profile.characters)
+      setAssistRoster(rawRoster
+        .filter((entry) => entry.character)
+        .map((entry) => ({ ...entry, mappedCharacter: mapOnlineCharacter(entry.character) })))
+      if (!selectedDungeonId && mappedDungeons.length > 0) {
+        setSelectedDungeonId(mappedDungeons[0].dungeon_id)
+      }
+    } catch (error) {
+      setMessage(getOnlineModeError(error, '正式线上多人副本加载失败'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleCharacter = (characterId: string, isAssist: boolean) => {
+    if (selectedIds.includes(characterId)) {
+      setSelectedIds((current) => current.filter((id) => id !== characterId))
+      return
+    }
+    if (selectedIds.length >= requiredCount) {
+      setMessage(`该副本需要 ${requiredCount} 名角色`)
+      return
+    }
+    if (isAssist && assistSelectedCount >= 19) {
+      setMessage('好友助战角色最多选择 19 名，队伍至少保留 1 名自己的角色')
+      return
+    }
+    setSelectedIds((current) => [...current, characterId])
+  }
+
+  const startFormalBattle = async () => {
+    if (!player || !selectedDungeon) return
+    if (selectedIds.length !== requiredCount) {
+      setMessage(`该副本需要正好 ${requiredCount} 名角色，当前已选择 ${selectedIds.length} 名`)
+      return
+    }
+    if (ownSelectedCount === 0) {
+      setMessage('队伍至少需要 1 名你自己的角色')
+      return
+    }
+    setStarting(true)
+    try {
+      const profile = await loadOnlineProfile(player)
+      const key = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : createIdempotencyKey('multiplayer-start').split(':').pop()!
+      const response = await onlineApi.post(
+        `/dungeons/${profile.session.player.id}/${selectedDungeon.dungeon_id}/start`,
+        { characterIds: selectedIds },
+        { headers: { 'Idempotency-Key': key } },
+      )
+      navigate('/battle', {
+        state: {
+          online_mode: true,
+          is_multiplayer: true,
+          player_id: profile.session.player.id,
+          dungeon_id: selectedDungeon.dungeon_id,
+          dungeon: selectedDungeon,
+          character_ids: selectedIds,
+          characters: selectedCharacters.map((item) => item.character),
+          settlement_key: response.data.battleSeed,
+        },
+      })
+    } catch (error) {
+      setMessage(getOnlineModeError(error, '正式多人副本开战失败'))
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  const renderCharacterButton = (character: OnlineLegacyCharacter, isAssist: boolean, helperName?: string) => (
+    <button
+      key={character.character_id}
+      className={selectedIds.includes(character.character_id) ? 'selected' : ''}
+      onClick={() => toggleCharacter(character.character_id, isAssist)}
+    >
+      <strong>{character.name}</strong>
+      <span>Lv.{character.level} / {character.attribute_type} / {getProfessionLabel(character.profession_type)}</span>
+      <small>{isAssist ? `好友助战：${helperName || '好友'}` : '我的角色'}</small>
+    </button>
+  )
+
+  return (
+    <div className="multiplayer-page">
+      <div className="multiplayer-container">
+        <div className="multiplayer-header">
+          <button onClick={() => navigate('/dungeons')} className="room-back">返回副本</button>
+          <div>
+            <h1>正式线上多人副本</h1>
+            <p>使用自己的角色和已接受好友的助战角色组成队伍，奖励由服务器统一结算。</p>
+          </div>
+        </div>
+        {message && <div className="room-message">{message}</div>}
+        {loading ? (
+          <div className="room-message">正在加载线上副本与好友名册...</div>
+        ) : (
+          <div className="room-layout">
+            <section className="room-panel setup-panel">
+              <h2>副本与队伍</h2>
+              <label>
+                多人副本
+                <select value={selectedDungeonId} onChange={(event) => {
+                  setSelectedDungeonId(event.target.value)
+                  setSelectedIds([])
+                  setMessage('')
+                }}>
+                  {multiplayerDungeons.map((dungeon) => (
+                    <option key={dungeon.dungeon_id} value={dungeon.dungeon_id}>
+                      {dungeon.name} / {dungeon.dungeon_type} / {dungeon.attribute_type}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {selectedDungeon && (
+                <div className="dungeon-summary">
+                  <strong>{selectedDungeon.name}</strong>
+                  <span>{selectedDungeon.recommendation.summary}</span>
+                  <span>需要 {requiredCount} 名角色，当前自己的角色 {ownSelectedCount} 名，好友助战 {assistSelectedCount} 名。</span>
+                </div>
+              )}
+              <div className="team-readiness-panel">
+                <div><span>已选角色</span><strong>{selectedIds.length}/{requiredCount}</strong></div>
+                <div><span>自己的角色</span><strong>{ownSelectedCount}</strong></div>
+                <p>好友角色不会获得你的战斗经验；成功通关后，好友会获得助战金币，你的助战任务同步增加。</p>
+              </div>
+              <div className="setup-actions">
+                <button onClick={startFormalBattle} disabled={!selectedDungeon || starting || selectedIds.length !== requiredCount}>
+                  {starting ? '正在开战...' : '开始正式副本'}
+                </button>
+                <button onClick={() => void loadFormalData()} disabled={loading}>刷新名册</button>
+              </div>
+            </section>
+            <section className="room-panel">
+              <h2>选择自己的角色</h2>
+              <div className="character-room-grid">
+                {characters.map((character) => renderCharacterButton(character, false))}
+              </div>
+              <h2 className="room-list-heading">好友助战名册</h2>
+              {assistRoster.length === 0 ? (
+                <div className="empty-room">暂无可用好友助战角色，请先在社交页面建立并接受好友关系。</div>
+              ) : (
+                <div className="character-room-grid">
+                  {assistRoster.map((entry) => renderCharacterButton(
+                    entry.mappedCharacter,
+                    true,
+                    entry.friend?.displayName || entry.helperPlayerId,
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const MultiplayerRoomPage: React.FC = () => (
+  isFormalOnlineMode() ? <FormalOnlineMultiplayerPage /> : <LegacyMultiplayerRoomPage />
+)
 
 export default MultiplayerRoomPage
