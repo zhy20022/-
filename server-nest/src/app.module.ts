@@ -39,6 +39,8 @@ import { WorkshopController } from './workshop/workshop.controller';
 import { WorkshopService } from './workshop/workshop.service';
 import { OnlineFeaturesController } from './online-features/online-features.controller';
 import { OnlineFeaturesService } from './online-features/online-features.service';
+import { MultiplayerRoomsController } from './multiplayer-rooms/multiplayer-rooms.controller';
+import { MultiplayerRoomsService } from './multiplayer-rooms/multiplayer-rooms.service';
 
 @Module({
   imports: [
@@ -83,6 +85,7 @@ import { OnlineFeaturesService } from './online-features/online-features.service
     RankingController,
     OnlineFeaturesController,
     WorkshopController,
+    MultiplayerRoomsController,
   ],
   providers: [
     AdminService,
@@ -104,6 +107,7 @@ import { OnlineFeaturesService } from './online-features/online-features.service
     RedisService,
     OnlineFeaturesService,
     WorkshopService,
+    MultiplayerRoomsService,
   ],
 })
 export class AppModule {}

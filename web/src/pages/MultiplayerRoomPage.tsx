@@ -5,7 +5,7 @@ import axios from 'axios'
 import { io, Socket } from 'socket.io-client'
 import { getSocketUrl } from '../config'
 import { useAuthStore } from '../stores/authStore'
-import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, mapOnlineCharacter, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
+import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import type { OnlineLegacyCharacter, OnlineLegacyDungeon } from '../services/onlineGameAdapter'
 import './MultiplayerRoomPage.css'
 
@@ -846,13 +846,39 @@ const LegacyMultiplayerRoomPage: React.FC = () => {
   )
 }
 
-interface FormalAssistRosterEntry {
-  helperPlayerId: string
-  character: Record<string, unknown>
-  friend?: {
-    id: string
-    displayName?: string
-  }
+interface FormalFriend {
+  friend?: { id: string; displayName?: string }
+}
+
+interface FormalRoomMember {
+  player_id: string
+  username: string
+  character_ids: string[]
+  is_ready: boolean
+}
+
+interface FormalRoom {
+  room_id: string
+  dungeon_id: string
+  dungeon_type: string
+  leader_id: string
+  capacity: number
+  max_characters_per_member: number
+  status: 'waiting' | 'starting' | 'in_battle' | 'finished' | 'cancelled'
+  battle_seed?: string | null
+  battle_record_id?: string | null
+  character_ids: string[]
+  members: FormalRoomMember[]
+}
+
+interface FormalInvitation {
+  invitation_id: string
+  room_id: string
+  inviter_id: string
+  inviter_username: string
+  invitee_id: string
+  status: string
+  room?: FormalRoom | null
 }
 
 const FormalOnlineMultiplayerPage: React.FC = () => {
@@ -862,9 +888,12 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   const initialDungeonId = (location.state as { dungeon_id?: string } | null)?.dungeon_id
   const [dungeons, setDungeons] = useState<OnlineLegacyDungeon[]>([])
   const [characters, setCharacters] = useState<OnlineLegacyCharacter[]>([])
-  const [assistRoster, setAssistRoster] = useState<Array<FormalAssistRosterEntry & { mappedCharacter: OnlineLegacyCharacter }>>([])
+  const [friends, setFriends] = useState<FormalFriend[]>([])
+  const [invitations, setInvitations] = useState<FormalInvitation[]>([])
+  const [room, setRoom] = useState<FormalRoom | null>(null)
   const [selectedDungeonId, setSelectedDungeonId] = useState(initialDungeonId || '')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectedInviteeId, setSelectedInviteeId] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
@@ -874,18 +903,14 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     [dungeons],
   )
   const selectedDungeon = multiplayerDungeons.find((dungeon) => dungeon.dungeon_id === selectedDungeonId)
-  const requiredCount = selectedDungeon?.dungeon_type === 'TEAM' || selectedDungeon?.dungeon_type === 'SERVER_BOSS' ? 20 : 5
-  const selectedCharacters = useMemo(() => {
-    const all = [
-      ...characters.map((character) => ({ character, helperPlayerId: player?.player_id, isAssist: false })),
-      ...assistRoster.map((entry) => ({ character: entry.mappedCharacter, helperPlayerId: entry.helperPlayerId, isAssist: true })),
-    ]
-    return selectedIds
-      .map((id) => all.find((item) => item.character.character_id === id))
-      .filter((item): item is (typeof all)[number] => Boolean(item))
-  }, [assistRoster, characters, player?.player_id, selectedIds])
-  const ownSelectedCount = selectedCharacters.filter((item) => !item.isAssist).length
-  const assistSelectedCount = selectedCharacters.length - ownSelectedCount
+  const activeDungeon = multiplayerDungeons.find((dungeon) => dungeon.dungeon_id === room?.dungeon_id) || selectedDungeon
+  const requiredCount = activeDungeon?.dungeon_type === 'TEAM' || activeDungeon?.dungeon_type === 'SERVER_BOSS' ? 20 : 5
+  const currentMember = room?.members.find((member) => member.player_id === player?.player_id)
+  const isLeader = Boolean(room && player?.player_id === room.leader_id)
+  const totalSelectedCount = room?.character_ids.length || selectedIds.length
+  const allCharactersById = useMemo(() => new Map(characters.map((character) => [character.character_id, character])), [characters])
+  const battleReady = Boolean(room && room.status === 'waiting' && room.members.length >= 2 && room.members.every((member) => member.is_ready) && totalSelectedCount === requiredCount)
+  const navigationRoomRef = useRef<string | null>(null)
 
   useEffect(() => {
     void loadFormalData()
@@ -902,19 +927,25 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     setLoading(true)
     try {
       const profile = await loadOnlineProfile(player)
-      const [dungeonResponse, rosterResponse] = await Promise.all([
+      const [dungeonResponse, friendsResponse, invitationResponse, currentResponse] = await Promise.all([
         onlineApi.get('/dungeons'),
-        onlineApi.get(`/friends-assist/${profile.session.player.id}/assist-roster`),
+        onlineApi.get(`/friends-assist/${profile.session.player.id}`),
+        onlineApi.get('/multiplayer-rooms/invitations?status=pending'),
+        onlineApi.get('/multiplayer-rooms/current'),
       ])
       const mappedDungeons = (dungeonResponse.data?.dungeons || [])
         .map((dungeon: unknown) => mapOnlineDungeon(dungeon, [], profile.characters))
         .filter((dungeon: OnlineLegacyDungeon) => dungeon.dungeon_type !== 'SINGLE')
-      const rawRoster = (rosterResponse.data || []) as FormalAssistRosterEntry[]
       setDungeons(mappedDungeons)
       setCharacters(profile.characters)
-      setAssistRoster(rawRoster
-        .filter((entry) => entry.character)
-        .map((entry) => ({ ...entry, mappedCharacter: mapOnlineCharacter(entry.character) })))
+      setFriends((friendsResponse.data || []) as FormalFriend[])
+      setInvitations((invitationResponse.data || []) as FormalInvitation[])
+      const currentRoom = (currentResponse.data || null) as FormalRoom | null
+      setRoom(currentRoom)
+      if (currentRoom) {
+        setSelectedDungeonId(currentRoom.dungeon_id)
+        setSelectedIds(currentRoom.members.find((member) => member.player_id === profile.session.player.id)?.character_ids || [])
+      }
       if (!selectedDungeonId && mappedDungeons.length > 0) {
         setSelectedDungeonId(mappedDungeons[0].dungeon_id)
       }
@@ -925,69 +956,143 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     }
   }
 
-  const toggleCharacter = (characterId: string, isAssist: boolean) => {
+  const toggleCharacter = (characterId: string) => {
     if (selectedIds.includes(characterId)) {
       setSelectedIds((current) => current.filter((id) => id !== characterId))
       return
     }
-    if (selectedIds.length >= requiredCount) {
+    const maxPick = room?.max_characters_per_member || (selectedDungeon?.dungeon_type === 'TEAM' ? 5 : 1)
+    if (selectedIds.length >= maxPick) {
       setMessage(`该副本需要 ${requiredCount} 名角色`)
-      return
-    }
-    if (isAssist && assistSelectedCount >= 19) {
-      setMessage('好友助战角色最多选择 19 名，队伍至少保留 1 名自己的角色')
       return
     }
     setSelectedIds((current) => [...current, characterId])
   }
 
-  const startFormalBattle = async () => {
-    if (!player || !selectedDungeon) return
-    if (selectedIds.length !== requiredCount) {
-      setMessage(`该副本需要正好 ${requiredCount} 名角色，当前已选择 ${selectedIds.length} 名`)
-      return
-    }
-    if (ownSelectedCount === 0) {
-      setMessage('队伍至少需要 1 名你自己的角色')
-      return
-    }
+  const createRoom = async () => {
+    if (!selectedDungeon) return
     setStarting(true)
     try {
-      const profile = await loadOnlineProfile(player)
-      const key = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : createIdempotencyKey('multiplayer-start').split(':').pop()!
-      const response = await onlineApi.post(
-        `/dungeons/${profile.session.player.id}/${selectedDungeon.dungeon_id}/start`,
-        { characterIds: selectedIds },
-        { headers: { 'Idempotency-Key': key } },
-      )
-      navigate('/battle', {
-        state: {
-          online_mode: true,
-          is_multiplayer: true,
-          player_id: profile.session.player.id,
-          dungeon_id: selectedDungeon.dungeon_id,
-          dungeon: selectedDungeon,
-          character_ids: selectedIds,
-          characters: selectedCharacters.map((item) => item.character),
-          settlement_key: response.data.battleSeed,
-        },
-      })
+      const response = await onlineApi.post('/multiplayer-rooms', { dungeonId: selectedDungeon.dungeon_id })
+      setRoom(response.data as FormalRoom)
+      setSelectedIds([])
+      setMessage('房间已创建，请选择角色并邀请好友。')
     } catch (error) {
-      setMessage(getOnlineModeError(error, '正式多人副本开战失败'))
+      setMessage(getOnlineModeError(error, '创建正式房间失败'))
     } finally {
       setStarting(false)
     }
   }
 
-  const renderCharacterButton = (character: OnlineLegacyCharacter, isAssist: boolean, helperName?: string) => (
+  const saveMember = async (ready: boolean) => {
+    if (!room) return
+    try {
+      const response = await onlineApi.post(`/multiplayer-rooms/${room.room_id}/member`, { characterIds: selectedIds, isReady: ready })
+      setRoom(response.data as FormalRoom)
+      setMessage(ready ? '已准备，等待其他成员。' : '已取消准备。')
+    } catch (error) {
+      setMessage(getOnlineModeError(error, '更新房间状态失败'))
+    }
+  }
+
+  const inviteFriend = async () => {
+    if (!room || !selectedInviteeId) return
+    try {
+      await onlineApi.post(`/multiplayer-rooms/${room.room_id}/invite`, { inviteePlayerId: selectedInviteeId })
+      setMessage('邀请已发送。')
+      setSelectedInviteeId('')
+    } catch (error) {
+      setMessage(getOnlineModeError(error, '发送邀请失败'))
+    }
+  }
+
+  const acceptInvitation = async (invitation: FormalInvitation) => {
+    try {
+      const response = await onlineApi.post(`/multiplayer-rooms/invitations/${invitation.invitation_id}/accept`, { characterIds: selectedIds })
+      setRoom(response.data as FormalRoom)
+      setSelectedDungeonId((response.data as FormalRoom).dungeon_id)
+      setInvitations((current) => current.filter((item) => item.invitation_id !== invitation.invitation_id))
+      setMessage('已加入房间，请准备。')
+    } catch (error) {
+      setMessage(getOnlineModeError(error, '接受邀请失败'))
+    }
+  }
+
+  const leaveRoom = async () => {
+    if (!room) return
+    try {
+      await onlineApi.post(`/multiplayer-rooms/${room.room_id}/leave`)
+      setRoom(null)
+      setSelectedIds([])
+      setMessage('已离开房间。')
+    } catch (error) {
+      setMessage(getOnlineModeError(error, '离开房间失败'))
+    }
+  }
+
+  const startRoom = async () => {
+    if (!room || !isLeader) return
+    if (!battleReady) {
+      setMessage(`需要至少两名已准备成员，并凑齐 ${requiredCount} 名角色。`)
+      return
+    }
+    setStarting(true)
+    try {
+      const key = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : createIdempotencyKey('room-start').split(':').pop()!
+      const response = await onlineApi.post(`/multiplayer-rooms/${room.room_id}/start`, {}, { headers: { 'Idempotency-Key': key } })
+      await enterRoomBattle(response.data as FormalRoom)
+    } catch (error) {
+      setMessage(getOnlineModeError(error, '房间开战失败'))
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  const enterRoomBattle = async (nextRoom: FormalRoom) => {
+    if (!player || !nextRoom.battle_seed || navigationRoomRef.current === nextRoom.room_id) return
+    navigationRoomRef.current = nextRoom.room_id
+    const profile = await loadOnlineProfile(player)
+    navigate('/battle', {
+      state: {
+        online_mode: true,
+        is_multiplayer: true,
+        multiplayer_room_id: nextRoom.room_id,
+        player_id: profile.session.player.id,
+        dungeon_id: nextRoom.dungeon_id,
+        dungeon: multiplayerDungeons.find((item) => item.dungeon_id === nextRoom.dungeon_id),
+        character_ids: nextRoom.character_ids,
+        characters: nextRoom.character_ids.map((id) => allCharactersById.get(id)).filter(Boolean),
+        settlement_key: nextRoom.battle_seed,
+      },
+    })
+  }
+
+  useEffect(() => {
+    if (room?.status === 'in_battle' && room.battle_seed) void enterRoomBattle(room)
+  }, [room?.status, room?.battle_seed])
+
+  useEffect(() => {
+    if (!player) return
+    const timer = window.setInterval(async () => {
+      try {
+        const response = await onlineApi.get('/multiplayer-rooms/current')
+        setRoom((response.data || null) as FormalRoom | null)
+        const invites = await onlineApi.get('/multiplayer-rooms/invitations?status=pending')
+        setInvitations((invites.data || []) as FormalInvitation[])
+      } catch { /* transient refresh failure */ }
+    }, 2500)
+    return () => window.clearInterval(timer)
+  }, [player?.player_id])
+
+  const renderCharacterButton = (character: OnlineLegacyCharacter) => (
     <button
       key={character.character_id}
       className={selectedIds.includes(character.character_id) ? 'selected' : ''}
-      onClick={() => toggleCharacter(character.character_id, isAssist)}
+      onClick={() => toggleCharacter(character.character_id)}
     >
       <strong>{character.name}</strong>
       <span>Lv.{character.level} / {character.attribute_type} / {getProfessionLabel(character.profession_type)}</span>
-      <small>{isAssist ? `好友助战：${helperName || '好友'}` : '我的角色'}</small>
+      <small>我的角色</small>
     </button>
   )
 
@@ -998,7 +1103,7 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
           <button onClick={() => navigate('/dungeons')} className="room-back">返回副本</button>
           <div>
             <h1>正式线上多人副本</h1>
-            <p>使用自己的角色和已接受好友的助战角色组成队伍，奖励由服务器统一结算。</p>
+            <p>邀请好友进入同一房间，双方选择自己的角色并同步准备后开战。</p>
           </div>
         </div>
         {message && <div className="room-message">{message}</div>}
@@ -1007,10 +1112,10 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
         ) : (
           <div className="room-layout">
             <section className="room-panel setup-panel">
-              <h2>副本与队伍</h2>
+              <h2>副本与房间</h2>
               <label>
                 多人副本
-                <select value={selectedDungeonId} onChange={(event) => {
+                <select value={room?.dungeon_id || selectedDungeonId} disabled={Boolean(room)} onChange={(event) => {
                   setSelectedDungeonId(event.target.value)
                   setSelectedIds([])
                   setMessage('')
@@ -1022,42 +1127,71 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
                   ))}
                 </select>
               </label>
-              {selectedDungeon && (
+              {activeDungeon && (
                 <div className="dungeon-summary">
-                  <strong>{selectedDungeon.name}</strong>
-                  <span>{selectedDungeon.recommendation.summary}</span>
-                  <span>需要 {requiredCount} 名角色，当前自己的角色 {ownSelectedCount} 名，好友助战 {assistSelectedCount} 名。</span>
+                  <strong>{activeDungeon.name}</strong>
+                  <span>{activeDungeon.recommendation.summary}</span>
+                  <span>{room ? `房间成员 ${room.members.length}/${room.capacity}，角色 ${totalSelectedCount}/${requiredCount}` : `需要 ${requiredCount} 名角色，先创建房间再邀请好友。`}</span>
                 </div>
               )}
               <div className="team-readiness-panel">
-                <div><span>已选角色</span><strong>{selectedIds.length}/{requiredCount}</strong></div>
-                <div><span>自己的角色</span><strong>{ownSelectedCount}</strong></div>
-                <p>好友角色不会获得你的战斗经验；成功通关后，好友会获得助战金币，你的助战任务同步增加。</p>
+                <div><span>房间状态</span><strong>{room?.status || '未创建'}</strong></div>
+                <div><span>我的角色</span><strong>{selectedIds.length}/{room?.max_characters_per_member || 1}</strong></div>
+                <p>{room ? '每个玩家只提交自己的角色；服务器开战票据会对所有房间成员同步。' : '创建房间后可邀请已接受好友。'}</p>
               </div>
               <div className="setup-actions">
-                <button onClick={startFormalBattle} disabled={!selectedDungeon || starting || selectedIds.length !== requiredCount}>
-                  {starting ? '正在开战...' : '开始正式副本'}
-                </button>
+                {!room && <button onClick={() => void createRoom()} disabled={!selectedDungeon || starting}>
+                  {starting ? '正在创建...' : '创建房间'}
+                </button>}
+                {room && (
+                  <button onClick={() => void saveMember(!currentMember?.is_ready)} disabled={starting || room.status !== 'waiting'}>
+                    {currentMember?.is_ready ? '取消准备' : '准备'}
+                  </button>
+                )}
+                {room && isLeader && (
+                  <button onClick={() => void startRoom()} disabled={starting || !battleReady}>
+                    {starting ? '正在开战...' : '房主开战'}
+                  </button>
+                )}
+                {room && (
+                  <button onClick={() => void leaveRoom()} disabled={room.status !== 'waiting'}>离开房间</button>
+                )}
                 <button onClick={() => void loadFormalData()} disabled={loading}>刷新名册</button>
               </div>
-            </section>
-            <section className="room-panel">
-              <h2>选择自己的角色</h2>
-              <div className="character-room-grid">
-                {characters.map((character) => renderCharacterButton(character, false))}
-              </div>
-              <h2 className="room-list-heading">好友助战名册</h2>
-              {assistRoster.length === 0 ? (
-                <div className="empty-room">暂无可用好友助战角色，请先在社交页面建立并接受好友关系。</div>
-              ) : (
-                <div className="character-room-grid">
-                  {assistRoster.map((entry) => renderCharacterButton(
-                    entry.mappedCharacter,
-                    true,
-                    entry.friend?.displayName || entry.helperPlayerId,
-                  ))}
+              {room && isLeader && (
+                <div className="room-form-row">
+                  <select value={selectedInviteeId} onChange={(event) => setSelectedInviteeId(event.target.value)}>
+                    <option value="">选择好友邀请</option>
+                    {friends.filter((item) => item.friend && !room.members.some((member) => member.player_id === item.friend?.id)).map((item) => (
+                      <option key={item.friend!.id} value={item.friend!.id}>{item.friend!.displayName || item.friend!.id}</option>
+                    ))}
+                  </select>
+                  <button onClick={() => void inviteFriend()} disabled={!selectedInviteeId}>邀请</button>
                 </div>
               )}
+              {room && <div className="member-list">
+                {room.members.map((member) => (
+                  <div className="member-row" key={member.player_id}>
+                    <div><strong>{member.username}{member.player_id === room.leader_id ? '（房主）' : ''}</strong><span>{member.character_ids.length} 名角色</span></div>
+                    <em className={member.is_ready ? 'ready' : ''}>{member.is_ready ? '已准备' : '未准备'}</em>
+                  </div>
+                ))}
+              </div>}
+              {invitations.length > 0 && <div className="invitation-list">
+                {invitations.map((invitation) => (
+                  <div className="invitation-card" key={invitation.invitation_id}>
+                    <div><strong>{invitation.inviter_username} 邀请你加入房间</strong><span>{invitation.room?.dungeon_id || invitation.room_id}</span></div>
+                    <button onClick={() => void acceptInvitation(invitation)}>接受邀请</button>
+                  </div>
+                ))}
+              </div>}
+            </section>
+            <section className="room-panel">
+              <h2>{room ? '选择我的角色' : '选择副本'}</h2>
+              <div className="character-room-grid">
+                {characters.map((character) => renderCharacterButton(character))}
+              </div>
+              {!room && <div className="empty-room">正式房间中好友提交自己的角色，不再把好友角色伪装成本账号助战。</div>}
             </section>
           </div>
         )}

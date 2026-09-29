@@ -599,6 +599,7 @@ const BattlePage: React.FC = () => {
     const dungeonId = location.state?.dungeon_id
     const playerId = location.state?.player_id
     const seed = location.state?.settlement_key
+    const multiplayerRoomId = location.state?.multiplayer_room_id
     if (!playerId || !dungeonId || !characterIds.length || !seed) {
       setBattleNotice('缺少开战凭证，请返回副本页重新进入。')
       setLoading(false)
@@ -615,14 +616,16 @@ const BattlePage: React.FC = () => {
       if (disposed || pending) return
       pending = true
       try {
-        const response = await onlineApi.get(`/dungeons/${playerId}/battles/${seed}`)
+        const response = multiplayerRoomId
+          ? await onlineApi.get(`/multiplayer-rooms/${multiplayerRoomId}/battle`)
+          : await onlineApi.get(`/dungeons/${playerId}/battles/${seed}`)
         if (disposed) return
         const status = response.data as ServerBattleStatus
         applySnapshot(serverBattleSnapshot(status, Number(dungeon?.duration || 60)))
         setLoading(false)
         setBattleNotice(status.ready ? '战斗结束，正在确认奖励。' : '战斗已同步。')
         if (status.ready && status.outcome) {
-          const settled = await settleOnlineExperienceBattle(playerId, dungeonId, characterIds, seed, () => disposed)
+          const settled = await settleOnlineExperienceBattle(playerId, dungeonId, characterIds, seed, () => disposed, multiplayerRoomId)
           if (settled && !disposed) stopOnlineBattleTimer()
         }
       } catch (error) {
@@ -646,18 +649,21 @@ const BattlePage: React.FC = () => {
     characterIds: string[],
     settlementKey: string,
     disposed: () => boolean,
+    multiplayerRoomId?: string,
   ) => {
     try {
-      const response = await onlineApi.post('/battle-settlement', {
-        playerId,
-        dungeonId,
-        characterIds,
-        success: false,
-        duration: 0,
-        singleMonstersKilled: 0,
-        groupMonstersKilled: 0,
-        clientTrace: { source: 'battle-page-online-mode', battleSeed: settlementKey },
-      }, { headers: { 'Idempotency-Key': settlementKey } })
+      const response = multiplayerRoomId
+        ? await onlineApi.post(`/multiplayer-rooms/${multiplayerRoomId}/settle`)
+        : await onlineApi.post('/battle-settlement', {
+          playerId,
+          dungeonId,
+          characterIds,
+          success: false,
+          duration: 0,
+          singleMonstersKilled: 0,
+          groupMonstersKilled: 0,
+          clientTrace: { source: 'battle-page-online-mode', battleSeed: settlementKey },
+        }, { headers: { 'Idempotency-Key': settlementKey } })
       if (disposed()) return false
       const serverRewards = response.data?.serverRewards || {}
       const progress = response.data?.progress || {}
