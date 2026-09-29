@@ -269,7 +269,7 @@ const DungeonPage: React.FC = () => {
   }
 
   const handleStartDungeon = (dungeon: Dungeon) => {
-    if (normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE') {
+    if (isFormalOnlineMode() || normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE') {
       // 单人副本，直接选择角色
       setSelectedDungeon(dungeon)
       setShowCharacterSelect(true)
@@ -283,6 +283,13 @@ const DungeonPage: React.FC = () => {
     if (startingBattle.current) return
     if (!selectedDungeon || selectedCharacters.length === 0) {
       alert('请选择角色')
+      return
+    }
+
+    const expectedCount = normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE' ? 1
+      : normalizeDungeonType(selectedDungeon.dungeon_type) === 'SQUAD' ? 5 : 20
+    if (isFormalOnlineMode() && selectedCharacters.length !== expectedCount) {
+      alert(`该副本需要选择${expectedCount}名角色，当前已选择${selectedCharacters.length}名`)
       return
     }
 
@@ -316,7 +323,7 @@ const DungeonPage: React.FC = () => {
             dungeon_id: selectedDungeon.dungeon_id,
             dungeon: selectedDungeon,
             character_ids: selectedCharacters,
-            characters: [character],
+            characters: selectedCharacters.map(id => payload.characters.find((item: Character) => item.character_id === id)).filter(Boolean),
             settlement_key: startResponse.data.battleSeed,
           }
         })
@@ -768,7 +775,8 @@ const DungeonPage: React.FC = () => {
               setSelectedDungeon(null)
               setSelectedCharacters([])
             }}
-            maxSelect={normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE' ? 1 : 5}
+            maxSelect={normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE' ? 1
+              : isFormalOnlineMode() && normalizeDungeonType(selectedDungeon.dungeon_type) !== 'SQUAD' ? 20 : 5}
           />
         )}
         
@@ -893,7 +901,7 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
           <button
             className="btn-confirm"
             onClick={onConfirm}
-            disabled={selectedCharacters.length === 0}
+            disabled={isFormalOnlineMode() ? selectedCharacters.length !== maxSelect : selectedCharacters.length === 0}
           >
             确认 ({selectedCharacters.length}/{maxSelect})
           </button>

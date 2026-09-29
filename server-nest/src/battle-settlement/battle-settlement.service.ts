@@ -9,6 +9,7 @@ import { BattleRecordEntity, DungeonProgressEntity, OperationRequestEntity, Play
 import { DungeonsService } from '../dungeons/dungeons.service';
 import { InventoryGrantItem, InventoryService } from '../inventory/inventory.service';
 import { ServerBattle } from './battle-simulation.service';
+import { OnlineFeaturesService } from '../online-features/online-features.service';
 
 export interface BattleSettlementInput {
   playerId: string;
@@ -31,6 +32,7 @@ export class BattleSettlementService {
     private readonly configs: GameConfigsService,
     private readonly dailyGoals: DailyGoalsService,
     private readonly dungeons: DungeonsService,
+    private readonly onlineFeatures: OnlineFeaturesService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
     @InjectRepository(BattleRecordEntity) private readonly battles: Repository<BattleRecordEntity>,
@@ -134,6 +136,9 @@ export class BattleSettlementService {
           progressId: progress.id,
         },
       }));
+      if (onlineDungeon?.dungeonType === 'SERVER_BOSS' && effectiveInput.success) {
+        await this.onlineFeatures.recordWorldBossDamage(manager, input.playerId, input.dungeonId, authoritative.damageScore);
+      }
       if (effectiveInput.success) {
         await this.dailyGoals.recordEvent(input.playerId, 'battle_clear', 1, {
           battleRecordId: record.id,

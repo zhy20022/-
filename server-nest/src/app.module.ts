@@ -37,6 +37,8 @@ import { RankingService } from './ranking/ranking.service';
 import { validateEnvironment } from './config/environment';
 import { WorkshopController } from './workshop/workshop.controller';
 import { WorkshopService } from './workshop/workshop.service';
+import { OnlineFeaturesController } from './online-features/online-features.controller';
+import { OnlineFeaturesService } from './online-features/online-features.service';
 
 @Module({
   imports: [
@@ -79,6 +81,7 @@ import { WorkshopService } from './workshop/workshop.service';
     MailController,
     PlayersController,
     RankingController,
+    OnlineFeaturesController,
     WorkshopController,
   ],
   providers: [
@@ -99,6 +102,7 @@ import { WorkshopService } from './workshop/workshop.service';
     PlayersService,
     RankingService,
     RedisService,
+    OnlineFeaturesService,
     WorkshopService,
   ],
 })

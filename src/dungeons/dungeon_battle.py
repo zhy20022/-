@@ -525,6 +525,10 @@ class DungeonBattleFlow:
         
         # 设置敌人死亡回调
         self.battle.set_enemy_killed_callback(self._on_enemy_killed)
+        self.battle.has_pending_spawns = lambda: any(
+            scheduled > self.last_spawn_check_time
+            for scheduled in self.monster_spawner.spawn_times + self.monster_spawner.boss_spawn_times
+        )
         
         self.battle.start()
         self._spawn_monsters()
@@ -712,12 +716,15 @@ class DungeonBattleFlow:
         # 这里不增加，只有在Boss被击杀时才增加
 
     def _spawn_authored_boss(self):
-        """Select one authored encounter per existing scheduled boss wave."""
+        """Select one encounter; divide its health budget across its members."""
         import random
         from ..enemies.authored_catalog import encounters
         from ..enemies.enemy_factory import EnemyFactory
+        from .team_balance import team_config, tuned_encounter
 
         definition = random.choice(encounters(self.dungeon.dungeon_type.name, self.dungeon.attribute_type.name))
+        tuning = team_config(self.dungeon.dungeon_type).get('encounterMultipliers', {}).get(definition['name'], {})
+        definition = tuned_encounter(definition, tuning)
         members = definition.get("members", [definition])
         group_id = f"authored_{len(self.battle.monster_runtime.groups)}_{len(self.battle.enemy_units)}"
         units = []
@@ -725,7 +732,10 @@ class DungeonBattleFlow:
             enemy = EnemyFactory.create_boss(self.dungeon, "SINGLE", self.current_time, len(self.battle.enemy_units))
             unit = enemy.battle_unit
             # Encounter HP budget is independent of the number of portraits.
-            unit.max_health = max(1, int(unit.max_health / len(members)))
+            unit.max_health = max(1, int(unit.max_health * tuning.get('health', 1) / len(members)))
+            unit.character.hp = unit.max_health
+            unit.character.attack = int(unit.character.attack * tuning.get('attack', 1))
+            unit.character.magic_attack = int(unit.character.magic_attack * tuning.get('attack', 1))
             unit.current_health = unit.max_health
             unit._sync_legacy_health_fields()
             unit.spawn_category = "boss"
@@ -836,7 +846,10 @@ class DungeonBattleFlow:
             unit for unit in (self.battle.enemy_units if self.battle else [])
             if unit.is_alive()
         ]
-        self.is_successful = len(alive_enemies) == 0 and not self._has_pending_spawns()
+        self.is_successful = (any(unit.is_alive() for unit in self.battle.player_units)
+                              and len(alive_enemies) == 0 and not self._has_pending_spawns())
+        self.battle.state = BattleState.VICTORY if self.is_successful else BattleState.DEFEAT
+        self.battle._finalize_effects()
         self.state = DungeonBattleState.COMPLETED if self.is_successful else DungeonBattleState.FAILED
         self._calculate_rewards()
         self.state = DungeonBattleState.REWARD

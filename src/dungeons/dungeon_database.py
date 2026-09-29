@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from .dungeon import DIFFICULTY_CONFIG, Dungeon, DungeonDifficulty, DungeonType
 from ..attributes.attribute import AttributeType
+from .team_balance import team_config
 
 
 EXPERIENCE_REWARD_BY_DIFFICULTY = {
@@ -95,7 +96,7 @@ class DungeonDatabase:
                 attribute_type=attr,
                 dungeon_type=DungeonType.SQUAD,
                 description=f"{attr_name}系角色刷专属道具、产出{attr_name}属性专属道具材料",
-                duration=120.0,
+                duration=team_config(DungeonType.SQUAD)['duration'],
                 reward_config={
                     "type": "exclusive_material",
                     "base_material": 20,
@@ -115,7 +116,7 @@ class DungeonDatabase:
                 attribute_type=attr,
                 dungeon_type=DungeonType.TEAM,
                 description=f"{attr_name}系角色刷当前版本装备、产出{attr_name}属性装备材料",
-                duration=180.0,
+                duration=team_config(DungeonType.TEAM)['duration'],
                 reward_config={
                     "type": "equipment_material",
                     "base_material": 1,

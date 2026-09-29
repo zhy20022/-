@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { IdempotencyService } from '../common/idempotency.service';
 import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity, OperationRequestEntity } from '../database/entities';
 import { BattleSimulationService, ServerBattle } from '../battle-settlement/battle-simulation.service';
@@ -13,6 +15,7 @@ export interface OnlineDungeon {
   attributeType: string;
   difficulty: 'normal' | 'hard' | 'nightmare';
   duration: number;
+  timeline?: { bossSpawnTime: number; trashWaveCount: number; trashInterval: number; bossEncounters: number };
   sweepUnlockCount: number;
   rewardConfig: {
     type: 'experience' | 'boss';
@@ -256,6 +259,10 @@ export class DungeonsService {
   }
 
   private buildDungeons(): OnlineDungeon[] {
+    const teamBalance = JSON.parse(readFileSync(resolve(process.env.BATTLE_WORKER_ROOT || '..',
+      'data/content/team-dungeon-balance.json'), 'utf8')) as Record<'SQUAD' | 'TEAM', {
+        duration: number; bossSpawnTime: number; trashWaveCount: number; trashInterval: number;
+      }>;
     const experience = ATTRIBUTE_DEFS.flatMap(([idPrefix, attributeType, name]) => (
       DIFFICULTIES.map(([difficulty, suffix, fullExp, gold]) => ({
         dungeonId: `${idPrefix}_type_single_001${suffix}`,
@@ -283,7 +290,12 @@ export class DungeonsService {
         dungeonId: `${prefix}_type_${dungeonType.toLowerCase()}_001`,
         name: `${name.replace('经验本', '')}-${{ SQUAD: '五人本', TEAM: '二十人本', SERVER_BOSS: '全服Boss挑战' }[dungeonType]}`,
         attributeType, dungeonType, difficulty: 'normal' as const,
-        duration: dungeonType === 'TEAM' ? 240 : 180, sweepUnlockCount: 50,
+        duration: dungeonType === 'SERVER_BOSS' ? 180 : teamBalance[dungeonType].duration, sweepUnlockCount: 50,
+        ...(dungeonType === 'SERVER_BOSS' ? {} : { timeline: {
+          bossSpawnTime: teamBalance[dungeonType].bossSpawnTime,
+          trashWaveCount: teamBalance[dungeonType].trashWaveCount,
+          trashInterval: teamBalance[dungeonType].trashInterval, bossEncounters: 1,
+        } }),
         rewardConfig: { type: 'boss' as const, fullExp: 0, gold: 0, spawnStartTime: 0, spawnInterval: 3,
           spawnWaveCount: 0, allowedMonsterTypes: ['SINGLE', 'GROUP_5'], characterExpPerSingleKill: 0, characterExpPerFiveGroupKills: 0 },
       })));

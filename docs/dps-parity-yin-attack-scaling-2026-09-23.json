@@ -1,0 +1,3603 @@
+{
+  "checkedAt": "2026-09-23T10:51:41.965691+00:00",
+  "method": "normalized level-100 stats; 1000 attack/magic attack; 100 defense; no crit; neutral same-attribute targets; A/B/C x10; equal-cadence and stationary-target profiles",
+  "seedCount": 30,
+  "rotations": 10,
+  "targetCounts": [
+    1,
+    2,
+    3,
+    5,
+    10
+  ],
+  "profiles": {
+    "equalCadence": "target performs one empty cast after each player skill",
+    "stationaryTargets": "targets do not cast; isolates raw rotation ratios"
+  },
+  "characters": [
+    {
+      "id": "char_003_water_physical_melee_dps",
+      "name": "寒澈",
+      "attribute": "WATER",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 54718,
+            "medianTotalDamage": 54718.0,
+            "minTotalDamage": 54718,
+            "maxTotalDamage": 54718,
+            "meanPerTarget": 54718.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.609
+          },
+          "2": {
+            "meanTotalDamage": 66816,
+            "medianTotalDamage": 66816.0,
+            "minTotalDamage": 66816,
+            "maxTotalDamage": 66816,
+            "meanPerTarget": 33408.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.234
+          },
+          "3": {
+            "meanTotalDamage": 78914,
+            "medianTotalDamage": 78914.0,
+            "minTotalDamage": 78914,
+            "maxTotalDamage": 78914,
+            "meanPerTarget": 26304.67,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.229
+          },
+          "5": {
+            "meanTotalDamage": 103110,
+            "medianTotalDamage": 103110.0,
+            "minTotalDamage": 103110,
+            "maxTotalDamage": 103110,
+            "meanPerTarget": 20622.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.144
+          },
+          "10": {
+            "meanTotalDamage": 163600,
+            "medianTotalDamage": 163600.0,
+            "minTotalDamage": 163600,
+            "maxTotalDamage": 163600,
+            "meanPerTarget": 16360.0,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.005
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 90214,
+            "medianTotalDamage": 90214.0,
+            "minTotalDamage": 90214,
+            "maxTotalDamage": 90214,
+            "meanPerTarget": 90214.0,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 2.015
+          },
+          "2": {
+            "meanTotalDamage": 107882,
+            "medianTotalDamage": 107882.0,
+            "minTotalDamage": 107882,
+            "maxTotalDamage": 107882,
+            "meanPerTarget": 53941.0,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.806
+          },
+          "3": {
+            "meanTotalDamage": 125550,
+            "medianTotalDamage": 125550.0,
+            "minTotalDamage": 125550,
+            "maxTotalDamage": 125550,
+            "meanPerTarget": 41850.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.636
+          },
+          "5": {
+            "meanTotalDamage": 160886,
+            "medianTotalDamage": 160886.0,
+            "minTotalDamage": 160886,
+            "maxTotalDamage": 160886,
+            "meanPerTarget": 32177.2,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.419
+          },
+          "10": {
+            "meanTotalDamage": 249226,
+            "medianTotalDamage": 249226.0,
+            "minTotalDamage": 249226,
+            "maxTotalDamage": 249226,
+            "meanPerTarget": 24922.6,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.238
+          }
+        }
+      }
+    },
+    {
+      "id": "char_004_water_magic_melee_dps",
+      "name": "蔺疏澜",
+      "attribute": "WATER",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 18300,
+            "medianTotalDamage": 18300.0,
+            "minTotalDamage": 18300,
+            "maxTotalDamage": 18300,
+            "meanPerTarget": 18300.0,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.538
+          },
+          "2": {
+            "meanTotalDamage": 36600,
+            "medianTotalDamage": 36600.0,
+            "minTotalDamage": 36600,
+            "maxTotalDamage": 36600,
+            "meanPerTarget": 18300.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.676
+          },
+          "3": {
+            "meanTotalDamage": 54900,
+            "medianTotalDamage": 54900.0,
+            "minTotalDamage": 54900,
+            "maxTotalDamage": 54900,
+            "meanPerTarget": 18300.0,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.855
+          },
+          "5": {
+            "meanTotalDamage": 91500,
+            "medianTotalDamage": 91500.0,
+            "minTotalDamage": 91500,
+            "maxTotalDamage": 91500,
+            "meanPerTarget": 18300.0,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.015
+          },
+          "10": {
+            "meanTotalDamage": 183000,
+            "medianTotalDamage": 183000.0,
+            "minTotalDamage": 183000,
+            "maxTotalDamage": 183000,
+            "meanPerTarget": 18300.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.125
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 32651,
+            "medianTotalDamage": 32651.0,
+            "minTotalDamage": 32651,
+            "maxTotalDamage": 32651,
+            "meanPerTarget": 32651.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.729
+          },
+          "2": {
+            "meanTotalDamage": 65302,
+            "medianTotalDamage": 65302.0,
+            "minTotalDamage": 65302,
+            "maxTotalDamage": 65302,
+            "meanPerTarget": 32651.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.093
+          },
+          "3": {
+            "meanTotalDamage": 97953,
+            "medianTotalDamage": 97953.0,
+            "minTotalDamage": 97953,
+            "maxTotalDamage": 97953,
+            "meanPerTarget": 32651.0,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.276
+          },
+          "5": {
+            "meanTotalDamage": 163255,
+            "medianTotalDamage": 163255.0,
+            "minTotalDamage": 163255,
+            "maxTotalDamage": 163255,
+            "meanPerTarget": 32651.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.44
+          },
+          "10": {
+            "meanTotalDamage": 326510,
+            "medianTotalDamage": 326510.0,
+            "minTotalDamage": 326510,
+            "maxTotalDamage": 326510,
+            "meanPerTarget": 32651.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.622
+          }
+        }
+      }
+    },
+    {
+      "id": "char_005_water_physical_ranged_dps",
+      "name": "盛濛饮",
+      "attribute": "WATER",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 29000,
+            "medianTotalDamage": 29000.0,
+            "minTotalDamage": 29000,
+            "maxTotalDamage": 29000,
+            "meanPerTarget": 29000.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.853
+          },
+          "2": {
+            "meanTotalDamage": 49000,
+            "medianTotalDamage": 49000.0,
+            "minTotalDamage": 49000,
+            "maxTotalDamage": 49000,
+            "meanPerTarget": 24500.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.905
+          },
+          "3": {
+            "meanTotalDamage": 69000,
+            "medianTotalDamage": 69000.0,
+            "minTotalDamage": 69000,
+            "maxTotalDamage": 69000,
+            "meanPerTarget": 23000.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.074
+          },
+          "5": {
+            "meanTotalDamage": 109000,
+            "medianTotalDamage": 109000.0,
+            "minTotalDamage": 109000,
+            "maxTotalDamage": 109000,
+            "meanPerTarget": 21800.0,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.209
+          },
+          "10": {
+            "meanTotalDamage": 209000,
+            "medianTotalDamage": 209000.0,
+            "minTotalDamage": 209000,
+            "maxTotalDamage": 209000,
+            "meanPerTarget": 20900.0,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.284
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 29000,
+            "medianTotalDamage": 29000.0,
+            "minTotalDamage": 29000,
+            "maxTotalDamage": 29000,
+            "meanPerTarget": 29000.0,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.648
+          },
+          "2": {
+            "meanTotalDamage": 49900,
+            "medianTotalDamage": 49900.0,
+            "minTotalDamage": 49900,
+            "maxTotalDamage": 49900,
+            "meanPerTarget": 24950.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.835
+          },
+          "3": {
+            "meanTotalDamage": 70800,
+            "medianTotalDamage": 70800.0,
+            "minTotalDamage": 70800,
+            "maxTotalDamage": 70800,
+            "meanPerTarget": 23600.0,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.922
+          },
+          "5": {
+            "meanTotalDamage": 112600,
+            "medianTotalDamage": 112600.0,
+            "minTotalDamage": 112600,
+            "maxTotalDamage": 112600,
+            "meanPerTarget": 22520.0,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.993
+          },
+          "10": {
+            "meanTotalDamage": 217100,
+            "medianTotalDamage": 217100.0,
+            "minTotalDamage": 217100,
+            "maxTotalDamage": 217100,
+            "meanPerTarget": 21710.0,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.078
+          }
+        }
+      }
+    },
+    {
+      "id": "char_006_water_magic_ranged_dps",
+      "name": "景自琉",
+      "attribute": "WATER",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 17750,
+            "medianTotalDamage": 17750.0,
+            "minTotalDamage": 17750,
+            "maxTotalDamage": 17750,
+            "meanPerTarget": 17750.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.522
+          },
+          "2": {
+            "meanTotalDamage": 35500,
+            "medianTotalDamage": 35500.0,
+            "minTotalDamage": 35500,
+            "maxTotalDamage": 35500,
+            "meanPerTarget": 17750.0,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.656
+          },
+          "3": {
+            "meanTotalDamage": 53250,
+            "medianTotalDamage": 53250.0,
+            "minTotalDamage": 53250,
+            "maxTotalDamage": 53250,
+            "meanPerTarget": 17750.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.829
+          },
+          "5": {
+            "meanTotalDamage": 88750,
+            "medianTotalDamage": 88750.0,
+            "minTotalDamage": 88750,
+            "maxTotalDamage": 88750,
+            "meanPerTarget": 17750.0,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.985
+          },
+          "10": {
+            "meanTotalDamage": 177500,
+            "medianTotalDamage": 177500.0,
+            "minTotalDamage": 177500,
+            "maxTotalDamage": 177500,
+            "meanPerTarget": 17750.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.091
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 11750,
+            "medianTotalDamage": 11750.0,
+            "minTotalDamage": 11750,
+            "maxTotalDamage": 11750,
+            "meanPerTarget": 11750.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.262
+          },
+          "2": {
+            "meanTotalDamage": 23500,
+            "medianTotalDamage": 23500.0,
+            "minTotalDamage": 23500,
+            "maxTotalDamage": 23500,
+            "meanPerTarget": 11750.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.393
+          },
+          "3": {
+            "meanTotalDamage": 35250,
+            "medianTotalDamage": 35250.0,
+            "minTotalDamage": 35250,
+            "maxTotalDamage": 35250,
+            "meanPerTarget": 11750.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.459
+          },
+          "5": {
+            "meanTotalDamage": 58750,
+            "medianTotalDamage": 58750.0,
+            "minTotalDamage": 58750,
+            "maxTotalDamage": 58750,
+            "meanPerTarget": 11750.0,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.518
+          },
+          "10": {
+            "meanTotalDamage": 117500,
+            "medianTotalDamage": 117500.0,
+            "minTotalDamage": 117500,
+            "maxTotalDamage": 117500,
+            "meanPerTarget": 11750.0,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.584
+          }
+        }
+      }
+    },
+    {
+      "id": "char_011_earth_physical_melee_dps",
+      "name": "衡震",
+      "attribute": "EARTH",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 32790,
+            "medianTotalDamage": 32790.0,
+            "minTotalDamage": 32790,
+            "maxTotalDamage": 32790,
+            "meanPerTarget": 32790.0,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.964
+          },
+          "2": {
+            "meanTotalDamage": 56580,
+            "medianTotalDamage": 56580.0,
+            "minTotalDamage": 56580,
+            "maxTotalDamage": 56580,
+            "meanPerTarget": 28290.0,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.045
+          },
+          "3": {
+            "meanTotalDamage": 80370,
+            "medianTotalDamage": 80370.0,
+            "minTotalDamage": 80370,
+            "maxTotalDamage": 80370,
+            "meanPerTarget": 26790.0,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.251
+          },
+          "5": {
+            "meanTotalDamage": 127950,
+            "medianTotalDamage": 127950.0,
+            "minTotalDamage": 127950,
+            "maxTotalDamage": 127950,
+            "meanPerTarget": 25590.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.42
+          },
+          "10": {
+            "meanTotalDamage": 246900,
+            "medianTotalDamage": 246900.0,
+            "minTotalDamage": 246900,
+            "maxTotalDamage": 246900,
+            "meanPerTarget": 24690.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.517
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 53056,
+            "medianTotalDamage": 53056.0,
+            "minTotalDamage": 53056,
+            "maxTotalDamage": 53056,
+            "meanPerTarget": 53056.0,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.185
+          },
+          "2": {
+            "meanTotalDamage": 87767,
+            "medianTotalDamage": 87767.0,
+            "minTotalDamage": 87767,
+            "maxTotalDamage": 87767,
+            "meanPerTarget": 43883.5,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.469
+          },
+          "3": {
+            "meanTotalDamage": 122478,
+            "medianTotalDamage": 122478.0,
+            "minTotalDamage": 122478,
+            "maxTotalDamage": 122478,
+            "meanPerTarget": 40826.0,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.596
+          },
+          "5": {
+            "meanTotalDamage": 191900,
+            "medianTotalDamage": 191900.0,
+            "minTotalDamage": 191900,
+            "maxTotalDamage": 191900,
+            "meanPerTarget": 38380.0,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.692
+          },
+          "10": {
+            "meanTotalDamage": 365455,
+            "medianTotalDamage": 365455.0,
+            "minTotalDamage": 365455,
+            "maxTotalDamage": 365455,
+            "meanPerTarget": 36545.5,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.815
+          }
+        }
+      }
+    },
+    {
+      "id": "char_012_earth_magic_melee_dps",
+      "name": "漠行汲",
+      "attribute": "EARTH",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 35000,
+            "medianTotalDamage": 35000.0,
+            "minTotalDamage": 35000,
+            "maxTotalDamage": 35000,
+            "meanPerTarget": 35000.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.029
+          },
+          "2": {
+            "meanTotalDamage": 54000,
+            "medianTotalDamage": 54000.0,
+            "minTotalDamage": 54000,
+            "maxTotalDamage": 54000,
+            "meanPerTarget": 27000.0,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.997
+          },
+          "3": {
+            "meanTotalDamage": 73000,
+            "medianTotalDamage": 73000.0,
+            "minTotalDamage": 73000,
+            "maxTotalDamage": 73000,
+            "meanPerTarget": 24333.33,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.137
+          },
+          "5": {
+            "meanTotalDamage": 111000,
+            "medianTotalDamage": 111000.0,
+            "minTotalDamage": 111000,
+            "maxTotalDamage": 111000,
+            "meanPerTarget": 22200.0,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.232
+          },
+          "10": {
+            "meanTotalDamage": 206000,
+            "medianTotalDamage": 206000.0,
+            "minTotalDamage": 206000,
+            "maxTotalDamage": 206000,
+            "meanPerTarget": 20600.0,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.266
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 35000,
+            "medianTotalDamage": 35000.0,
+            "minTotalDamage": 35000,
+            "maxTotalDamage": 35000,
+            "meanPerTarget": 35000.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.782
+          },
+          "2": {
+            "meanTotalDamage": 54000,
+            "medianTotalDamage": 54000.0,
+            "minTotalDamage": 54000,
+            "maxTotalDamage": 54000,
+            "meanPerTarget": 27000.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.904
+          },
+          "3": {
+            "meanTotalDamage": 73000,
+            "medianTotalDamage": 73000.0,
+            "minTotalDamage": 73000,
+            "maxTotalDamage": 73000,
+            "meanPerTarget": 24333.33,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.951
+          },
+          "5": {
+            "meanTotalDamage": 111000,
+            "medianTotalDamage": 111000.0,
+            "minTotalDamage": 111000,
+            "maxTotalDamage": 111000,
+            "meanPerTarget": 22200.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.979
+          },
+          "10": {
+            "meanTotalDamage": 206000,
+            "medianTotalDamage": 206000.0,
+            "minTotalDamage": 206000,
+            "maxTotalDamage": 206000,
+            "meanPerTarget": 20600.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.023
+          }
+        }
+      }
+    },
+    {
+      "id": "char_013_earth_physical_ranged_dps",
+      "name": "石鸣锋",
+      "attribute": "EARTH",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 32890,
+            "medianTotalDamage": 32890.0,
+            "minTotalDamage": 32890,
+            "maxTotalDamage": 32890,
+            "meanPerTarget": 32890.0,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.967
+          },
+          "2": {
+            "meanTotalDamage": 44890,
+            "medianTotalDamage": 44890.0,
+            "minTotalDamage": 44890,
+            "maxTotalDamage": 44890,
+            "meanPerTarget": 22445.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.829
+          },
+          "3": {
+            "meanTotalDamage": 56890,
+            "medianTotalDamage": 56890.0,
+            "minTotalDamage": 56890,
+            "maxTotalDamage": 56890,
+            "meanPerTarget": 18963.33,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.886
+          },
+          "5": {
+            "meanTotalDamage": 80890,
+            "medianTotalDamage": 80890.0,
+            "minTotalDamage": 80890,
+            "maxTotalDamage": 80890,
+            "meanPerTarget": 16178.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.898
+          },
+          "10": {
+            "meanTotalDamage": 140890,
+            "medianTotalDamage": 140890.0,
+            "minTotalDamage": 140890,
+            "maxTotalDamage": 140890,
+            "meanPerTarget": 14089.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.866
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 104791,
+            "medianTotalDamage": 104791.0,
+            "minTotalDamage": 104791,
+            "maxTotalDamage": 104791,
+            "meanPerTarget": 104791.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 2.34
+          },
+          "2": {
+            "meanTotalDamage": 116791,
+            "medianTotalDamage": 116791.0,
+            "minTotalDamage": 116791,
+            "maxTotalDamage": 116791,
+            "meanPerTarget": 58395.5,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.955
+          },
+          "3": {
+            "meanTotalDamage": 128791,
+            "medianTotalDamage": 128791.0,
+            "minTotalDamage": 128791,
+            "maxTotalDamage": 128791,
+            "meanPerTarget": 42930.33,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.678
+          },
+          "5": {
+            "meanTotalDamage": 152791,
+            "medianTotalDamage": 152791.0,
+            "minTotalDamage": 152791,
+            "maxTotalDamage": 152791,
+            "meanPerTarget": 30558.2,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.347
+          },
+          "10": {
+            "meanTotalDamage": 212791,
+            "medianTotalDamage": 212791.0,
+            "minTotalDamage": 212791,
+            "maxTotalDamage": 212791,
+            "meanPerTarget": 21279.1,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.057
+          }
+        }
+      }
+    },
+    {
+      "id": "char_014_earth_magic_ranged_dps",
+      "name": "钟闻壑",
+      "attribute": "EARTH",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 28720,
+            "medianTotalDamage": 28720.0,
+            "minTotalDamage": 28720,
+            "maxTotalDamage": 28720,
+            "meanPerTarget": 28720.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.845
+          },
+          "2": {
+            "meanTotalDamage": 48220,
+            "medianTotalDamage": 48220.0,
+            "minTotalDamage": 48220,
+            "maxTotalDamage": 48220,
+            "meanPerTarget": 24110.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.891
+          },
+          "3": {
+            "meanTotalDamage": 67720,
+            "medianTotalDamage": 67720.0,
+            "minTotalDamage": 67720,
+            "maxTotalDamage": 67720,
+            "meanPerTarget": 22573.33,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.055
+          },
+          "5": {
+            "meanTotalDamage": 106720,
+            "medianTotalDamage": 106720.0,
+            "minTotalDamage": 106720,
+            "maxTotalDamage": 106720,
+            "meanPerTarget": 21344.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.184
+          },
+          "10": {
+            "meanTotalDamage": 204220,
+            "medianTotalDamage": 204220.0,
+            "minTotalDamage": 204220,
+            "maxTotalDamage": 204220,
+            "meanPerTarget": 20422.0,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.255
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 33010,
+            "medianTotalDamage": 33010.0,
+            "minTotalDamage": 33010,
+            "maxTotalDamage": 33010,
+            "meanPerTarget": 33010.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.737
+          },
+          "2": {
+            "meanTotalDamage": 52510,
+            "medianTotalDamage": 52510.0,
+            "minTotalDamage": 52510,
+            "maxTotalDamage": 52510,
+            "meanPerTarget": 26255.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.879
+          },
+          "3": {
+            "meanTotalDamage": 72010,
+            "medianTotalDamage": 72010.0,
+            "minTotalDamage": 72010,
+            "maxTotalDamage": 72010,
+            "meanPerTarget": 24003.33,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.938
+          },
+          "5": {
+            "meanTotalDamage": 111010,
+            "medianTotalDamage": 111010.0,
+            "minTotalDamage": 111010,
+            "maxTotalDamage": 111010,
+            "meanPerTarget": 22202.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.979
+          },
+          "10": {
+            "meanTotalDamage": 208510,
+            "medianTotalDamage": 208510.0,
+            "minTotalDamage": 208510,
+            "maxTotalDamage": 208510,
+            "meanPerTarget": 20851.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.036
+          }
+        }
+      }
+    },
+    {
+      "id": "char_019_thunder_physical_melee_dps",
+      "name": "殷破",
+      "attribute": "THUNDER",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 54225.7,
+            "medianTotalDamage": 54309.0,
+            "minTotalDamage": 52469,
+            "maxTotalDamage": 56225,
+            "meanPerTarget": 54225.7,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.595
+          },
+          "2": {
+            "meanTotalDamage": 54277,
+            "medianTotalDamage": 54371.5,
+            "minTotalDamage": 49721,
+            "maxTotalDamage": 56400,
+            "meanPerTarget": 27138.5,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.003
+          },
+          "3": {
+            "meanTotalDamage": 54773.4,
+            "medianTotalDamage": 55267.0,
+            "minTotalDamage": 50528,
+            "maxTotalDamage": 56325,
+            "meanPerTarget": 18257.8,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.853
+          },
+          "5": {
+            "meanTotalDamage": 54323.77,
+            "medianTotalDamage": 54396.5,
+            "minTotalDamage": 50653,
+            "maxTotalDamage": 56325,
+            "meanPerTarget": 10864.75,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.603
+          },
+          "10": {
+            "meanTotalDamage": 54855.07,
+            "medianTotalDamage": 55204.5,
+            "minTotalDamage": 52268,
+            "maxTotalDamage": 56375,
+            "meanPerTarget": 5485.51,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.337
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 59439.27,
+            "medianTotalDamage": 59563.5,
+            "minTotalDamage": 58296,
+            "maxTotalDamage": 59576,
+            "meanPerTarget": 59439.27,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.328
+          },
+          "2": {
+            "meanTotalDamage": 59499.3,
+            "medianTotalDamage": 59576.0,
+            "minTotalDamage": 58321,
+            "maxTotalDamage": 59576,
+            "meanPerTarget": 29749.65,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.996
+          },
+          "3": {
+            "meanTotalDamage": 59529.23,
+            "medianTotalDamage": 59551.0,
+            "minTotalDamage": 59319,
+            "maxTotalDamage": 59576,
+            "meanPerTarget": 19843.08,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.776
+          },
+          "5": {
+            "meanTotalDamage": 59533.4,
+            "medianTotalDamage": 59563.5,
+            "minTotalDamage": 59344,
+            "maxTotalDamage": 59576,
+            "meanPerTarget": 11906.68,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.525
+          },
+          "10": {
+            "meanTotalDamage": 59551.37,
+            "medianTotalDamage": 59576.0,
+            "minTotalDamage": 59344,
+            "maxTotalDamage": 59576,
+            "meanPerTarget": 5955.14,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.296
+          }
+        }
+      }
+    },
+    {
+      "id": "char_020_thunder_magic_melee_dps",
+      "name": "惊兀蛊",
+      "attribute": "THUNDER",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 32500,
+            "medianTotalDamage": 32500.0,
+            "minTotalDamage": 32500,
+            "maxTotalDamage": 32500,
+            "meanPerTarget": 32500.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.956
+          },
+          "2": {
+            "meanTotalDamage": 55000,
+            "medianTotalDamage": 55000.0,
+            "minTotalDamage": 55000,
+            "maxTotalDamage": 55000,
+            "meanPerTarget": 27500.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.016
+          },
+          "3": {
+            "meanTotalDamage": 77500,
+            "medianTotalDamage": 77500.0,
+            "minTotalDamage": 77500,
+            "maxTotalDamage": 77500,
+            "meanPerTarget": 25833.33,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.207
+          },
+          "5": {
+            "meanTotalDamage": 122500,
+            "medianTotalDamage": 122500.0,
+            "minTotalDamage": 122500,
+            "maxTotalDamage": 122500,
+            "meanPerTarget": 24500.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.359
+          },
+          "10": {
+            "meanTotalDamage": 185000,
+            "medianTotalDamage": 185000.0,
+            "minTotalDamage": 185000,
+            "maxTotalDamage": 185000,
+            "meanPerTarget": 18500.0,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.137
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 32500,
+            "medianTotalDamage": 32500.0,
+            "minTotalDamage": 32500,
+            "maxTotalDamage": 32500,
+            "meanPerTarget": 32500.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.726
+          },
+          "2": {
+            "meanTotalDamage": 55000,
+            "medianTotalDamage": 55000.0,
+            "minTotalDamage": 55000,
+            "maxTotalDamage": 55000,
+            "meanPerTarget": 27500.0,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.921
+          },
+          "3": {
+            "meanTotalDamage": 77500,
+            "medianTotalDamage": 77500.0,
+            "minTotalDamage": 77500,
+            "maxTotalDamage": 77500,
+            "meanPerTarget": 25833.33,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.01
+          },
+          "5": {
+            "meanTotalDamage": 122500,
+            "medianTotalDamage": 122500.0,
+            "minTotalDamage": 122500,
+            "maxTotalDamage": 122500,
+            "meanPerTarget": 24500.0,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.08
+          },
+          "10": {
+            "meanTotalDamage": 185000,
+            "medianTotalDamage": 185000.0,
+            "minTotalDamage": 185000,
+            "maxTotalDamage": 185000,
+            "meanPerTarget": 18500.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.919
+          }
+        }
+      }
+    },
+    {
+      "id": "char_021_thunder_physical_ranged_dps",
+      "name": "折羽",
+      "attribute": "THUNDER",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 31750,
+            "medianTotalDamage": 31750.0,
+            "minTotalDamage": 31750,
+            "maxTotalDamage": 31750,
+            "meanPerTarget": 31750.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.934
+          },
+          "2": {
+            "meanTotalDamage": 43250,
+            "medianTotalDamage": 43250.0,
+            "minTotalDamage": 43250,
+            "maxTotalDamage": 43250,
+            "meanPerTarget": 21625.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.799
+          },
+          "3": {
+            "meanTotalDamage": 54750,
+            "medianTotalDamage": 54750.0,
+            "minTotalDamage": 54750,
+            "maxTotalDamage": 54750,
+            "meanPerTarget": 18250.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.853
+          },
+          "5": {
+            "meanTotalDamage": 77750,
+            "medianTotalDamage": 77750.0,
+            "minTotalDamage": 77750,
+            "maxTotalDamage": 77750,
+            "meanPerTarget": 15550.0,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.863
+          },
+          "10": {
+            "meanTotalDamage": 135250,
+            "medianTotalDamage": 135250.0,
+            "minTotalDamage": 135250,
+            "maxTotalDamage": 135250,
+            "meanPerTarget": 13525.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.831
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 31750,
+            "medianTotalDamage": 31750.0,
+            "minTotalDamage": 31750,
+            "maxTotalDamage": 31750,
+            "meanPerTarget": 31750.0,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.709
+          },
+          "2": {
+            "meanTotalDamage": 43250,
+            "medianTotalDamage": 43250.0,
+            "minTotalDamage": 43250,
+            "maxTotalDamage": 43250,
+            "meanPerTarget": 21625.0,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.724
+          },
+          "3": {
+            "meanTotalDamage": 54750,
+            "medianTotalDamage": 54750.0,
+            "minTotalDamage": 54750,
+            "maxTotalDamage": 54750,
+            "meanPerTarget": 18250.0,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.713
+          },
+          "5": {
+            "meanTotalDamage": 77750,
+            "medianTotalDamage": 77750.0,
+            "minTotalDamage": 77750,
+            "maxTotalDamage": 77750,
+            "meanPerTarget": 15550.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.686
+          },
+          "10": {
+            "meanTotalDamage": 135250,
+            "medianTotalDamage": 135250.0,
+            "minTotalDamage": 135250,
+            "maxTotalDamage": 135250,
+            "meanPerTarget": 13525.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.672
+          }
+        }
+      }
+    },
+    {
+      "id": "char_022_thunder_magic_ranged_dps",
+      "name": "夕元道人",
+      "attribute": "THUNDER",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 33550,
+            "medianTotalDamage": 33550.0,
+            "minTotalDamage": 33550,
+            "maxTotalDamage": 33550,
+            "meanPerTarget": 33550.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.987
+          },
+          "2": {
+            "meanTotalDamage": 35650,
+            "medianTotalDamage": 35650.0,
+            "minTotalDamage": 35650,
+            "maxTotalDamage": 35650,
+            "meanPerTarget": 17825.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.658
+          },
+          "3": {
+            "meanTotalDamage": 37750,
+            "medianTotalDamage": 37750.0,
+            "minTotalDamage": 37750,
+            "maxTotalDamage": 37750,
+            "meanPerTarget": 12583.33,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.588
+          },
+          "5": {
+            "meanTotalDamage": 41950,
+            "medianTotalDamage": 41950.0,
+            "minTotalDamage": 41950,
+            "maxTotalDamage": 41950,
+            "meanPerTarget": 8390.0,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.465
+          },
+          "10": {
+            "meanTotalDamage": 52450,
+            "medianTotalDamage": 52450.0,
+            "minTotalDamage": 52450,
+            "maxTotalDamage": 52450,
+            "meanPerTarget": 5245.0,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.322
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 44550,
+            "medianTotalDamage": 44550.0,
+            "minTotalDamage": 44550,
+            "maxTotalDamage": 44550,
+            "meanPerTarget": 44550.0,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.995
+          },
+          "2": {
+            "meanTotalDamage": 57650,
+            "medianTotalDamage": 57650.0,
+            "minTotalDamage": 57650,
+            "maxTotalDamage": 57650,
+            "meanPerTarget": 28825.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.965
+          },
+          "3": {
+            "meanTotalDamage": 70750,
+            "medianTotalDamage": 70750.0,
+            "minTotalDamage": 70750,
+            "maxTotalDamage": 70750,
+            "meanPerTarget": 23583.33,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.922
+          },
+          "5": {
+            "meanTotalDamage": 96950,
+            "medianTotalDamage": 96950.0,
+            "minTotalDamage": 96950,
+            "maxTotalDamage": 96950,
+            "meanPerTarget": 19390.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.855
+          },
+          "10": {
+            "meanTotalDamage": 162450,
+            "medianTotalDamage": 162450.0,
+            "minTotalDamage": 162450,
+            "maxTotalDamage": 162450,
+            "meanPerTarget": 16245.0,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.807
+          }
+        }
+      }
+    },
+    {
+      "id": "char_027_wind_physical_melee_dps",
+      "name": "淳于绝",
+      "attribute": "WIND",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 32400,
+            "medianTotalDamage": 31500.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 37500,
+            "meanPerTarget": 32400.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.953
+          },
+          "2": {
+            "meanTotalDamage": 32650,
+            "medianTotalDamage": 33000.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 36000,
+            "meanPerTarget": 16325.0,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.603
+          },
+          "3": {
+            "meanTotalDamage": 32500,
+            "medianTotalDamage": 32250.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 37500,
+            "meanPerTarget": 10833.33,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.506
+          },
+          "5": {
+            "meanTotalDamage": 32250,
+            "medianTotalDamage": 31500.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 36000,
+            "meanPerTarget": 6450.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.358
+          },
+          "10": {
+            "meanTotalDamage": 32500,
+            "medianTotalDamage": 32250.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 36000,
+            "meanPerTarget": 3250.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.2
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 32400,
+            "medianTotalDamage": 31500.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 37500,
+            "meanPerTarget": 32400.0,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.724
+          },
+          "2": {
+            "meanTotalDamage": 32650,
+            "medianTotalDamage": 33000.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 36000,
+            "meanPerTarget": 16325.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.546
+          },
+          "3": {
+            "meanTotalDamage": 32500,
+            "medianTotalDamage": 32250.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 37500,
+            "meanPerTarget": 10833.33,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.423
+          },
+          "5": {
+            "meanTotalDamage": 32250,
+            "medianTotalDamage": 31500.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 36000,
+            "meanPerTarget": 6450.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.284
+          },
+          "10": {
+            "meanTotalDamage": 32500,
+            "medianTotalDamage": 32250.0,
+            "minTotalDamage": 30000,
+            "maxTotalDamage": 36000,
+            "meanPerTarget": 3250.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.161
+          }
+        }
+      }
+    },
+    {
+      "id": "char_028_wind_magic_melee_dps",
+      "name": "闻微",
+      "attribute": "WIND",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 32940,
+            "medianTotalDamage": 32940.0,
+            "minTotalDamage": 32940,
+            "maxTotalDamage": 32940,
+            "meanPerTarget": 32940.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.969
+          },
+          "2": {
+            "meanTotalDamage": 32940,
+            "medianTotalDamage": 32940.0,
+            "minTotalDamage": 32940,
+            "maxTotalDamage": 32940,
+            "meanPerTarget": 16470.0,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.608
+          },
+          "3": {
+            "meanTotalDamage": 32940,
+            "medianTotalDamage": 32940.0,
+            "minTotalDamage": 32940,
+            "maxTotalDamage": 32940,
+            "meanPerTarget": 10980.0,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.513
+          },
+          "5": {
+            "meanTotalDamage": 32940,
+            "medianTotalDamage": 32940.0,
+            "minTotalDamage": 32940,
+            "maxTotalDamage": 32940,
+            "meanPerTarget": 6588.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.365
+          },
+          "10": {
+            "meanTotalDamage": 32940,
+            "medianTotalDamage": 32940.0,
+            "minTotalDamage": 32940,
+            "maxTotalDamage": 32940,
+            "meanPerTarget": 3294.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.202
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 223067,
+            "medianTotalDamage": 223067.0,
+            "minTotalDamage": 223067,
+            "maxTotalDamage": 223067,
+            "meanPerTarget": 223067.0,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 4.982
+          },
+          "2": {
+            "meanTotalDamage": 223067,
+            "medianTotalDamage": 223067.0,
+            "minTotalDamage": 223067,
+            "maxTotalDamage": 223067,
+            "meanPerTarget": 111533.5,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 3.733
+          },
+          "3": {
+            "meanTotalDamage": 223067,
+            "medianTotalDamage": 223067.0,
+            "minTotalDamage": 223067,
+            "maxTotalDamage": 223067,
+            "meanPerTarget": 74355.67,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 2.906
+          },
+          "5": {
+            "meanTotalDamage": 223067,
+            "medianTotalDamage": 223067.0,
+            "minTotalDamage": 223067,
+            "maxTotalDamage": 223067,
+            "meanPerTarget": 44613.4,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 1.967
+          },
+          "10": {
+            "meanTotalDamage": 223067,
+            "medianTotalDamage": 223067.0,
+            "minTotalDamage": 223067,
+            "maxTotalDamage": 223067,
+            "meanPerTarget": 22306.7,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.108
+          }
+        }
+      }
+    },
+    {
+      "id": "char_029_wind_physical_ranged_dps",
+      "name": "暮岑归",
+      "attribute": "WIND",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 54000,
+            "medianTotalDamage": 54000.0,
+            "minTotalDamage": 54000,
+            "maxTotalDamage": 54000,
+            "meanPerTarget": 54000.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.588
+          },
+          "2": {
+            "meanTotalDamage": 93000,
+            "medianTotalDamage": 93000.0,
+            "minTotalDamage": 93000,
+            "maxTotalDamage": 93000,
+            "meanPerTarget": 46500.0,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 1.718
+          },
+          "3": {
+            "meanTotalDamage": 132000,
+            "medianTotalDamage": 132000.0,
+            "minTotalDamage": 132000,
+            "maxTotalDamage": 132000,
+            "meanPerTarget": 44000.0,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 2.055
+          },
+          "5": {
+            "meanTotalDamage": 210000,
+            "medianTotalDamage": 210000.0,
+            "minTotalDamage": 210000,
+            "maxTotalDamage": 210000,
+            "meanPerTarget": 42000.0,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 2.33
+          },
+          "10": {
+            "meanTotalDamage": 405000,
+            "medianTotalDamage": 405000.0,
+            "minTotalDamage": 405000,
+            "maxTotalDamage": 405000,
+            "meanPerTarget": 40500.0,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 2.489
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 54000,
+            "medianTotalDamage": 54000.0,
+            "minTotalDamage": 54000,
+            "maxTotalDamage": 54000,
+            "meanPerTarget": 54000.0,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.206
+          },
+          "2": {
+            "meanTotalDamage": 93000,
+            "medianTotalDamage": 93000.0,
+            "minTotalDamage": 93000,
+            "maxTotalDamage": 93000,
+            "meanPerTarget": 46500.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.556
+          },
+          "3": {
+            "meanTotalDamage": 132000,
+            "medianTotalDamage": 132000.0,
+            "minTotalDamage": 132000,
+            "maxTotalDamage": 132000,
+            "meanPerTarget": 44000.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 1.72
+          },
+          "5": {
+            "meanTotalDamage": 210000,
+            "medianTotalDamage": 210000.0,
+            "minTotalDamage": 210000,
+            "maxTotalDamage": 210000,
+            "meanPerTarget": 42000.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 1.852
+          },
+          "10": {
+            "meanTotalDamage": 405000,
+            "medianTotalDamage": 405000.0,
+            "minTotalDamage": 405000,
+            "maxTotalDamage": 405000,
+            "meanPerTarget": 40500.0,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 2.012
+          }
+        }
+      }
+    },
+    {
+      "id": "char_030_wind_magic_ranged_dps",
+      "name": "闻时止",
+      "attribute": "WIND",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 35200,
+            "medianTotalDamage": 35200.0,
+            "minTotalDamage": 35200,
+            "maxTotalDamage": 35200,
+            "meanPerTarget": 35200.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.035
+          },
+          "2": {
+            "meanTotalDamage": 70400,
+            "medianTotalDamage": 70400.0,
+            "minTotalDamage": 70400,
+            "maxTotalDamage": 70400,
+            "meanPerTarget": 35200.0,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.3
+          },
+          "3": {
+            "meanTotalDamage": 105600,
+            "medianTotalDamage": 105600.0,
+            "minTotalDamage": 105600,
+            "maxTotalDamage": 105600,
+            "meanPerTarget": 35200.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.644
+          },
+          "5": {
+            "meanTotalDamage": 176000,
+            "medianTotalDamage": 176000.0,
+            "minTotalDamage": 176000,
+            "maxTotalDamage": 176000,
+            "meanPerTarget": 35200.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.953
+          },
+          "10": {
+            "meanTotalDamage": 352000,
+            "medianTotalDamage": 352000.0,
+            "minTotalDamage": 352000,
+            "maxTotalDamage": 352000,
+            "meanPerTarget": 35200.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 2.163
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 35200,
+            "medianTotalDamage": 35200.0,
+            "minTotalDamage": 35200,
+            "maxTotalDamage": 35200,
+            "meanPerTarget": 35200.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.786
+          },
+          "2": {
+            "meanTotalDamage": 70400,
+            "medianTotalDamage": 70400.0,
+            "minTotalDamage": 70400,
+            "maxTotalDamage": 70400,
+            "meanPerTarget": 35200.0,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.178
+          },
+          "3": {
+            "meanTotalDamage": 105600,
+            "medianTotalDamage": 105600.0,
+            "minTotalDamage": 105600,
+            "maxTotalDamage": 105600,
+            "meanPerTarget": 35200.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.376
+          },
+          "5": {
+            "meanTotalDamage": 176000,
+            "medianTotalDamage": 176000.0,
+            "minTotalDamage": 176000,
+            "maxTotalDamage": 176000,
+            "meanPerTarget": 35200.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.552
+          },
+          "10": {
+            "meanTotalDamage": 352000,
+            "medianTotalDamage": 352000.0,
+            "minTotalDamage": 352000,
+            "maxTotalDamage": 352000,
+            "meanPerTarget": 35200.0,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.748
+          }
+        }
+      }
+    },
+    {
+      "id": "char_035_fire_physical_melee_dps",
+      "name": "赤螭",
+      "attribute": "FIRE",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 67043.47,
+            "medianTotalDamage": 66264.0,
+            "minTotalDamage": 64469,
+            "maxTotalDamage": 72016,
+            "meanPerTarget": 67043.47,
+            "rank": 1,
+            "percentile": 98.4,
+            "ratioToDpsMedian": 1.972
+          },
+          "2": {
+            "meanTotalDamage": 77355.13,
+            "medianTotalDamage": 76786.5,
+            "minTotalDamage": 74469,
+            "maxTotalDamage": 83293,
+            "meanPerTarget": 38677.57,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.429
+          },
+          "3": {
+            "meanTotalDamage": 88064.43,
+            "medianTotalDamage": 87926.5,
+            "minTotalDamage": 85819,
+            "maxTotalDamage": 92111,
+            "meanPerTarget": 29354.81,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.371
+          },
+          "5": {
+            "meanTotalDamage": 109055.9,
+            "medianTotalDamage": 108749.0,
+            "minTotalDamage": 106169,
+            "maxTotalDamage": 112856,
+            "meanPerTarget": 21811.18,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.21
+          },
+          "10": {
+            "meanTotalDamage": 161829.4,
+            "medianTotalDamage": 160949.0,
+            "minTotalDamage": 156769,
+            "maxTotalDamage": 169091,
+            "meanPerTarget": 16182.94,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.995
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 67043.47,
+            "medianTotalDamage": 66264.0,
+            "minTotalDamage": 64469,
+            "maxTotalDamage": 72016,
+            "meanPerTarget": 67043.47,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.497
+          },
+          "2": {
+            "meanTotalDamage": 77355.13,
+            "medianTotalDamage": 76786.5,
+            "minTotalDamage": 74469,
+            "maxTotalDamage": 83293,
+            "meanPerTarget": 38677.57,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.295
+          },
+          "3": {
+            "meanTotalDamage": 88064.43,
+            "medianTotalDamage": 87926.5,
+            "minTotalDamage": 85819,
+            "maxTotalDamage": 92111,
+            "meanPerTarget": 29354.81,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.147
+          },
+          "5": {
+            "meanTotalDamage": 109055.9,
+            "medianTotalDamage": 108749.0,
+            "minTotalDamage": 106169,
+            "maxTotalDamage": 112856,
+            "meanPerTarget": 21811.18,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.962
+          },
+          "10": {
+            "meanTotalDamage": 161829.4,
+            "medianTotalDamage": 160949.0,
+            "minTotalDamage": 156769,
+            "maxTotalDamage": 169091,
+            "meanPerTarget": 16182.94,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.804
+          }
+        }
+      }
+    },
+    {
+      "id": "char_036_fire_magic_melee_dps",
+      "name": "喜诛",
+      "attribute": "FIRE",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 57135.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 1.68
+          },
+          "2": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 28567.5,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.055
+          },
+          "3": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 19045.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.89
+          },
+          "5": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 11427.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.634
+          },
+          "10": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 5713.5,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.351
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 57135.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.276
+          },
+          "2": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 28567.5,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.956
+          },
+          "3": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 19045.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.744
+          },
+          "5": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 11427.0,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.504
+          },
+          "10": {
+            "meanTotalDamage": 57135,
+            "medianTotalDamage": 57135.0,
+            "minTotalDamage": 57135,
+            "maxTotalDamage": 57135,
+            "meanPerTarget": 5713.5,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.284
+          }
+        }
+      }
+    },
+    {
+      "id": "char_037_fire_physical_ranged_dps",
+      "name": "炷微",
+      "attribute": "FIRE",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 46000,
+            "medianTotalDamage": 46000.0,
+            "minTotalDamage": 46000,
+            "maxTotalDamage": 46000,
+            "meanPerTarget": 46000.0,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.353
+          },
+          "2": {
+            "meanTotalDamage": 83000,
+            "medianTotalDamage": 83000.0,
+            "minTotalDamage": 83000,
+            "maxTotalDamage": 83000,
+            "meanPerTarget": 41500.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 1.533
+          },
+          "3": {
+            "meanTotalDamage": 120000,
+            "medianTotalDamage": 120000.0,
+            "minTotalDamage": 120000,
+            "maxTotalDamage": 120000,
+            "meanPerTarget": 40000.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 1.869
+          },
+          "5": {
+            "meanTotalDamage": 194000,
+            "medianTotalDamage": 194000.0,
+            "minTotalDamage": 194000,
+            "maxTotalDamage": 194000,
+            "meanPerTarget": 38800.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 2.153
+          },
+          "10": {
+            "meanTotalDamage": 379000,
+            "medianTotalDamage": 379000.0,
+            "minTotalDamage": 379000,
+            "maxTotalDamage": 379000,
+            "meanPerTarget": 37900.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 2.329
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 46000,
+            "medianTotalDamage": 46000.0,
+            "minTotalDamage": 46000,
+            "maxTotalDamage": 46000,
+            "meanPerTarget": 46000.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.027
+          },
+          "2": {
+            "meanTotalDamage": 83000,
+            "medianTotalDamage": 83000.0,
+            "minTotalDamage": 83000,
+            "maxTotalDamage": 83000,
+            "meanPerTarget": 41500.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.389
+          },
+          "3": {
+            "meanTotalDamage": 120000,
+            "medianTotalDamage": 120000.0,
+            "minTotalDamage": 120000,
+            "maxTotalDamage": 120000,
+            "meanPerTarget": 40000.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.564
+          },
+          "5": {
+            "meanTotalDamage": 194000,
+            "medianTotalDamage": 194000.0,
+            "minTotalDamage": 194000,
+            "maxTotalDamage": 194000,
+            "meanPerTarget": 38800.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.711
+          },
+          "10": {
+            "meanTotalDamage": 379000,
+            "medianTotalDamage": 379000.0,
+            "minTotalDamage": 379000,
+            "maxTotalDamage": 379000,
+            "meanPerTarget": 37900.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 1.883
+          }
+        }
+      }
+    },
+    {
+      "id": "char_038_fire_magic_ranged_dps",
+      "name": "金翎",
+      "attribute": "FIRE",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 47000,
+            "medianTotalDamage": 47000.0,
+            "minTotalDamage": 47000,
+            "maxTotalDamage": 47000,
+            "meanPerTarget": 47000.0,
+            "rank": 9,
+            "percentile": 71.9,
+            "ratioToDpsMedian": 1.382
+          },
+          "2": {
+            "meanTotalDamage": 82500,
+            "medianTotalDamage": 82500.0,
+            "minTotalDamage": 82500,
+            "maxTotalDamage": 82500,
+            "meanPerTarget": 41250.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.524
+          },
+          "3": {
+            "meanTotalDamage": 76000,
+            "medianTotalDamage": 76000.0,
+            "minTotalDamage": 76000,
+            "maxTotalDamage": 76000,
+            "meanPerTarget": 25333.33,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.183
+          },
+          "5": {
+            "meanTotalDamage": 119000,
+            "medianTotalDamage": 119000.0,
+            "minTotalDamage": 119000,
+            "maxTotalDamage": 119000,
+            "meanPerTarget": 23800.0,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.32
+          },
+          "10": {
+            "meanTotalDamage": 226500,
+            "medianTotalDamage": 226500.0,
+            "minTotalDamage": 226500,
+            "maxTotalDamage": 226500,
+            "meanPerTarget": 22650.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.392
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 47000,
+            "medianTotalDamage": 47000.0,
+            "minTotalDamage": 47000,
+            "maxTotalDamage": 47000,
+            "meanPerTarget": 47000.0,
+            "rank": 13,
+            "percentile": 59.4,
+            "ratioToDpsMedian": 1.05
+          },
+          "2": {
+            "meanTotalDamage": 82500,
+            "medianTotalDamage": 82500.0,
+            "minTotalDamage": 82500,
+            "maxTotalDamage": 82500,
+            "meanPerTarget": 41250.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.381
+          },
+          "3": {
+            "meanTotalDamage": 76000,
+            "medianTotalDamage": 76000.0,
+            "minTotalDamage": 76000,
+            "maxTotalDamage": 76000,
+            "meanPerTarget": 25333.33,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.99
+          },
+          "5": {
+            "meanTotalDamage": 119000,
+            "medianTotalDamage": 119000.0,
+            "minTotalDamage": 119000,
+            "maxTotalDamage": 119000,
+            "meanPerTarget": 23800.0,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.049
+          },
+          "10": {
+            "meanTotalDamage": 226500,
+            "medianTotalDamage": 226500.0,
+            "minTotalDamage": 226500,
+            "maxTotalDamage": 226500,
+            "meanPerTarget": 22650.0,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.125
+          }
+        }
+      }
+    },
+    {
+      "id": "char_043_wood_physical_melee_dps",
+      "name": "参御",
+      "attribute": "WOOD",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 40500,
+            "medianTotalDamage": 40500.0,
+            "minTotalDamage": 40500,
+            "maxTotalDamage": 40500,
+            "meanPerTarget": 40500.0,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.191
+          },
+          "2": {
+            "meanTotalDamage": 47000,
+            "medianTotalDamage": 47000.0,
+            "minTotalDamage": 47000,
+            "maxTotalDamage": 47000,
+            "meanPerTarget": 23500.0,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.868
+          },
+          "3": {
+            "meanTotalDamage": 53500,
+            "medianTotalDamage": 53500.0,
+            "minTotalDamage": 53500,
+            "maxTotalDamage": 53500,
+            "meanPerTarget": 17833.33,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.833
+          },
+          "5": {
+            "meanTotalDamage": 66500,
+            "medianTotalDamage": 66500.0,
+            "minTotalDamage": 66500,
+            "maxTotalDamage": 66500,
+            "meanPerTarget": 13300.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.738
+          },
+          "10": {
+            "meanTotalDamage": 99000,
+            "medianTotalDamage": 99000.0,
+            "minTotalDamage": 99000,
+            "maxTotalDamage": 99000,
+            "meanPerTarget": 9900.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.608
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 74250,
+            "medianTotalDamage": 74250.0,
+            "minTotalDamage": 74250,
+            "maxTotalDamage": 74250,
+            "meanPerTarget": 74250.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.658
+          },
+          "2": {
+            "meanTotalDamage": 80750,
+            "medianTotalDamage": 80750.0,
+            "minTotalDamage": 80750,
+            "maxTotalDamage": 80750,
+            "meanPerTarget": 40375.0,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.351
+          },
+          "3": {
+            "meanTotalDamage": 87250,
+            "medianTotalDamage": 87250.0,
+            "minTotalDamage": 87250,
+            "maxTotalDamage": 87250,
+            "meanPerTarget": 29083.33,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.137
+          },
+          "5": {
+            "meanTotalDamage": 100250,
+            "medianTotalDamage": 100250.0,
+            "minTotalDamage": 100250,
+            "maxTotalDamage": 100250,
+            "meanPerTarget": 20050.0,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.884
+          },
+          "10": {
+            "meanTotalDamage": 132750,
+            "medianTotalDamage": 132750.0,
+            "minTotalDamage": 132750,
+            "maxTotalDamage": 132750,
+            "meanPerTarget": 13275.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.659
+          }
+        }
+      }
+    },
+    {
+      "id": "char_044_wood_magic_melee_dps",
+      "name": "梧隐",
+      "attribute": "WOOD",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 21710,
+            "medianTotalDamage": 21710.0,
+            "minTotalDamage": 21710,
+            "maxTotalDamage": 21710,
+            "meanPerTarget": 21710.0,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.639
+          },
+          "2": {
+            "meanTotalDamage": 26710,
+            "medianTotalDamage": 26710.0,
+            "minTotalDamage": 26710,
+            "maxTotalDamage": 26710,
+            "meanPerTarget": 13355.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.493
+          },
+          "3": {
+            "meanTotalDamage": 31710,
+            "medianTotalDamage": 31710.0,
+            "minTotalDamage": 31710,
+            "maxTotalDamage": 31710,
+            "meanPerTarget": 10570.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.494
+          },
+          "5": {
+            "meanTotalDamage": 41710,
+            "medianTotalDamage": 41710.0,
+            "minTotalDamage": 41710,
+            "maxTotalDamage": 41710,
+            "meanPerTarget": 8342.0,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.463
+          },
+          "10": {
+            "meanTotalDamage": 66710,
+            "medianTotalDamage": 66710.0,
+            "minTotalDamage": 66710,
+            "maxTotalDamage": 66710,
+            "meanPerTarget": 6671.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.41
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 32941,
+            "medianTotalDamage": 32941.0,
+            "minTotalDamage": 32941,
+            "maxTotalDamage": 32941,
+            "meanPerTarget": 32941.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.736
+          },
+          "2": {
+            "meanTotalDamage": 37941,
+            "medianTotalDamage": 37941.0,
+            "minTotalDamage": 37941,
+            "maxTotalDamage": 37941,
+            "meanPerTarget": 18970.5,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.635
+          },
+          "3": {
+            "meanTotalDamage": 42941,
+            "medianTotalDamage": 42941.0,
+            "minTotalDamage": 42941,
+            "maxTotalDamage": 42941,
+            "meanPerTarget": 14313.67,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.559
+          },
+          "5": {
+            "meanTotalDamage": 52941,
+            "medianTotalDamage": 52941.0,
+            "minTotalDamage": 52941,
+            "maxTotalDamage": 52941,
+            "meanPerTarget": 10588.2,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.467
+          },
+          "10": {
+            "meanTotalDamage": 77941,
+            "medianTotalDamage": 77941.0,
+            "minTotalDamage": 77941,
+            "maxTotalDamage": 77941,
+            "meanPerTarget": 7794.1,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.387
+          }
+        }
+      }
+    },
+    {
+      "id": "char_045_wood_physical_ranged_dps",
+      "name": "景明",
+      "attribute": "WOOD",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 22000,
+            "medianTotalDamage": 22000.0,
+            "minTotalDamage": 22000,
+            "maxTotalDamage": 22000,
+            "meanPerTarget": 22000.0,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.647
+          },
+          "2": {
+            "meanTotalDamage": 34000,
+            "medianTotalDamage": 34000.0,
+            "minTotalDamage": 34000,
+            "maxTotalDamage": 34000,
+            "meanPerTarget": 17000.0,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.628
+          },
+          "3": {
+            "meanTotalDamage": 46000,
+            "medianTotalDamage": 46000.0,
+            "minTotalDamage": 46000,
+            "maxTotalDamage": 46000,
+            "meanPerTarget": 15333.33,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.716
+          },
+          "5": {
+            "meanTotalDamage": 70000,
+            "medianTotalDamage": 70000.0,
+            "minTotalDamage": 70000,
+            "maxTotalDamage": 70000,
+            "meanPerTarget": 14000.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.777
+          },
+          "10": {
+            "meanTotalDamage": 130000,
+            "medianTotalDamage": 130000.0,
+            "minTotalDamage": 130000,
+            "maxTotalDamage": 130000,
+            "meanPerTarget": 13000.0,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.799
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 34000,
+            "medianTotalDamage": 34000.0,
+            "minTotalDamage": 34000,
+            "maxTotalDamage": 34000,
+            "meanPerTarget": 34000.0,
+            "rank": 20,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.759
+          },
+          "2": {
+            "meanTotalDamage": 46000,
+            "medianTotalDamage": 46000.0,
+            "minTotalDamage": 46000,
+            "maxTotalDamage": 46000,
+            "meanPerTarget": 23000.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.77
+          },
+          "3": {
+            "meanTotalDamage": 58000,
+            "medianTotalDamage": 58000.0,
+            "minTotalDamage": 58000,
+            "maxTotalDamage": 58000,
+            "meanPerTarget": 19333.33,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.756
+          },
+          "5": {
+            "meanTotalDamage": 82000,
+            "medianTotalDamage": 82000.0,
+            "minTotalDamage": 82000,
+            "maxTotalDamage": 82000,
+            "meanPerTarget": 16400.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.723
+          },
+          "10": {
+            "meanTotalDamage": 142000,
+            "medianTotalDamage": 142000.0,
+            "minTotalDamage": 142000,
+            "maxTotalDamage": 142000,
+            "meanPerTarget": 14200.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.705
+          }
+        }
+      }
+    },
+    {
+      "id": "char_046_wood_magic_ranged_dps",
+      "name": "寄微",
+      "attribute": "WOOD",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 13400,
+            "medianTotalDamage": 13400.0,
+            "minTotalDamage": 13400,
+            "maxTotalDamage": 13400,
+            "meanPerTarget": 13400.0,
+            "rank": 32,
+            "percentile": 1.6,
+            "ratioToDpsMedian": 0.394
+          },
+          "2": {
+            "meanTotalDamage": 26800,
+            "medianTotalDamage": 26800.0,
+            "minTotalDamage": 26800,
+            "maxTotalDamage": 26800,
+            "meanPerTarget": 13400.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.495
+          },
+          "3": {
+            "meanTotalDamage": 40200,
+            "medianTotalDamage": 40200.0,
+            "minTotalDamage": 40200,
+            "maxTotalDamage": 40200,
+            "meanPerTarget": 13400.0,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.626
+          },
+          "5": {
+            "meanTotalDamage": 67000,
+            "medianTotalDamage": 67000.0,
+            "minTotalDamage": 67000,
+            "maxTotalDamage": 67000,
+            "meanPerTarget": 13400.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.743
+          },
+          "10": {
+            "meanTotalDamage": 107000,
+            "medianTotalDamage": 107000.0,
+            "minTotalDamage": 107000,
+            "maxTotalDamage": 107000,
+            "meanPerTarget": 10700.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.658
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 22836,
+            "medianTotalDamage": 22836.0,
+            "minTotalDamage": 22836,
+            "maxTotalDamage": 22836,
+            "meanPerTarget": 22836.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.51
+          },
+          "2": {
+            "meanTotalDamage": 45672,
+            "medianTotalDamage": 45672.0,
+            "minTotalDamage": 45672,
+            "maxTotalDamage": 45672,
+            "meanPerTarget": 22836.0,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.764
+          },
+          "3": {
+            "meanTotalDamage": 68508,
+            "medianTotalDamage": 68508.0,
+            "minTotalDamage": 68508,
+            "maxTotalDamage": 68508,
+            "meanPerTarget": 22836.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.893
+          },
+          "5": {
+            "meanTotalDamage": 114180,
+            "medianTotalDamage": 114180.0,
+            "minTotalDamage": 114180,
+            "maxTotalDamage": 114180,
+            "meanPerTarget": 22836.0,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.007
+          },
+          "10": {
+            "meanTotalDamage": 173550,
+            "medianTotalDamage": 173550.0,
+            "minTotalDamage": 173550,
+            "maxTotalDamage": 173550,
+            "meanPerTarget": 17355.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.862
+          }
+        }
+      }
+    },
+    {
+      "id": "char_051_light_physical_melee_dps",
+      "name": "齐哲伊",
+      "attribute": "LIGHT",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 47000,
+            "medianTotalDamage": 47000.0,
+            "minTotalDamage": 47000,
+            "maxTotalDamage": 47000,
+            "meanPerTarget": 47000.0,
+            "rank": 10,
+            "percentile": 71.9,
+            "ratioToDpsMedian": 1.382
+          },
+          "2": {
+            "meanTotalDamage": 64000,
+            "medianTotalDamage": 64000.0,
+            "minTotalDamage": 64000,
+            "maxTotalDamage": 64000,
+            "meanPerTarget": 32000.0,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.182
+          },
+          "3": {
+            "meanTotalDamage": 81000,
+            "medianTotalDamage": 81000.0,
+            "minTotalDamage": 81000,
+            "maxTotalDamage": 81000,
+            "meanPerTarget": 27000.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.261
+          },
+          "5": {
+            "meanTotalDamage": 115000,
+            "medianTotalDamage": 115000.0,
+            "minTotalDamage": 115000,
+            "maxTotalDamage": 115000,
+            "meanPerTarget": 23000.0,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.276
+          },
+          "10": {
+            "meanTotalDamage": 200000,
+            "medianTotalDamage": 200000.0,
+            "minTotalDamage": 200000,
+            "maxTotalDamage": 200000,
+            "meanPerTarget": 20000.0,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.229
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 47000,
+            "medianTotalDamage": 47000.0,
+            "minTotalDamage": 47000,
+            "maxTotalDamage": 47000,
+            "meanPerTarget": 47000.0,
+            "rank": 14,
+            "percentile": 59.4,
+            "ratioToDpsMedian": 1.05
+          },
+          "2": {
+            "meanTotalDamage": 64000,
+            "medianTotalDamage": 64000.0,
+            "minTotalDamage": 64000,
+            "maxTotalDamage": 64000,
+            "meanPerTarget": 32000.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.071
+          },
+          "3": {
+            "meanTotalDamage": 81000,
+            "medianTotalDamage": 81000.0,
+            "minTotalDamage": 81000,
+            "maxTotalDamage": 81000,
+            "meanPerTarget": 27000.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.055
+          },
+          "5": {
+            "meanTotalDamage": 115000,
+            "medianTotalDamage": 115000.0,
+            "minTotalDamage": 115000,
+            "maxTotalDamage": 115000,
+            "meanPerTarget": 23000.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.014
+          },
+          "10": {
+            "meanTotalDamage": 200000,
+            "medianTotalDamage": 200000.0,
+            "minTotalDamage": 200000,
+            "maxTotalDamage": 200000,
+            "meanPerTarget": 20000.0,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.993
+          }
+        }
+      }
+    },
+    {
+      "id": "char_052_light_magic_melee_dps",
+      "name": "齐昱思",
+      "attribute": "LIGHT",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 47940,
+            "medianTotalDamage": 47940.0,
+            "minTotalDamage": 47940,
+            "maxTotalDamage": 47940,
+            "meanPerTarget": 47940.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.41
+          },
+          "2": {
+            "meanTotalDamage": 54940,
+            "medianTotalDamage": 54940.0,
+            "minTotalDamage": 54940,
+            "maxTotalDamage": 54940,
+            "meanPerTarget": 27470.0,
+            "rank": 15,
+            "percentile": 54.7,
+            "ratioToDpsMedian": 1.015
+          },
+          "3": {
+            "meanTotalDamage": 61940,
+            "medianTotalDamage": 61940.0,
+            "minTotalDamage": 61940,
+            "maxTotalDamage": 61940,
+            "meanPerTarget": 20646.67,
+            "rank": 17,
+            "percentile": 48.4,
+            "ratioToDpsMedian": 0.964
+          },
+          "5": {
+            "meanTotalDamage": 75940,
+            "medianTotalDamage": 75940.0,
+            "minTotalDamage": 75940,
+            "maxTotalDamage": 75940,
+            "meanPerTarget": 15188.0,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.843
+          },
+          "10": {
+            "meanTotalDamage": 110940,
+            "medianTotalDamage": 110940.0,
+            "minTotalDamage": 110940,
+            "maxTotalDamage": 110940,
+            "meanPerTarget": 11094.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.682
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 109138,
+            "medianTotalDamage": 109138.0,
+            "minTotalDamage": 109138,
+            "maxTotalDamage": 109138,
+            "meanPerTarget": 109138.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 2.437
+          },
+          "2": {
+            "meanTotalDamage": 119528,
+            "medianTotalDamage": 119528.0,
+            "minTotalDamage": 119528,
+            "maxTotalDamage": 119528,
+            "meanPerTarget": 59764.0,
+            "rank": 2,
+            "percentile": 95.3,
+            "ratioToDpsMedian": 2.0
+          },
+          "3": {
+            "meanTotalDamage": 129918,
+            "medianTotalDamage": 129918.0,
+            "minTotalDamage": 129918,
+            "maxTotalDamage": 129918,
+            "meanPerTarget": 43306.0,
+            "rank": 3,
+            "percentile": 92.2,
+            "ratioToDpsMedian": 1.693
+          },
+          "5": {
+            "meanTotalDamage": 150698,
+            "medianTotalDamage": 150698.0,
+            "minTotalDamage": 150698,
+            "maxTotalDamage": 150698,
+            "meanPerTarget": 30139.6,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.329
+          },
+          "10": {
+            "meanTotalDamage": 202648,
+            "medianTotalDamage": 202648.0,
+            "minTotalDamage": 202648,
+            "maxTotalDamage": 202648,
+            "meanPerTarget": 20264.8,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.007
+          }
+        }
+      }
+    },
+    {
+      "id": "char_053_light_physical_ranged_dps",
+      "name": "刘白",
+      "attribute": "LIGHT",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 34000,
+            "medianTotalDamage": 34000.0,
+            "minTotalDamage": 34000,
+            "maxTotalDamage": 34000,
+            "meanPerTarget": 34000.0,
+            "rank": 16,
+            "percentile": 50.0,
+            "ratioToDpsMedian": 1.0
+          },
+          "2": {
+            "meanTotalDamage": 68000,
+            "medianTotalDamage": 68000.0,
+            "minTotalDamage": 68000,
+            "maxTotalDamage": 68000,
+            "meanPerTarget": 34000.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.256
+          },
+          "3": {
+            "meanTotalDamage": 102000,
+            "medianTotalDamage": 102000.0,
+            "minTotalDamage": 102000,
+            "maxTotalDamage": 102000,
+            "meanPerTarget": 34000.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.588
+          },
+          "5": {
+            "meanTotalDamage": 170000,
+            "medianTotalDamage": 170000.0,
+            "minTotalDamage": 170000,
+            "maxTotalDamage": 170000,
+            "meanPerTarget": 34000.0,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.886
+          },
+          "10": {
+            "meanTotalDamage": 265000,
+            "medianTotalDamage": 265000.0,
+            "minTotalDamage": 265000,
+            "maxTotalDamage": 265000,
+            "meanPerTarget": 26500.0,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.629
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 34000,
+            "medianTotalDamage": 34000.0,
+            "minTotalDamage": 34000,
+            "maxTotalDamage": 34000,
+            "meanPerTarget": 34000.0,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.759
+          },
+          "2": {
+            "meanTotalDamage": 68000,
+            "medianTotalDamage": 68000.0,
+            "minTotalDamage": 68000,
+            "maxTotalDamage": 68000,
+            "meanPerTarget": 34000.0,
+            "rank": 13,
+            "percentile": 60.9,
+            "ratioToDpsMedian": 1.138
+          },
+          "3": {
+            "meanTotalDamage": 102000,
+            "medianTotalDamage": 102000.0,
+            "minTotalDamage": 102000,
+            "maxTotalDamage": 102000,
+            "meanPerTarget": 34000.0,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.329
+          },
+          "5": {
+            "meanTotalDamage": 170000,
+            "medianTotalDamage": 170000.0,
+            "minTotalDamage": 170000,
+            "maxTotalDamage": 170000,
+            "meanPerTarget": 34000.0,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.499
+          },
+          "10": {
+            "meanTotalDamage": 265000,
+            "medianTotalDamage": 265000.0,
+            "minTotalDamage": 265000,
+            "maxTotalDamage": 265000,
+            "meanPerTarget": 26500.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.316
+          }
+        }
+      }
+    },
+    {
+      "id": "char_054_light_magic_ranged_dps",
+      "name": "溯净",
+      "attribute": "LIGHT",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 34000,
+            "medianTotalDamage": 34000.0,
+            "minTotalDamage": 34000,
+            "maxTotalDamage": 34000,
+            "meanPerTarget": 34000.0,
+            "rank": 17,
+            "percentile": 50.0,
+            "ratioToDpsMedian": 1.0
+          },
+          "2": {
+            "meanTotalDamage": 60000,
+            "medianTotalDamage": 60000.0,
+            "minTotalDamage": 60000,
+            "maxTotalDamage": 60000,
+            "meanPerTarget": 30000.0,
+            "rank": 10,
+            "percentile": 70.3,
+            "ratioToDpsMedian": 1.108
+          },
+          "3": {
+            "meanTotalDamage": 86000,
+            "medianTotalDamage": 86000.0,
+            "minTotalDamage": 86000,
+            "maxTotalDamage": 86000,
+            "meanPerTarget": 28666.67,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.339
+          },
+          "5": {
+            "meanTotalDamage": 138000,
+            "medianTotalDamage": 138000.0,
+            "minTotalDamage": 138000,
+            "maxTotalDamage": 138000,
+            "meanPerTarget": 27600.0,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.531
+          },
+          "10": {
+            "meanTotalDamage": 268000,
+            "medianTotalDamage": 268000.0,
+            "minTotalDamage": 268000,
+            "maxTotalDamage": 268000,
+            "meanPerTarget": 26800.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.647
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 34000,
+            "medianTotalDamage": 34000.0,
+            "minTotalDamage": 34000,
+            "maxTotalDamage": 34000,
+            "meanPerTarget": 34000.0,
+            "rank": 22,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.759
+          },
+          "2": {
+            "meanTotalDamage": 60000,
+            "medianTotalDamage": 60000.0,
+            "minTotalDamage": 60000,
+            "maxTotalDamage": 60000,
+            "meanPerTarget": 30000.0,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.004
+          },
+          "3": {
+            "meanTotalDamage": 86000,
+            "medianTotalDamage": 86000.0,
+            "minTotalDamage": 86000,
+            "maxTotalDamage": 86000,
+            "meanPerTarget": 28666.67,
+            "rank": 14,
+            "percentile": 57.8,
+            "ratioToDpsMedian": 1.121
+          },
+          "5": {
+            "meanTotalDamage": 138000,
+            "medianTotalDamage": 138000.0,
+            "minTotalDamage": 138000,
+            "maxTotalDamage": 138000,
+            "meanPerTarget": 27600.0,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.217
+          },
+          "10": {
+            "meanTotalDamage": 268000,
+            "medianTotalDamage": 268000.0,
+            "minTotalDamage": 268000,
+            "maxTotalDamage": 268000,
+            "meanPerTarget": 26800.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.331
+          }
+        }
+      }
+    },
+    {
+      "id": "char_059_dark_physical_melee_dps",
+      "name": "王子",
+      "attribute": "DARK",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 48500,
+            "medianTotalDamage": 48500.0,
+            "minTotalDamage": 48500,
+            "maxTotalDamage": 48500,
+            "meanPerTarget": 48500.0,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.426
+          },
+          "2": {
+            "meanTotalDamage": 57500,
+            "medianTotalDamage": 57500.0,
+            "minTotalDamage": 57500,
+            "maxTotalDamage": 57500,
+            "meanPerTarget": 28750.0,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.062
+          },
+          "3": {
+            "meanTotalDamage": 66500,
+            "medianTotalDamage": 66500.0,
+            "minTotalDamage": 66500,
+            "maxTotalDamage": 66500,
+            "meanPerTarget": 22166.67,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.036
+          },
+          "5": {
+            "meanTotalDamage": 84500,
+            "medianTotalDamage": 84500.0,
+            "minTotalDamage": 84500,
+            "maxTotalDamage": 84500,
+            "meanPerTarget": 16900.0,
+            "rank": 18,
+            "percentile": 45.3,
+            "ratioToDpsMedian": 0.938
+          },
+          "10": {
+            "meanTotalDamage": 129500,
+            "medianTotalDamage": 129500.0,
+            "minTotalDamage": 129500,
+            "maxTotalDamage": 129500,
+            "meanPerTarget": 12950.0,
+            "rank": 21,
+            "percentile": 35.9,
+            "ratioToDpsMedian": 0.796
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 48500,
+            "medianTotalDamage": 48500.0,
+            "minTotalDamage": 48500,
+            "maxTotalDamage": 48500,
+            "meanPerTarget": 48500.0,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.083
+          },
+          "2": {
+            "meanTotalDamage": 57500,
+            "medianTotalDamage": 57500.0,
+            "minTotalDamage": 57500,
+            "maxTotalDamage": 57500,
+            "meanPerTarget": 28750.0,
+            "rank": 19,
+            "percentile": 42.2,
+            "ratioToDpsMedian": 0.962
+          },
+          "3": {
+            "meanTotalDamage": 66500,
+            "medianTotalDamage": 66500.0,
+            "minTotalDamage": 66500,
+            "maxTotalDamage": 66500,
+            "meanPerTarget": 22166.67,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.866
+          },
+          "5": {
+            "meanTotalDamage": 84500,
+            "medianTotalDamage": 84500.0,
+            "minTotalDamage": 84500,
+            "maxTotalDamage": 84500,
+            "meanPerTarget": 16900.0,
+            "rank": 23,
+            "percentile": 29.7,
+            "ratioToDpsMedian": 0.745
+          },
+          "10": {
+            "meanTotalDamage": 129500,
+            "medianTotalDamage": 129500.0,
+            "minTotalDamage": 129500,
+            "maxTotalDamage": 129500,
+            "meanPerTarget": 12950.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.643
+          }
+        }
+      }
+    },
+    {
+      "id": "char_060_dark_magic_melee_dps",
+      "name": "张静虚",
+      "attribute": "DARK",
+      "profession": "MAGIC_MELEE_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 47580.0,
+            "rank": 8,
+            "percentile": 76.6,
+            "ratioToDpsMedian": 1.399
+          },
+          "2": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 23790.0,
+            "rank": 20,
+            "percentile": 39.1,
+            "ratioToDpsMedian": 0.879
+          },
+          "3": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 15860.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.741
+          },
+          "5": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 9516.0,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.528
+          },
+          "10": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 4758.0,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.292
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 47580.0,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.063
+          },
+          "2": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 23790.0,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.796
+          },
+          "3": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 15860.0,
+            "rank": 29,
+            "percentile": 10.9,
+            "ratioToDpsMedian": 0.62
+          },
+          "5": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 9516.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.42
+          },
+          "10": {
+            "meanTotalDamage": 47580,
+            "medianTotalDamage": 47580.0,
+            "minTotalDamage": 47580,
+            "maxTotalDamage": 47580,
+            "meanPerTarget": 4758.0,
+            "rank": 31,
+            "percentile": 4.7,
+            "ratioToDpsMedian": 0.236
+          }
+        }
+      }
+    },
+    {
+      "id": "char_061_dark_physical_ranged_dps",
+      "name": "叶沉",
+      "attribute": "DARK",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 25500,
+            "medianTotalDamage": 25500.0,
+            "minTotalDamage": 25500,
+            "maxTotalDamage": 25500,
+            "meanPerTarget": 25500.0,
+            "rank": 27,
+            "percentile": 17.2,
+            "ratioToDpsMedian": 0.75
+          },
+          "2": {
+            "meanTotalDamage": 37000,
+            "medianTotalDamage": 37000.0,
+            "minTotalDamage": 37000,
+            "maxTotalDamage": 37000,
+            "meanPerTarget": 18500.0,
+            "rank": 24,
+            "percentile": 26.6,
+            "ratioToDpsMedian": 0.683
+          },
+          "3": {
+            "meanTotalDamage": 48500,
+            "medianTotalDamage": 48500.0,
+            "minTotalDamage": 48500,
+            "maxTotalDamage": 48500,
+            "meanPerTarget": 16166.67,
+            "rank": 25,
+            "percentile": 23.4,
+            "ratioToDpsMedian": 0.755
+          },
+          "5": {
+            "meanTotalDamage": 71500,
+            "medianTotalDamage": 71500.0,
+            "minTotalDamage": 71500,
+            "maxTotalDamage": 71500,
+            "meanPerTarget": 14300.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.793
+          },
+          "10": {
+            "meanTotalDamage": 129000,
+            "medianTotalDamage": 129000.0,
+            "minTotalDamage": 129000,
+            "maxTotalDamage": 129000,
+            "meanPerTarget": 12900.0,
+            "rank": 22,
+            "percentile": 32.8,
+            "ratioToDpsMedian": 0.793
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 25500,
+            "medianTotalDamage": 25500.0,
+            "minTotalDamage": 25500,
+            "maxTotalDamage": 25500,
+            "meanPerTarget": 25500.0,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.57
+          },
+          "2": {
+            "meanTotalDamage": 37000,
+            "medianTotalDamage": 37000.0,
+            "minTotalDamage": 37000,
+            "maxTotalDamage": 37000,
+            "meanPerTarget": 18500.0,
+            "rank": 30,
+            "percentile": 7.8,
+            "ratioToDpsMedian": 0.619
+          },
+          "3": {
+            "meanTotalDamage": 48500,
+            "medianTotalDamage": 48500.0,
+            "minTotalDamage": 48500,
+            "maxTotalDamage": 48500,
+            "meanPerTarget": 16166.67,
+            "rank": 28,
+            "percentile": 14.1,
+            "ratioToDpsMedian": 0.632
+          },
+          "5": {
+            "meanTotalDamage": 71500,
+            "medianTotalDamage": 71500.0,
+            "minTotalDamage": 71500,
+            "maxTotalDamage": 71500,
+            "meanPerTarget": 14300.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.631
+          },
+          "10": {
+            "meanTotalDamage": 129000,
+            "medianTotalDamage": 129000.0,
+            "minTotalDamage": 129000,
+            "maxTotalDamage": 129000,
+            "meanPerTarget": 12900.0,
+            "rank": 26,
+            "percentile": 20.3,
+            "ratioToDpsMedian": 0.641
+          }
+        }
+      }
+    },
+    {
+      "id": "char_062_dark_magic_ranged_dps",
+      "name": "迭翎卿",
+      "attribute": "DARK",
+      "profession": "MAGIC_RANGED_DPS",
+      "profiles": {
+        "equalCadence": {
+          "1": {
+            "meanTotalDamage": 45000,
+            "medianTotalDamage": 45000.0,
+            "minTotalDamage": 45000,
+            "maxTotalDamage": 45000,
+            "meanPerTarget": 45000.0,
+            "rank": 12,
+            "percentile": 64.1,
+            "ratioToDpsMedian": 1.324
+          },
+          "2": {
+            "meanTotalDamage": 75000,
+            "medianTotalDamage": 75000.0,
+            "minTotalDamage": 75000,
+            "maxTotalDamage": 75000,
+            "meanPerTarget": 37500.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.385
+          },
+          "3": {
+            "meanTotalDamage": 105000,
+            "medianTotalDamage": 105000.0,
+            "minTotalDamage": 105000,
+            "maxTotalDamage": 105000,
+            "meanPerTarget": 35000.0,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.635
+          },
+          "5": {
+            "meanTotalDamage": 165000,
+            "medianTotalDamage": 165000.0,
+            "minTotalDamage": 165000,
+            "maxTotalDamage": 165000,
+            "meanPerTarget": 33000.0,
+            "rank": 5,
+            "percentile": 85.9,
+            "ratioToDpsMedian": 1.831
+          },
+          "10": {
+            "meanTotalDamage": 315000,
+            "medianTotalDamage": 315000.0,
+            "minTotalDamage": 315000,
+            "maxTotalDamage": 315000,
+            "meanPerTarget": 31500.0,
+            "rank": 4,
+            "percentile": 89.1,
+            "ratioToDpsMedian": 1.936
+          }
+        },
+        "stationaryTargets": {
+          "1": {
+            "meanTotalDamage": 45000,
+            "medianTotalDamage": 45000.0,
+            "minTotalDamage": 45000,
+            "maxTotalDamage": 45000,
+            "meanPerTarget": 45000.0,
+            "rank": 16,
+            "percentile": 51.6,
+            "ratioToDpsMedian": 1.005
+          },
+          "2": {
+            "meanTotalDamage": 75000,
+            "medianTotalDamage": 75000.0,
+            "minTotalDamage": 75000,
+            "maxTotalDamage": 75000,
+            "meanPerTarget": 37500.0,
+            "rank": 11,
+            "percentile": 67.2,
+            "ratioToDpsMedian": 1.255
+          },
+          "3": {
+            "meanTotalDamage": 105000,
+            "medianTotalDamage": 105000.0,
+            "minTotalDamage": 105000,
+            "maxTotalDamage": 105000,
+            "meanPerTarget": 35000.0,
+            "rank": 9,
+            "percentile": 73.4,
+            "ratioToDpsMedian": 1.368
+          },
+          "5": {
+            "meanTotalDamage": 165000,
+            "medianTotalDamage": 165000.0,
+            "minTotalDamage": 165000,
+            "maxTotalDamage": 165000,
+            "meanPerTarget": 33000.0,
+            "rank": 7,
+            "percentile": 79.7,
+            "ratioToDpsMedian": 1.455
+          },
+          "10": {
+            "meanTotalDamage": 315000,
+            "medianTotalDamage": 315000.0,
+            "minTotalDamage": 315000,
+            "maxTotalDamage": 315000,
+            "meanPerTarget": 31500.0,
+            "rank": 6,
+            "percentile": 82.8,
+            "ratioToDpsMedian": 1.565
+          }
+        }
+      }
+    }
+  ]
+}

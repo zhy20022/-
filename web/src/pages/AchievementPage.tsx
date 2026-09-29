@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
+import { isFormalOnlineMode } from '../config'
+import { createIdempotencyKey, ensureOnlineSession, onlineApi } from '../services/onlineApi'
 import './AchievementPage.css'
 
 interface Achievement {
@@ -19,6 +22,7 @@ interface Achievement {
 
 const AchievementPage: React.FC = () => {
   const navigate = useNavigate()
+  const player = useAuthStore((state) => state.player)
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedRarity, setSelectedRarity] = useState<string>('all')
@@ -39,7 +43,12 @@ const AchievementPage: React.FC = () => {
       if (selectedRarity !== 'all') {
         params.append('rarity', selectedRarity)
       }
-      const response = await axios.get(`/api/achievements/list?${params.toString()}`)
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.get(`/achievements/${session!.player.id}/list`, {
+          params: { category: selectedCategory, rarity: selectedRarity },
+        })
+        : await axios.get(`/api/achievements/list?${params.toString()}`)
       if (response.data.success) {
         setAchievements(response.data.achievements)
       }
@@ -53,7 +62,12 @@ const AchievementPage: React.FC = () => {
 
   const handleCheckAchievements = async () => {
     try {
-      const response = await axios.post('/api/achievements/check')
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.post(`/achievements/${session!.player.id}/check`, {}, {
+          headers: { 'Idempotency-Key': createIdempotencyKey('achievement-check') },
+        })
+        : await axios.post('/api/achievements/check')
       if (response.data.success) {
         const count = response.data.newly_unlocked.length
         if (count > 0) {
@@ -232,6 +246,4 @@ const AchievementPage: React.FC = () => {
 }
 
 export default AchievementPage
-
-
 

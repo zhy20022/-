@@ -1,0 +1,126 @@
+{
+  "checkedAt": "2026-09-17T10:41:16.958Z",
+  "method": "mobile browser, real local Nest and PostgreSQL, natural draws, no injected resources or accelerated server clock",
+  "draws": [
+    {
+      "count": 1,
+      "cost": {
+        "amount": 160,
+        "currency": "gold"
+      },
+      "results": [
+        {
+          "name": "玄渊",
+          "profession": "MAGIC_TANK",
+          "duplicate": false
+        }
+      ]
+    },
+    {
+      "count": 10,
+      "cost": {
+        "amount": 1600,
+        "currency": "gold"
+      },
+      "results": [
+        {
+          "name": "夕元道人",
+          "profession": "MAGIC_RANGED_DPS",
+          "duplicate": false
+        },
+        {
+          "name": "路同久",
+          "profession": "SUPPORT",
+          "duplicate": false
+        },
+        {
+          "name": "玄珞",
+          "profession": "PHYSICAL_TANK",
+          "duplicate": false
+        },
+        {
+          "name": "路同久",
+          "profession": "SUPPORT",
+          "duplicate": true
+        },
+        {
+          "name": "沐霖",
+          "profession": "HEALER",
+          "duplicate": false
+        },
+        {
+          "name": "玄珞",
+          "profession": "PHYSICAL_TANK",
+          "duplicate": true
+        },
+        {
+          "name": "玄渊",
+          "profession": "MAGIC_TANK",
+          "duplicate": true
+        },
+        {
+          "name": "江无尘",
+          "profession": "PHYSICAL_TANK",
+          "duplicate": false
+        },
+        {
+          "name": "石鸣锋",
+          "profession": "PHYSICAL_RANGED_DPS",
+          "duplicate": false
+        },
+        {
+          "name": "承霄入",
+          "profession": "MAGIC_TANK",
+          "duplicate": false
+        }
+      ]
+    }
+  ],
+  "battles": [
+    {
+      "success": true,
+      "rewards": {
+        "success": true,
+        "expCrystals": 531,
+        "gold": 100,
+        "directCharacterExp": 20,
+        "cappedDuration": 60,
+        "thresholdRatio": 1,
+        "cappedSingleKills": 7,
+        "cappedGroupKills": 65,
+        "maxWaves": 20
+      }
+    }
+  ],
+  "errors": [],
+  "output": {
+    "name": "夕元道人",
+    "configId": "char_022_thunder_magic_ranged_dps",
+    "attribute": "THUNDER"
+  },
+  "teammate": {
+    "name": "玄渊",
+    "configId": "char_010_earth_magic_tank",
+    "attribute": "EARTH",
+    "levelBefore": 1
+  },
+  "upgrade": {
+    "levelAfter": 2,
+    "packagesConsumed": 103,
+    "goldConsumed": 103,
+    "unplayedTeammate": true
+  },
+  "reloginVerified": true,
+  "chineseProfessionLabels": true,
+  "crystalNaming": true,
+  "guideState": {
+    "completed": [
+      "draw_character",
+      "learn_dungeons",
+      "run_exp_dungeon",
+      "level_character"
+    ],
+    "hidden": false
+  },
+  "passed": true
+}

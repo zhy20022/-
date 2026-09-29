@@ -1,0 +1,2038 @@
+{
+  "assumptions": "Level100, no equipment, default nine slots, same-element balanced rosters; two variants, full production flow at 0.25s.",
+  "balance": {
+    "version": 1,
+    "SQUAD": {
+      "duration": 180,
+      "bossSpawnTime": 60,
+      "trashWaveCount": 60,
+      "trashInterval": 1,
+      "bossStats": {
+        "base_hp": 220000,
+        "base_attack": 1800,
+        "base_defense": 250,
+        "base_magic_attack": 1800,
+        "base_magic_defense": 250
+      },
+      "encounterMultipliers": {}
+    },
+    "TEAM": {
+      "duration": 240,
+      "bossSpawnTime": 60,
+      "trashWaveCount": 60,
+      "trashInterval": 1,
+      "bossStats": {
+        "base_hp": 1800000,
+        "base_attack": 3000,
+        "base_defense": 500,
+        "base_magic_attack": 3000,
+        "base_magic_defense": 500
+      },
+      "encounterMultipliers": {}
+    }
+  },
+  "summary": [
+    {
+      "kind": "SQUAD",
+      "attribute": "WATER",
+      "encounter": "负岳巨犀",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 69.5,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 17
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WATER",
+      "encounter": "荒骸牛",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 62.5,
+      "survivors": 5,
+      "healthRatio": 0.985,
+      "bossRemaining": 0.0,
+      "bossCasts": 15
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "EARTH",
+      "encounter": "雷翎玄鹄",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 30.5,
+      "survivors": 5,
+      "healthRatio": 0.984,
+      "bossRemaining": 0.0,
+      "bossCasts": 7
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "EARTH",
+      "encounter": "雷毛犼",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 35.0,
+      "survivors": 5,
+      "healthRatio": 0.974,
+      "bossRemaining": 0.0,
+      "bossCasts": 8.5
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "THUNDER",
+      "encounter": "沧鳞玄蛟",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 37.0,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 8.5
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "THUNDER",
+      "encounter": "沧溟甲螈",
+      "clears": 1,
+      "runs": 2,
+      "bossSeconds": 70.5,
+      "survivors": 5,
+      "healthRatio": 0.998,
+      "bossRemaining": 0.452,
+      "bossCasts": 12
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WIND",
+      "encounter": "赤鳞火蛟",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 54.0,
+      "survivors": 5,
+      "healthRatio": 0.858,
+      "bossRemaining": 0.0,
+      "bossCasts": 34.5
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WIND",
+      "encounter": "祸斗獒",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 66.5,
+      "survivors": 5,
+      "healthRatio": 0.925,
+      "bossRemaining": 0.0,
+      "bossCasts": 35.5
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "FIRE",
+      "encounter": "苍木灵鹤",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 30.0,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 7
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "FIRE",
+      "encounter": "通天建木",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 28.0,
+      "survivors": 5,
+      "healthRatio": 0.87,
+      "bossRemaining": 0.0,
+      "bossCasts": 6
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WOOD",
+      "encounter": "八风玄禽",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 55.5,
+      "survivors": 5,
+      "healthRatio": 0.795,
+      "bossRemaining": 0.0,
+      "bossCasts": 19
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WOOD",
+      "encounter": "云兽风兽",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 56.0,
+      "survivors": 5,
+      "healthRatio": 0.517,
+      "bossRemaining": 0.0,
+      "bossCasts": 13.5
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "LIGHT",
+      "encounter": "惑心翼虎",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 70.0,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 17
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "LIGHT",
+      "encounter": "九首蛇婴",
+      "clears": 0,
+      "runs": 2,
+      "bossSeconds": 120.0,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.536,
+      "bossCasts": 30
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "DARK",
+      "encounter": "日曜灵鹤",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 41.0,
+      "survivors": 5,
+      "healthRatio": 0.984,
+      "bossRemaining": 0.0,
+      "bossCasts": 17.5
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "DARK",
+      "encounter": "破妄相（白泽）",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 39.0,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 20.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "地岳盘蛇",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 92.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 17.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "负天吞火",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 61.5,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 23
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "四方妖兽",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 42.5,
+      "survivors": 20,
+      "healthRatio": 0.935,
+      "bossRemaining": 0.0,
+      "bossCasts": 32
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "紫霄雷犀",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 19.0,
+      "survivors": 20,
+      "healthRatio": 0.997,
+      "bossRemaining": 0.0,
+      "bossCasts": 3
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "雷吼与电芒",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 16.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "三霄雷劫",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 30.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 4
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "九首洪蛇",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 14.5,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 2.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "玄冥双蛟",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 22.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 6.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "三渊洪鳌",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 12.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 4.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "南明离雀",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 59.0,
+      "survivors": 20,
+      "healthRatio": 0.779,
+      "bossRemaining": 0.0,
+      "bossCasts": 30
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "赤焰牯与熔岩犼",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 68.0,
+      "survivors": 20,
+      "healthRatio": 0.824,
+      "bossRemaining": 0.0,
+      "bossCasts": 48
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "三昧火灵",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 59.5,
+      "survivors": 20,
+      "healthRatio": 0.656,
+      "bossRemaining": 0.0,
+      "bossCasts": 30.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "断木元灵",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 27.0,
+      "survivors": 20,
+      "healthRatio": 0.997,
+      "bossRemaining": 0.0,
+      "bossCasts": 5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "扶桑与若木",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 24.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 8
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "四季灵木",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 33.5,
+      "survivors": 20,
+      "healthRatio": 0.858,
+      "bossRemaining": 0.0,
+      "bossCasts": 24
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "垂天巨鹏",
+      "clears": 0,
+      "runs": 2,
+      "bossSeconds": 180.0,
+      "survivors": 20,
+      "healthRatio": 0.632,
+      "bossRemaining": 0.636,
+      "bossCasts": 36
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "风袋兽与风轮兽",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 46.0,
+      "survivors": 20,
+      "healthRatio": 0.586,
+      "bossRemaining": 0.0,
+      "bossCasts": 17
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "三昧神风",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 30.5,
+      "survivors": 20,
+      "healthRatio": 0.408,
+      "bossRemaining": 0.0,
+      "bossCasts": 16.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "浑沌无相",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 84.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 16
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "影魍与石魍",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 59.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 22.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "三尸邪神",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 73.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 12.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "十日余烬",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 71.0,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "bossCasts": 13.5
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "阳乌与阴蟾",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 54.0,
+      "survivors": 20,
+      "healthRatio": 0.965,
+      "bossRemaining": 0.0,
+      "bossCasts": 21
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "三光星兽",
+      "clears": 2,
+      "runs": 2,
+      "bossSeconds": 67.5,
+      "survivors": 20,
+      "healthRatio": 0.966,
+      "bossRemaining": 0.0,
+      "bossCasts": 37.5
+    }
+  ],
+  "rows": [
+    {
+      "kind": "SQUAD",
+      "attribute": "WATER",
+      "encounter": "负岳巨犀",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 117.0,
+      "bossSeconds": 57.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 14,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.368
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WATER",
+      "encounter": "负岳巨犀",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 142.0,
+      "bossSeconds": 82.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 20,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.391
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WATER",
+      "encounter": "荒骸牛",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 108.0,
+      "bossSeconds": 48.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 11,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.329
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WATER",
+      "encounter": "荒骸牛",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 137.0,
+      "bossSeconds": 77.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 19,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 0.9691,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.366
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "EARTH",
+      "encounter": "雷翎玄鹄",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 95.0,
+      "bossSeconds": 35.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 8,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 0.9672,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.211
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "EARTH",
+      "encounter": "雷翎玄鹄",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 86.0,
+      "bossSeconds": 26.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 6,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.192
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "EARTH",
+      "encounter": "雷毛犼",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 97.0,
+      "bossSeconds": 37.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 9,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.185
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "EARTH",
+      "encounter": "雷毛犼",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 93.0,
+      "bossSeconds": 33.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 8,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 0.9482,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.187
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "THUNDER",
+      "encounter": "沧鳞玄蛟",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 79.0,
+      "bossSeconds": 19.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 4,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.175
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "THUNDER",
+      "encounter": "沧鳞玄蛟",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 115.0,
+      "bossSeconds": 55.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 13,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.187
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "THUNDER",
+      "encounter": "沧溟甲螈",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 81.0,
+      "bossSeconds": 21.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 4,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.157
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "THUNDER",
+      "encounter": "沧溟甲螈",
+      "seed": 0,
+      "variant": 1,
+      "success": false,
+      "duration": 180.0,
+      "bossSeconds": 120.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 20,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 0.996,
+      "bossRemaining": 0.904,
+      "wallSeconds": 0.305
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WIND",
+      "encounter": "赤鳞火蛟",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 137.0,
+      "bossSeconds": 77.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 43,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 0.8832,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.282
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WIND",
+      "encounter": "赤鳞火蛟",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 91.0,
+      "bossSeconds": 31.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 26,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 0.8333,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.207
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WIND",
+      "encounter": "祸斗獒",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 154.0,
+      "bossSeconds": 94.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 44,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 0.8495,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.336
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WIND",
+      "encounter": "祸斗獒",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 99.0,
+      "bossSeconds": 39.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 27,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.223
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "FIRE",
+      "encounter": "苍木灵鹤",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 90.0,
+      "bossSeconds": 30.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 7,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.209
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "FIRE",
+      "encounter": "苍木灵鹤",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 90.0,
+      "bossSeconds": 30.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 7,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.208
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "FIRE",
+      "encounter": "通天建木",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 88.0,
+      "bossSeconds": 28.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 6,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 0.8696,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.176
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "FIRE",
+      "encounter": "通天建木",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 88.0,
+      "bossSeconds": 28.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 6,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 0.8696,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.198
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WOOD",
+      "encounter": "八风玄禽",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 117.0,
+      "bossSeconds": 57.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 14,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 0.7853,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.297
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WOOD",
+      "encounter": "八风玄禽",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 114.0,
+      "bossSeconds": 54.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 24,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 0.8049,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.262
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WOOD",
+      "encounter": "云兽风兽",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 114.0,
+      "bossSeconds": 54.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 13,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 0.5332,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.268
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "WOOD",
+      "encounter": "云兽风兽",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 118.0,
+      "bossSeconds": 58.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 14,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 0.5017,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.287
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "LIGHT",
+      "encounter": "惑心翼虎",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 143.0,
+      "bossSeconds": 83.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 20,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.285
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "LIGHT",
+      "encounter": "惑心翼虎",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 117.0,
+      "bossSeconds": 57.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 14,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.311
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "LIGHT",
+      "encounter": "九首蛇婴",
+      "seed": 0,
+      "variant": 0,
+      "success": false,
+      "duration": 180.0,
+      "bossSeconds": 120.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 30,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.7978,
+      "wallSeconds": 0.372
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "LIGHT",
+      "encounter": "九首蛇婴",
+      "seed": 0,
+      "variant": 1,
+      "success": false,
+      "duration": 180.0,
+      "bossSeconds": 120.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 30,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.2745,
+      "wallSeconds": 0.448
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "DARK",
+      "encounter": "日曜灵鹤",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 94.0,
+      "bossSeconds": 34.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 8,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.212
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "DARK",
+      "encounter": "日曜灵鹤",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 108.0,
+      "bossSeconds": 48.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 27,
+      "phases": 1,
+      "survivors": 5,
+      "healthRatio": 0.9677,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.249
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "DARK",
+      "encounter": "破妄相（白泽）",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 91.0,
+      "bossSeconds": 31.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 7,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.201
+    },
+    {
+      "kind": "SQUAD",
+      "attribute": "DARK",
+      "encounter": "破妄相（白泽）",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 107.0,
+      "bossSeconds": 47.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 34,
+      "phases": 2,
+      "survivors": 5,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.265
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "地岳盘蛇",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 144.0,
+      "bossSeconds": 84.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 16,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.005
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "地岳盘蛇",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 160.0,
+      "bossSeconds": 100.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 19,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.031
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "负天吞火",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 123.0,
+      "bossSeconds": 63.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 24,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.822
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "负天吞火",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 120.0,
+      "bossSeconds": 60.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 22,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.821
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "四方妖兽",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 107.0,
+      "bossSeconds": 47.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 36,
+      "phases": 4,
+      "survivors": 20,
+      "healthRatio": 0.8698,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.859
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WATER",
+      "encounter": "四方妖兽",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 98.0,
+      "bossSeconds": 38.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 28,
+      "phases": 4,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.722
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "紫霄雷犀",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 80.0,
+      "bossSeconds": 20.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 3,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.9947,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.482
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "紫霄雷犀",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 78.0,
+      "bossSeconds": 18.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 3,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.9991,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.499
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "雷吼与电芒",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 78.0,
+      "bossSeconds": 18.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 6,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.9991,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.57
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "雷吼与电芒",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 74.0,
+      "bossSeconds": 14.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 4,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.495
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "三霄雷劫",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 89.0,
+      "bossSeconds": 29.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 3,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.706
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "EARTH",
+      "encounter": "三霄雷劫",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 91.0,
+      "bossSeconds": 31.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 5,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.779
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "九首洪蛇",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 71.0,
+      "bossSeconds": 11.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 2,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.602
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "九首洪蛇",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 78.0,
+      "bossSeconds": 18.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 3,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.642
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "玄冥双蛟",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 75.0,
+      "bossSeconds": 15.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 4,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.549
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "玄冥双蛟",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 89.0,
+      "bossSeconds": 29.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 9,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.629
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "三渊洪鳌",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 69.0,
+      "bossSeconds": 9.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 3,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.472
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "THUNDER",
+      "encounter": "三渊洪鳌",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 75.0,
+      "bossSeconds": 15.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 6,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.596
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "南明离雀",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 134.0,
+      "bossSeconds": 74.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 32,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.7764,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.308
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "南明离雀",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 104.0,
+      "bossSeconds": 44.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 28,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.781,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.926
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "赤焰牯与熔岩犼",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 141.0,
+      "bossSeconds": 81.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 54,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.977,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.328
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "赤焰牯与熔岩犼",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 115.0,
+      "bossSeconds": 55.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 42,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.6708,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.094
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "三昧火灵",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 130.0,
+      "bossSeconds": 70.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 31,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.6439,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.298
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WIND",
+      "encounter": "三昧火灵",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 109.0,
+      "bossSeconds": 49.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 30,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.6677,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.973
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "断木元灵",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 87.0,
+      "bossSeconds": 27.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 5,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.9934,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.828
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "断木元灵",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 87.0,
+      "bossSeconds": 27.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 5,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.825
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "扶桑与若木",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 84.0,
+      "bossSeconds": 24.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 8,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.725
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "扶桑与若木",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 84.0,
+      "bossSeconds": 24.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 8,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.755
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "四季灵木",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 93.0,
+      "bossSeconds": 33.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 24,
+      "phases": 4,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.984
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "FIRE",
+      "encounter": "四季灵木",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 94.0,
+      "bossSeconds": 34.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 24,
+      "phases": 4,
+      "survivors": 20,
+      "healthRatio": 0.7169,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.107
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "垂天巨鹏",
+      "seed": 0,
+      "variant": 0,
+      "success": false,
+      "duration": 240.0,
+      "bossSeconds": 180.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 36,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.6351,
+      "bossRemaining": 0.6164,
+      "wallSeconds": 3.079
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "垂天巨鹏",
+      "seed": 0,
+      "variant": 1,
+      "success": false,
+      "duration": 240.0,
+      "bossSeconds": 180.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 36,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.6296,
+      "bossRemaining": 0.6553,
+      "wallSeconds": 2.966
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "风袋兽与风轮兽",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 105.0,
+      "bossSeconds": 45.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 16,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.5187,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.425
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "风袋兽与风轮兽",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 107.0,
+      "bossSeconds": 47.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 18,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.6542,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.361
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "三昧神风",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 87.0,
+      "bossSeconds": 27.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 15,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.4106,
+      "bossRemaining": 0.0,
+      "wallSeconds": 0.968
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "WOOD",
+      "encounter": "三昧神风",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 94.0,
+      "bossSeconds": 34.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 18,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.4052,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.013
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "浑沌无相",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 165.0,
+      "bossSeconds": 105.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 20,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.461
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "浑沌无相",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 123.0,
+      "bossSeconds": 63.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 12,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.225
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "影魍与石魍",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 132.0,
+      "bossSeconds": 72.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 28,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.275
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "影魍与石魍",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 106.0,
+      "bossSeconds": 46.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 17,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.132
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "三尸邪神",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 152.0,
+      "bossSeconds": 92.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 16,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.347
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "LIGHT",
+      "encounter": "三尸邪神",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 114.0,
+      "bossSeconds": 54.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 9,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.055
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "十日余烬",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 128.0,
+      "bossSeconds": 68.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 13,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.215
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "十日余烬",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 134.0,
+      "bossSeconds": 74.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 14,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 1.0,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.197
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "阳乌与阴蟾",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 111.0,
+      "bossSeconds": 51.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 20,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.9688,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.047
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "阳乌与阴蟾",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 117.0,
+      "bossSeconds": 57.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 22,
+      "phases": 2,
+      "survivors": 20,
+      "healthRatio": 0.962,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.057
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "三光星兽",
+      "seed": 0,
+      "variant": 0,
+      "success": true,
+      "duration": 120.0,
+      "bossSeconds": 60.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 33,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.962,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.121
+    },
+    {
+      "kind": "TEAM",
+      "attribute": "DARK",
+      "encounter": "三光星兽",
+      "seed": 0,
+      "variant": 1,
+      "success": true,
+      "duration": 135.0,
+      "bossSeconds": 75.0,
+      "bossSpawns": [
+        60.0
+      ],
+      "bossCasts": 42,
+      "phases": 3,
+      "survivors": 20,
+      "healthRatio": 0.9702,
+      "bossRemaining": 0.0,
+      "wallSeconds": 1.355
+    }
+  ]
+}

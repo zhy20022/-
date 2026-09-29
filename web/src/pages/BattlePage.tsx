@@ -2,11 +2,12 @@ import React, { useEffect, useState, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { io, Socket } from 'socket.io-client'
 import axios from 'axios'
-import { getSocketUrl } from '../config'
+import { getSocketUrl, isFormalOnlineMode } from '../config'
 import { getOnlineModeError, onlineApi } from '../services/onlineGameAdapter'
 import './BattlePage.css'
 import { serverBattleSnapshot, type ServerBattleStatus } from '../services/serverBattleReplay'
-import { restoreOnlineSession } from '../services/onlineApi'
+import { ensureOnlineSession, restoreOnlineSession } from '../services/onlineApi'
+import { useAuthStore } from '../stores/authStore'
 
 interface StateInfo {
   code: string
@@ -337,6 +338,7 @@ const buildBattlePresentationItems = (
 const BattlePage: React.FC = () => {
   const navigate = useNavigate()
   const routerLocation = useLocation()
+  const player = useAuthStore((state) => state.player)
   const location = useMemo(() => {
     if (routerLocation.state?.dungeon_id) return routerLocation
     try {
@@ -404,6 +406,12 @@ const BattlePage: React.FC = () => {
 
   const fetchAssistMode = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        const session = await ensureOnlineSession(player)
+        const response = await onlineApi.get(`/social/${session.player.id}`)
+        setAssistEnabled(Boolean(response.data.assist_enabled))
+        return
+      }
       const response = await axios.get('/api/social/assist-mode')
       if (response.data.success) {
         setAssistEnabled(response.data.assist_enabled)
@@ -416,6 +424,11 @@ const BattlePage: React.FC = () => {
   const handleAssistToggle = async (value: boolean) => {
     setAssistEnabled(value)
     try {
+      if (isFormalOnlineMode()) {
+        const session = await ensureOnlineSession(player)
+        await onlineApi.post(`/social/${session.player.id}/assist-mode`, { enabled: value })
+        return
+      }
       await axios.post('/api/social/assist-mode', { enabled: value })
     } catch (err) {
       setAssistEnabled(!value)

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
+import { isFormalOnlineMode } from '../config'
+import { createIdempotencyKey, ensureOnlineSession, onlineApi } from '../services/onlineApi'
 import './QuestPage.css'
 
 interface QuestObjective {
@@ -34,6 +37,7 @@ interface Quest {
 
 const QuestPage: React.FC = () => {
   const navigate = useNavigate()
+  const player = useAuthStore((state) => state.player)
   const [quests, setQuests] = useState<Quest[]>([])
   const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null)
   const [activeTab, setActiveTab] = useState<'all' | 'main' | 'side' | 'daily' | 'weekly'>('all')
@@ -47,7 +51,10 @@ const QuestPage: React.FC = () => {
   const loadQuests = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(`/api/quests/list?type=${activeTab}`)
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.get(`/quests/${session!.player.id}/list`, { params: { type: activeTab === 'side' ? 'all' : activeTab } })
+        : await axios.get(`/api/quests/list?type=${activeTab}`)
       if (response.data.success) {
         setQuests(response.data.quests)
         if (response.data.quests.length > 0 && !selectedQuest) {
@@ -64,7 +71,10 @@ const QuestPage: React.FC = () => {
 
   const handleAcceptQuest = async (questId: string) => {
     try {
-      const response = await axios.post(`/api/quests/${questId}/accept`)
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.post(`/quests/${session!.player.id}/${questId}/accept`)
+        : await axios.post(`/api/quests/${questId}/accept`)
       if (response.data.success) {
         setFeedback({ type: 'success', message: '任务接取成功' })
         loadQuests()
@@ -84,7 +94,12 @@ const QuestPage: React.FC = () => {
 
   const handleClaimReward = async (questId: string) => {
     try {
-      const response = await axios.post(`/api/quests/${questId}/claim`)
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.post(`/quests/${session!.player.id}/${questId}/claim`, {}, {
+          headers: { 'Idempotency-Key': createIdempotencyKey('quest-claim') },
+        })
+        : await axios.post(`/api/quests/${questId}/claim`)
       if (response.data.success) {
         setFeedback({ type: 'success', message: '奖励领取成功' })
         loadQuests()
@@ -166,12 +181,14 @@ const QuestPage: React.FC = () => {
               >
                 主线
               </button>
-              <button
-                className={activeTab === 'side' ? 'active' : ''}
-                onClick={() => setActiveTab('side')}
-              >
-                支线
-              </button>
+              {!isFormalOnlineMode() && (
+                <button
+                  className={activeTab === 'side' ? 'active' : ''}
+                  onClick={() => setActiveTab('side')}
+                >
+                  支线
+                </button>
+              )}
               <button
                 className={activeTab === 'daily' ? 'active' : ''}
                 onClick={() => setActiveTab('daily')}
@@ -328,6 +345,4 @@ const QuestPage: React.FC = () => {
 }
 
 export default QuestPage
-
-
 

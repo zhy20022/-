@@ -40,7 +40,7 @@ export interface OnlineLegacyDungeon {
   reward_multiplier: number
   recommended_level_bonus: number
   reward_config: {
-    type: 'experience'
+    type: 'experience' | 'boss'
     base_exp: number
     base_gold: number
     spawn_start_time: number
@@ -200,7 +200,7 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
   const progress = mapProgress(progressRows, dungeon.dungeonId || dungeon.dungeon_id, sweepUnlockCount)
   const matchingCount = characters.filter((character) => normalizeAttribute(character.attribute_type) === attribute).length
   const readyCount = characters.filter((character) => normalizeAttribute(character.attribute_type) === attribute && character.level >= 1).length
-  return {
+  const mapped: OnlineLegacyDungeon = {
     dungeon_id: dungeon.dungeonId || dungeon.dungeon_id,
     name: dungeon.name,
     dungeon_type: dungeon.dungeonType || dungeon.dungeon_type || 'SINGLE',
@@ -266,6 +266,36 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
     },
     online_raw: dungeon,
   }
+  if (mapped.dungeon_type !== 'SINGLE') {
+    const team = mapped.dungeon_type === 'TEAM'
+    const world = mapped.dungeon_type === 'SERVER_BOSS'
+    const partySize = team || world ? 20 : 5
+    const bossTime = Number(dungeon.timeline?.bossSpawnTime ?? 60)
+    const enemies: Record<string, string> = { FIRE: 'WOOD', WOOD: 'WIND', WIND: 'FIRE',
+      WATER: 'EARTH', EARTH: 'THUNDER', THUNDER: 'WATER', LIGHT: 'DARK', DARK: 'LIGHT' }
+    mapped.description = world ? `全服Boss挑战，限时${mapped.duration}秒。` :
+      `限时${mapped.duration}秒，前${bossTime}秒刷新小怪；第${bossTime}秒随机登场一套Boss组合。消灭全部敌人可提前通关，超时仍有敌人则挑战失败。`
+    mapped.reward_config = { ...mapped.reward_config, type: 'boss',
+      spawn_start_time: 0, spawn_interval: Number(dungeon.timeline?.trashInterval ?? 1),
+      spawn_wave_count: Number(dungeon.timeline?.trashWaveCount ?? 0),
+      character_exp_per_single_kill: 0, character_exp_per_five_group_kills: 0 }
+    mapped.reward_preview = { reward_type: 'boss', title: '副本奖励',
+      main: '奖励按服务器结算结果发放', details: [mapped.description], thresholds: [] }
+    mapped.recommended_level_bonus = 0
+    mapped.recommendation = { recommended_level: 100, recommended_attribute: attribute,
+      enemy_attribute: enemies[attribute] || attribute,
+      attribute_hint: `推荐${attributeNameMap[attribute]}系队伍，克制敌方${attributeNameMap[enemies[attribute]]}系。`,
+      party_size: partySize,
+      formation: [{ role: '坦克', count: team || world ? 4 : 1 },
+        { role: '治疗', count: team || world ? 4 : 1 }, { role: '辅助', count: team || world ? 3 : 1 },
+        { role: '输出', count: team || world ? 9 : 2 }],
+      summary: world ? '挑战全服Boss并积累伤害。' : '合理配置坦克、治疗、辅助与输出，在时限内击败Boss组合。',
+    }
+    mapped.progress = { ...mapped.progress, sweep_unlocked: false }
+    mapped.progress_summary = { ...mapped.progress_summary, sweep_unlocked: false,
+      sweep_text: '暂未开放', best_reward_text: progress.completion_count ? '已有通关记录' : '暂无记录' }
+  }
+  return mapped
 }
 
 export const loadOnlineProfile = async (legacyPlayer: LegacyPlayerRef | null | undefined) => {

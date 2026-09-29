@@ -7,6 +7,7 @@ from enum import Enum
 from typing import List, Dict, Any, Optional
 from .dungeon import Dungeon, DungeonType
 from ..attributes.attribute import AttributeType
+from .team_balance import team_config
 import random
 
 
@@ -82,17 +83,10 @@ class MonsterSpawner:
             self.spawn_times = [start_time + i * interval for i in range(wave_count)]
             self.boss_spawn_times = []
         
-        elif self.dungeon.dungeon_type == DungeonType.SQUAD:
-            # 5人本：第1分钟从第0s开始每1s随机刷新一波小怪，共持续60波
-            self.spawn_times = [i * 1.0 for i in range(60)]  # 0, 1, 2, ..., 59秒
-            # 2:00, 2:15, 2:30, 2:45出一个随机boss
-            self.boss_spawn_times = [120.0, 135.0, 150.0, 165.0]
-        
-        elif self.dungeon.dungeon_type == DungeonType.TEAM:
-            # 20人本：第1分钟从第0s开始每1s随机刷新一波小怪，共持续60波
-            self.spawn_times = [i * 1.0 for i in range(60)]  # 0, 1, 2, ..., 59秒
-            # 2:00, 2:15, 2:30, 2:45出一个随机boss，3:15再出两个随机boss
-            self.boss_spawn_times = [120.0, 135.0, 150.0, 165.0, 195.0, 195.0]  # 3:15 = 195秒
+        elif self.dungeon.dungeon_type in (DungeonType.SQUAD, DungeonType.TEAM):
+            config = team_config(self.dungeon.dungeon_type)
+            self.spawn_times = [i * config['trashInterval'] for i in range(config['trashWaveCount'])]
+            self.boss_spawn_times = [float(config['bossSpawnTime'])]
         
         elif self.dungeon.dungeon_type == DungeonType.SERVER_BOSS:
             # 世界boss本：持续3分钟的boss战
@@ -194,12 +188,10 @@ class MonsterSpawner:
             return 20 * 2
         
         elif self.dungeon.dungeon_type == DungeonType.SQUAD:
-            # 5人本：60波小怪 + 4个boss
-            return 60 * 2 + 4
+            return len(self.spawn_times) * 3 + 1
         
         elif self.dungeon.dungeon_type == DungeonType.TEAM:
-            # 20人本：60波小怪 + 6个boss
-            return 60 * 2 + 6
+            return len(self.spawn_times) * 3 + 3
         
         elif self.dungeon.dungeon_type == DungeonType.SERVER_BOSS:
             # 世界boss本：1个boss

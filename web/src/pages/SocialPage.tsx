@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
+import { isFormalOnlineMode } from '../config'
+import { ensureOnlineSession, onlineApi } from '../services/onlineApi'
 import './SocialPage.css'
 
 interface Friend {
@@ -13,6 +16,7 @@ interface Friend {
 
 const SocialPage: React.FC = () => {
   const navigate = useNavigate()
+  const player = useAuthStore((state) => state.player)
   const [friends, setFriends] = useState<Friend[]>([])
   const [newFriend, setNewFriend] = useState('')
   const [assistEnabled, setAssistEnabled] = useState(false)
@@ -22,7 +26,10 @@ const SocialPage: React.FC = () => {
   const loadFriends = async () => {
     setLoading(true)
     try {
-      const response = await axios.get('/api/social/friends')
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.get(`/social/${session!.player.id}`)
+        : await axios.get('/api/social/friends')
       if (response.data.success) {
         setFriends(response.data.friends || [])
         setAssistEnabled(response.data.assist_enabled)
@@ -43,7 +50,10 @@ const SocialPage: React.FC = () => {
   const handleAddFriend = async () => {
     if (!newFriend.trim()) return
     try {
-      const response = await axios.post('/api/social/friends', { username: newFriend.trim() })
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.post(`/social/${session!.player.id}/friends`, { username: newFriend.trim() })
+        : await axios.post('/api/social/friends', { username: newFriend.trim() })
       if (response.data.success) {
         setFriends(response.data.friends || [])
         setNewFriend('')
@@ -58,7 +68,10 @@ const SocialPage: React.FC = () => {
 
   const handleRemoveFriend = async (friendId: string) => {
     try {
-      const response = await axios.delete(`/api/social/friends/${friendId}`)
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.delete(`/social/${session!.player.id}/friends/${friendId}`)
+        : await axios.delete(`/api/social/friends/${friendId}`)
       if (response.data.success) {
         setFriends(response.data.friends || [])
       } else {
@@ -72,7 +85,12 @@ const SocialPage: React.FC = () => {
   const handleAssistToggle = async (value: boolean) => {
     setAssistEnabled(value)
     try {
-      await axios.post('/api/social/assist-mode', { enabled: value })
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      if (isFormalOnlineMode()) {
+        await onlineApi.post(`/social/${session!.player.id}/assist-mode`, { enabled: value })
+      } else {
+        await axios.post('/api/social/assist-mode', { enabled: value })
+      }
     } catch (err: any) {
       setAssistEnabled(!value)
       setError(err.response?.data?.message || '更新助战状态失败')
@@ -146,7 +164,6 @@ const SocialPage: React.FC = () => {
 }
 
 export default SocialPage
-
 
 
 

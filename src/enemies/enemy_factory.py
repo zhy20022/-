@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Optional
 from .enemy import Enemy, EnemyType
 from ..attributes.attribute import AttributeType
 from ..dungeons.dungeon import Dungeon, DungeonType
+from ..dungeons.team_balance import team_config
 from ..classes.profession import Profession, ProfessionType, get_profession
 import random
 
@@ -234,6 +235,12 @@ class EnemyFactory:
         
         # 计算最终属性
         total_multiplier = time_multiplier * difficulty_multiplier * boss_multiplier
+
+        team = team_config(dungeon.dungeon_type)
+        if team:
+            base_stats = team['bossStats']
+            level = 100
+            total_multiplier = difficulty_multiplier
         
         base_hp = int(base_stats["base_hp"] * total_multiplier)
         base_attack = int(base_stats["base_attack"] * total_multiplier)

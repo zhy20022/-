@@ -196,7 +196,7 @@ class DpsFirstTests(unittest.TestCase):
         self.assertEqual(old-e[0].current_health, 320)
         self.assertFalse(states(e[0]))
 
-    def test_yin_three_independent_rolls_cap_and_percent_armor_piercing(self):
+    def test_yin_three_independent_rolls_cap_and_physical_followup(self):
         b, c, e = self.encounter(19, 1)
         with patch.object(dps.random, 'random', return_value=.5):
             self.cast(b, c, e, 2)
@@ -207,10 +207,21 @@ class DpsFirstTests(unittest.TestCase):
             old = e[0].current_health
             self.cast(b, c, e, 3)
             effect = hit.call_args.args[2].authored_effect
-            self.assertEqual(effect['health_ratio'], 'max')
-            self.assertEqual(effect['ignore_defense'], 1)
-            self.assertEqual(hit.call_args.args[4], .03)
-            self.assertEqual(old-e[0].current_health, 373)
+            self.assertNotIn('health_ratio', effect)
+            self.assertNotIn('ignore_defense', effect)
+            self.assertEqual(hit.call_args.args[4], 3)
+            self.assertLess(old-e[0].current_health, 100)
+
+    def test_yin_followup_layers_and_damage_do_not_scale_with_enemy_health(self):
+        for layers in range(4):
+            losses = []
+            for health in (10000, 10000000):
+                b, c, e = self.encounter(19, 1)
+                e[0].current_health = e[0].max_health = health
+                dps._mark(e[0], c, self.skill(c, 1), '雷印', count=layers)
+                self.cast(b, c, e, 3)
+                losses.append(health - e[0].current_health)
+            self.assertEqual(losses, [280 + min(layers, 2) * 150] * 2)
 
     def test_yin_failed_rolls_do_not_add_marks(self):
         b, c, e = self.encounter(19, 1)
@@ -272,10 +283,11 @@ class DpsFirstTests(unittest.TestCase):
         self.assertEqual(old-e[0].current_health, 100)
 
     def test_chun_word_branches_and_consumable_next_sword_bonuses(self):
-        for slots, expected in [((1, 2), [504, 0]), ((1, 1), [420, 420]), ((2, 2), [250, 250])]:
+        for slots, expected in [((1, 2), [600, 0]), ((1, 1), [420, 420]), ((2, 2), [250, 250])]:
             b, c, e = self.encounter(27)
             for slot in slots:
                 self.cast(b, c, e, slot)
+            self.assertAlmostEqual(modifiers(c)['damage_reduction'], .2 if slots == (1, 2) else .1)
             with patch('random.random', return_value=.99):
                 self.cast(b, c, e, 3)
             self.assertEqual([10000-t.current_health for t in e], expected)
@@ -288,7 +300,17 @@ class DpsFirstTests(unittest.TestCase):
         self.cast(b, c, e, 2)
         with patch('random.random', return_value=.1):
             self.cast(b, c, e, 3)
-        self.assertEqual(e[0].current_health, 9244)
+        self.assertEqual(e[0].current_health, 9100)
+
+    def test_chun_guard_does_not_stack_per_skill_and_clears_on_sword(self):
+        b, c, e = self.encounter(27, 1)
+        self.cast(b, c, e, 1)
+        self.cast(b, c, e, 1)
+        self.assertAlmostEqual(modifiers(c)['damage_reduction'], .1)
+        self.cast(b, c, e, 2)
+        self.assertAlmostEqual(modifiers(c)['damage_reduction'], .2)
+        self.cast(b, c, e, 3)
+        self.assertEqual(modifiers(c).get('damage_reduction', 0), 0)
 
     def test_chun_zero_or_one_resource_uses_single_target_100_percent(self):
         for slots, expected in [((), 100), ((1,), 120), ((2,), 100)]:

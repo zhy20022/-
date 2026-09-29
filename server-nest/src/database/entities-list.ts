@@ -1,4 +1,5 @@
 import {
+  AchievementProgressEntity,
   AdminLogEntity,
   BattleRecordEntity,
   DailyGoalProgressEntity,
@@ -17,11 +18,16 @@ import {
   OperationRequestEntity,
   PlayerCharacterEntity,
   PlayerEntity,
+  QuestProgressEntity,
   RankingEntryEntity,
+  ShopPurchaseEntity,
   UserEntity,
+  WorldBossChestEntity,
+  WorldBossStateEntity,
 } from './entities';
 
 export const gameEntities = [
+  AchievementProgressEntity,
   AdminLogEntity,
   BattleRecordEntity,
   DailyGoalProgressEntity,
@@ -40,6 +46,10 @@ export const gameEntities = [
   OperationRequestEntity,
   PlayerCharacterEntity,
   PlayerEntity,
+  QuestProgressEntity,
   RankingEntryEntity,
+  ShopPurchaseEntity,
   UserEntity,
+  WorldBossChestEntity,
+  WorldBossStateEntity,
 ];

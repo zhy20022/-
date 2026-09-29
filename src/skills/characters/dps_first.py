@@ -181,9 +181,9 @@ def _yin(b, c, s, a, e):
         if slot == 1 or (slot == 2 and random.random() < .75):
             _mark(t, c, s, '雷印', cap=3, stats=('element_in_THUNDER',), value=.05)
     if slot == 3:
-        ratio = min(.03, .015 * len(_layers(t, '雷印', c)))
+        ratio = min(3, 1.5 * len(_layers(t, '雷印', c)))
         if ratio:
-            _hit(b, c, s, t, ratio, ignore_defense=1, health_ratio='max')
+            _hit(b, c, s, t, ratio)
 
 
 def _zhe(b, c, s, a, e):
@@ -222,10 +222,15 @@ def _chun(b, c, s, a, e):
     if slot in (1, 2):
         _mark(c, c, s, '阳息' if slot == 1 else '阴息', cap=2, remaining=None)
         _mark(c, c, s, '剑气增伤' if slot == 1 else '剑气暴击', remaining=None)
+        guard_name = '三伏护体' if slot == 1 else '三九护体'
+        c.cast_effects = [item for item in states(c) if not (
+            item.get('kind') == 'stat' and item.get('name') == guard_name
+            and item.get('owner_id') == c.character.character_id)]
+        stat(c, c, guard_name, ['damage_reduction'], .1, remaining=None)
         return
     yang, yin = len(_layers(c, '阳息', c)), len(_layers(c, '阴息', c))
     if (yang and yin) or yang + yin < 2:
-        targets, ratio, armor = [_single(e)], 4.2 if yang and yin else 1, False
+        targets, ratio, armor = [_single(e)], 5 if yang and yin else 1, False
         _clear(c, '阳息', c)
         _clear(c, '阴息', c)
     elif yang >= 2:
@@ -236,6 +241,8 @@ def _chun(b, c, s, a, e):
         _clear(c, '阴息', c)
     ratio *= 1 + .2 * _clear(c, '剑气增伤', c)
     crit = .15 * _clear(c, '剑气暴击', c)
+    c.cast_effects = [item for item in states(c)
+                      if item.get('name') not in {'三伏护体', '三九护体'}]
     temporary = dict(kind='stat', name='剑气暴击结算', stats=['crit_rate'], value=crit, remaining=None)
     states(c).append(temporary)
     try:

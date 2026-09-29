@@ -1,0 +1,2600 @@
+{
+  "checkedAt": "2026-09-17T08:55:22.114Z",
+  "characters": 64,
+  "method": "isolated local database; real registration, controlled first draw, original costs; actual battle engine; only completion clock advanced; no injected growth resources",
+  "results": [
+    {
+      "configId": "char_001_water_physical_tank",
+      "name": "江无尘",
+      "attribute": "WATER",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 68
+        }
+      ]
+    },
+    {
+      "configId": "char_002_water_magic_tank",
+      "name": "默渊",
+      "attribute": "WATER",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 321,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 42,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 43
+        },
+        {
+          "level": 2,
+          "duration": 42,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 51
+        }
+      ]
+    },
+    {
+      "configId": "char_003_water_physical_melee_dps",
+      "name": "寒澈",
+      "attribute": "WATER",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 84,
+      "upgradeGold": 84,
+      "finalGold": 99856,
+      "finalPackages": 978,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 19,
+          "damage": 12531,
+          "remainingEnemies": 2
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_004_water_magic_melee_dps",
+      "name": "蔺疏澜",
+      "attribute": "WATER",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_005_water_physical_ranged_dps",
+      "name": "盛濛饮",
+      "attribute": "WATER",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_006_water_magic_ranged_dps",
+      "name": "景自琉",
+      "attribute": "WATER",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_007_water_healer",
+      "name": "沐霖",
+      "attribute": "WATER",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 60
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 48
+        }
+      ]
+    },
+    {
+      "configId": "char_008_water_support",
+      "name": "玉尘子",
+      "attribute": "WATER",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 56
+        }
+      ]
+    },
+    {
+      "configId": "char_009_earth_physical_tank",
+      "name": "玄珞",
+      "attribute": "EARTH",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 68
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        }
+      ]
+    },
+    {
+      "configId": "char_010_earth_magic_tank",
+      "name": "玄渊",
+      "attribute": "EARTH",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 56
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 44
+        }
+      ]
+    },
+    {
+      "configId": "char_011_earth_physical_melee_dps",
+      "name": "衡震",
+      "attribute": "EARTH",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_012_earth_magic_melee_dps",
+      "name": "漠行汲",
+      "attribute": "EARTH",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_013_earth_physical_ranged_dps",
+      "name": "石鸣锋",
+      "attribute": "EARTH",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_014_earth_magic_ranged_dps",
+      "name": "钟闻壑",
+      "attribute": "EARTH",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_015_earth_healer",
+      "name": "谷见微",
+      "attribute": "EARTH",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": false,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 48
+        }
+      ]
+    },
+    {
+      "configId": "char_016_earth_support",
+      "name": "原晦",
+      "attribute": "EARTH",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 773,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": false,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        },
+        {
+          "level": 2,
+          "duration": 51,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 50
+        }
+      ]
+    },
+    {
+      "configId": "char_017_thunder_physical_tank",
+      "name": "雷震壑",
+      "attribute": "THUNDER",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 587,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 48,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 53
+        },
+        {
+          "level": 2,
+          "duration": 48,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 57
+        }
+      ]
+    },
+    {
+      "configId": "char_018_thunder_magic_tank",
+      "name": "承霄入",
+      "attribute": "THUNDER",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 52
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 72
+        }
+      ]
+    },
+    {
+      "configId": "char_019_thunder_physical_melee_dps",
+      "name": "殷破",
+      "attribute": "THUNDER",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 85,
+      "upgradeGold": 85,
+      "finalGold": 99755,
+      "finalPackages": 977,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 18,
+          "damage": 12131,
+          "remainingEnemies": 6
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 18,
+          "damage": 11665,
+          "remainingEnemies": 8
+        }
+      ]
+    },
+    {
+      "configId": "char_020_thunder_magic_melee_dps",
+      "name": "惊兀蛊",
+      "attribute": "THUNDER",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_021_thunder_physical_ranged_dps",
+      "name": "折羽",
+      "attribute": "THUNDER",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99857,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 17,
+          "damage": 11573,
+          "remainingEnemies": 9
+        }
+      ]
+    },
+    {
+      "configId": "char_022_thunder_magic_ranged_dps",
+      "name": "夕元道人",
+      "attribute": "THUNDER",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 84,
+      "upgradeGold": 84,
+      "finalGold": 99856,
+      "finalPackages": 978,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 19,
+          "damage": 12705,
+          "remainingEnemies": 4
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_023_thunder_healer",
+      "name": "那兰隐",
+      "attribute": "THUNDER",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 773,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 40
+        },
+        {
+          "level": 2,
+          "duration": 51,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 50
+        }
+      ]
+    },
+    {
+      "configId": "char_024_thunder_support",
+      "name": "路同久",
+      "attribute": "THUNDER",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 321,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 42,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 51
+        },
+        {
+          "level": 2,
+          "duration": 42,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 39
+        }
+      ]
+    },
+    {
+      "configId": "char_025_wind_physical_tank",
+      "name": "沈御霄",
+      "attribute": "WIND",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 60
+        }
+      ]
+    },
+    {
+      "configId": "char_026_wind_magic_tank",
+      "name": "云无羁",
+      "attribute": "WIND",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 44
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 56
+        }
+      ]
+    },
+    {
+      "configId": "char_027_wind_physical_melee_dps",
+      "name": "淳于绝",
+      "attribute": "WIND",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 92,
+      "upgradeGold": 92,
+      "finalGold": 99748,
+      "finalPackages": 784,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 51,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 11,
+          "damage": 8191,
+          "remainingEnemies": 22
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": false,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 15,
+          "damage": 10434,
+          "remainingEnemies": 19
+        }
+      ]
+    },
+    {
+      "configId": "char_028_wind_magic_melee_dps",
+      "name": "闻微",
+      "attribute": "WIND",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 86,
+      "upgradeGold": 86,
+      "finalGold": 99754,
+      "finalPackages": 976,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": false,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 17,
+          "damage": 10905,
+          "remainingEnemies": 15
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 17,
+          "damage": 11639,
+          "remainingEnemies": 9
+        }
+      ]
+    },
+    {
+      "configId": "char_029_wind_physical_ranged_dps",
+      "name": "暮岑归",
+      "attribute": "WIND",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_030_wind_magic_ranged_dps",
+      "name": "闻时止",
+      "attribute": "WIND",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_031_wind_healer",
+      "name": "苏勤",
+      "attribute": "WIND",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 56
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 60
+        }
+      ]
+    },
+    {
+      "configId": "char_032_wind_support",
+      "name": "壹程",
+      "attribute": "WIND",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 321,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 36,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 41
+        },
+        {
+          "level": 2,
+          "duration": 39,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 42
+        }
+      ]
+    },
+    {
+      "configId": "char_033_fire_physical_tank",
+      "name": "阿骨勒",
+      "attribute": "FIRE",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 587,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 50,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 49
+        },
+        {
+          "level": 2,
+          "duration": 47,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 40
+        }
+      ]
+    },
+    {
+      "configId": "char_034_fire_magic_tank",
+      "name": "肃祀生",
+      "attribute": "FIRE",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 68
+        }
+      ]
+    },
+    {
+      "configId": "char_035_fire_physical_melee_dps",
+      "name": "赤螭",
+      "attribute": "FIRE",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_036_fire_magic_melee_dps",
+      "name": "喜诛",
+      "attribute": "FIRE",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 86,
+      "upgradeGold": 86,
+      "finalGold": 99754,
+      "finalPackages": 790,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 17,
+          "damage": 11911,
+          "remainingEnemies": 8
+        },
+        {
+          "level": 2,
+          "duration": 59,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 13,
+          "damage": 10768,
+          "remainingEnemies": 17
+        }
+      ]
+    },
+    {
+      "configId": "char_037_fire_physical_ranged_dps",
+      "name": "炷微",
+      "attribute": "FIRE",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_038_fire_magic_ranged_dps",
+      "name": "金翎",
+      "attribute": "FIRE",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_039_fire_healer",
+      "name": "角赦",
+      "attribute": "FIRE",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 64
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 72
+        }
+      ]
+    },
+    {
+      "configId": "char_040_fire_support",
+      "name": "彤丹",
+      "attribute": "FIRE",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 321,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 32,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 31
+        },
+        {
+          "level": 2,
+          "duration": 35,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 32
+        }
+      ]
+    },
+    {
+      "configId": "char_041_wood_physical_tank",
+      "name": "原伯铮",
+      "attribute": "WOOD",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 44
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 52
+        }
+      ]
+    },
+    {
+      "configId": "char_042_wood_magic_tank",
+      "name": "桓珀",
+      "attribute": "WOOD",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 587,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 51,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 54
+        },
+        {
+          "level": 2,
+          "duration": 51,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 50
+        }
+      ]
+    },
+    {
+      "configId": "char_043_wood_physical_melee_dps",
+      "name": "参御",
+      "attribute": "WOOD",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_044_wood_magic_melee_dps",
+      "name": "梧隐",
+      "attribute": "WOOD",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 100,
+      "upgradeGold": 100,
+      "finalGold": 99740,
+      "finalPackages": 457,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 36,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 3,
+          "damage": 3971,
+          "remainingEnemies": 29
+        },
+        {
+          "level": 2,
+          "duration": 48,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 7,
+          "damage": 5478,
+          "remainingEnemies": 35
+        }
+      ]
+    },
+    {
+      "configId": "char_045_wood_physical_ranged_dps",
+      "name": "景明",
+      "attribute": "WOOD",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_046_wood_magic_ranged_dps",
+      "name": "寄微",
+      "attribute": "WOOD",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_047_wood_healer",
+      "name": "空湛",
+      "attribute": "WOOD",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 321,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 33,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 40
+        },
+        {
+          "level": 2,
+          "duration": 33,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 44
+        }
+      ]
+    },
+    {
+      "configId": "char_048_wood_support",
+      "name": "殷承容",
+      "attribute": "WOOD",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 454,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 48,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 33
+        },
+        {
+          "level": 2,
+          "duration": 36,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 45
+        }
+      ]
+    },
+    {
+      "configId": "char_049_light_physical_tank",
+      "name": "齐景夕",
+      "attribute": "LIGHT",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 100,
+      "upgradeGold": 100,
+      "finalGold": 99740,
+      "finalPackages": 590,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 57,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 3,
+          "damage": 1545,
+          "remainingEnemies": 41
+        },
+        {
+          "level": 2,
+          "duration": 48,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 2,
+          "damage": 1227,
+          "remainingEnemies": 33
+        }
+      ]
+    },
+    {
+      "configId": "char_050_light_magic_tank",
+      "name": "韧心",
+      "attribute": "LIGHT",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 102,
+      "upgradeGold": 102,
+      "finalGold": 99738,
+      "finalPackages": 641,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 33,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 1,
+          "damage": 981,
+          "remainingEnemies": 39
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 5,
+          "damage": 2903,
+          "remainingEnemies": 31
+        }
+      ]
+    },
+    {
+      "configId": "char_051_light_physical_melee_dps",
+      "name": "齐哲伊",
+      "attribute": "LIGHT",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_052_light_magic_melee_dps",
+      "name": "齐昱思",
+      "attribute": "LIGHT",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_053_light_physical_ranged_dps",
+      "name": "刘白",
+      "attribute": "LIGHT",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_054_light_magic_ranged_dps",
+      "name": "溯净",
+      "attribute": "LIGHT",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_055_light_healer",
+      "name": "昭世灯",
+      "attribute": "LIGHT",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 267,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 24,
+          "survived": false,
+          "success": false,
+          "expPackages": 79,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 33
+        },
+        {
+          "level": 1,
+          "duration": 21,
+          "survived": false,
+          "success": false,
+          "expPackages": 79,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 32
+        },
+        {
+          "level": 2,
+          "duration": 30,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 31
+        }
+      ]
+    },
+    {
+      "configId": "char_056_light_support",
+      "name": "烛世言",
+      "attribute": "LIGHT",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 321,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 38,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 33
+        },
+        {
+          "level": 2,
+          "duration": 39,
+          "survived": false,
+          "success": false,
+          "expPackages": 212,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 38
+        }
+      ]
+    },
+    {
+      "configId": "char_057_dark_physical_tank",
+      "name": "厄殁",
+      "attribute": "DARK",
+      "profession": "PHYSICAL_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 134,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 21,
+          "survived": false,
+          "success": false,
+          "expPackages": 79,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 20
+        },
+        {
+          "level": 1,
+          "duration": 21,
+          "survived": false,
+          "success": false,
+          "expPackages": 79,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 24
+        },
+        {
+          "level": 2,
+          "duration": 27,
+          "survived": false,
+          "success": false,
+          "expPackages": 79,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 26
+        }
+      ]
+    },
+    {
+      "configId": "char_058_dark_magic_tank",
+      "name": "墨韫",
+      "attribute": "DARK",
+      "profession": "MAGIC_TANK",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": false,
+      "upgradePackages": 0,
+      "upgradeGold": 0,
+      "finalGold": 99840,
+      "finalPackages": 79,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 18,
+          "survived": false,
+          "success": false,
+          "expPackages": 79,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 1484,
+          "remainingEnemies": 19
+        },
+        {
+          "level": 1,
+          "duration": 12,
+          "survived": false,
+          "success": false,
+          "expPackages": 0,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 490,
+          "remainingEnemies": 17
+        },
+        {
+          "level": 1,
+          "duration": 11,
+          "survived": false,
+          "success": false,
+          "expPackages": 0,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 16
+        }
+      ]
+    },
+    {
+      "configId": "char_059_dark_physical_melee_dps",
+      "name": "王子",
+      "attribute": "DARK",
+      "profession": "PHYSICAL_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_060_dark_magic_melee_dps",
+      "name": "张静虚",
+      "attribute": "DARK",
+      "profession": "MAGIC_MELEE_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 86,
+      "upgradeGold": 86,
+      "finalGold": 99754,
+      "finalPackages": 976,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 17,
+          "damage": 11407,
+          "remainingEnemies": 11
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 15,
+          "damage": 9528,
+          "remainingEnemies": 25
+        }
+      ]
+    },
+    {
+      "configId": "char_061_dark_physical_ranged_dps",
+      "name": "叶沉",
+      "attribute": "DARK",
+      "profession": "PHYSICAL_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12845,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_062_dark_magic_ranged_dps",
+      "name": "迭翎卿",
+      "attribute": "DARK",
+      "profession": "MAGIC_RANGED_DPS",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 83,
+      "upgradeGold": 83,
+      "finalGold": 99957,
+      "finalPackages": 979,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": true,
+          "expPackages": 531,
+          "gold": 100,
+          "directExp": 20,
+          "damage": 12849,
+          "remainingEnemies": 0
+        }
+      ]
+    },
+    {
+      "configId": "char_063_dark_healer",
+      "name": "司空朔",
+      "attribute": "DARK",
+      "profession": "HEALER",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 959,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 60
+        },
+        {
+          "level": 2,
+          "duration": 60,
+          "survived": true,
+          "success": false,
+          "expPackages": 531,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 60
+        }
+      ]
+    },
+    {
+      "configId": "char_064_dark_support",
+      "name": "钱明舒",
+      "attribute": "DARK",
+      "profession": "SUPPORT",
+      "initialGold": 100000,
+      "drawCost": 160,
+      "wrongAttributeRejected": true,
+      "level1SkillSave": true,
+      "upgraded": true,
+      "upgradePackages": 103,
+      "upgradeGold": 103,
+      "finalGold": 99737,
+      "finalPackages": 587,
+      "reloginVerified": true,
+      "runs": [
+        {
+          "level": 1,
+          "duration": 55,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 51
+        },
+        {
+          "level": 2,
+          "duration": 50,
+          "survived": false,
+          "success": false,
+          "expPackages": 345,
+          "gold": 0,
+          "directExp": 0,
+          "damage": 0,
+          "remainingEnemies": 41
+        }
+      ]
+    }
+  ]
+}

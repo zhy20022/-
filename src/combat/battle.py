@@ -606,6 +606,8 @@ class Battle:
     
     def _check_victory(self) -> bool:
         """检查是否胜利"""
+        if callable(getattr(self, 'has_pending_spawns', None)) and self.has_pending_spawns():
+            return False
         # 所有敌人被击败
         return bool(self.enemy_units) and all(enemy.is_dead() for enemy in self.enemy_units)
     

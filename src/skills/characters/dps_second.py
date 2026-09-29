@@ -149,16 +149,17 @@ def cast(battle, caster, skill, allies, enemies):
     elif number == 44:
         if slot == 1:
             _hit(battle, caster, skill, primary, 1.6, number)
-            _mark(primary, caster, skill, '朱砂印')
+            _mark(primary, caster, skill, '朱砂印', remaining=None)
         elif slot == 2:
             stat(primary, caster, skill.name, ['defense', 'magic_defense'], -.25)
         else:
             count = len(_layers(primary, '朱砂印', caster))
             if count:
                 _remove(primary, '朱砂印', caster)
-                _hit(battle, caster, skill, primary, count, number)
+                for _ in range(count):
+                    _hit(battle, caster, skill, primary, 1.4, number)
                 for target in targets:
-                    _hit(battle, caster, skill, target, .8, number)
+                    _hit(battle, caster, skill, target, 1, number)
     elif number == 45:
         if slot == 1:
             _hit(battle, caster, skill, primary, 1.2, number)

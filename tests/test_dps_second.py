@@ -232,7 +232,7 @@ class DpsSecondTests(unittest.TestCase):
                 battle, caster, enemies = self.encounter(44, 2)
                 dps._mark(enemies[0], caster, self.skill(44, 1), '朱砂印', count)
                 self.assertTrue(self.cast(battle, caster, 44, 3, enemies))
-                expected = [100 * count + 80, 80] if count else [0, 0]
+                expected = [140 * count + 100, 100] if count else [0, 0]
                 self.assertEqual([100000 - t.current_health for t in enemies], expected)
                 self.assertFalse(dps._layers(enemies[0], '朱砂印', caster))
                 before = [t.current_health for t in enemies]
@@ -245,7 +245,20 @@ class DpsSecondTests(unittest.TestCase):
         enemies[1].current_health = 200
         dps._mark(enemies[0], caster, self.skill(44, 1), '朱砂印', 3)
         self.cast(battle, caster, 44, 3, enemies)
-        self.assertEqual([t.current_health for t in enemies], [0, 120])
+        self.assertEqual([t.current_health for t in enemies], [0, 100])
+
+    def test_wuyin_mark_persists_until_detonation(self):
+        battle, caster, enemies = self.encounter(44, 1)
+        self.cast(battle, caster, 44, 1, enemies)
+        mark = dps._layers(enemies[0], '朱砂印', caster)[0]
+        self.assertIsNone(mark['remaining'])
+        end_cast(battle, enemies[0], begin_cast(enemies[0]))
+        end_cast(battle, enemies[0], begin_cast(enemies[0]))
+        self.assertEqual(len(dps._layers(enemies[0], '朱砂印', caster)), 1)
+        old = enemies[0].current_health
+        self.cast(battle, caster, 44, 3, enemies)
+        self.assertEqual(old - enemies[0].current_health, 240)
+        self.assertFalse(dps._layers(enemies[0], '朱砂印', caster))
 
     def test_thread_opener_uses_defense_without_penetration(self):
         battle, caster, enemies = self.encounter(61, 2)

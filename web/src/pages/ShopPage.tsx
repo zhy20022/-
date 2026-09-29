@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
+import { isFormalOnlineMode } from '../config'
+import { createIdempotencyKey, ensureOnlineSession, onlineApi } from '../services/onlineApi'
 import EventNotification from '../components/EventNotification'
 import './ShopPage.css'
 
@@ -31,6 +34,7 @@ interface ActiveEvent {
 }
 
 const ShopPage: React.FC = () => {
+  const player = useAuthStore((state) => state.player)
   const [itemsByAttribute, setItemsByAttribute] = useState<ShopPayload>({})
   const [materials, setMaterials] = useState<Record<string, { material_type: string; attribute_type?: string | null; count: number }>>({})
   const [loading, setLoading] = useState(true)
@@ -45,7 +49,10 @@ const ShopPage: React.FC = () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await axios.get('/api/shop/items')
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.get(`/shop/${session!.player.id}`)
+        : await axios.get('/api/shop/items')
       if (response.data.success) {
         setItemsByAttribute(response.data.items || {})
         setMaterials(response.data.materials || {})
@@ -62,6 +69,10 @@ const ShopPage: React.FC = () => {
 
   const loadActiveEvents = async () => {
     try {
+      if (isFormalOnlineMode()) {
+        setActiveEvents({})
+        return
+      }
       const response = await axios.get('/api/events/active')
       if (response.data.success && response.data.events) {
         const events = response.data.events
@@ -148,11 +159,20 @@ const ShopPage: React.FC = () => {
     try {
       setExchangingItemId(item.item_id)
       setFeedback({ type: 'info', message: `正在兑换${item.name}...` })
-      const response = await axios.post('/api/shop/exchange', { item_id: item.item_id })
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.post(`/shop/${session!.player.id}/exchange`, { itemId: item.item_id }, {
+          headers: { 'Idempotency-Key': createIdempotencyKey('shop-exchange') },
+        })
+        : await axios.post('/api/shop/exchange', { item_id: item.item_id })
       if (response.data.success) {
         setFeedback({ type: 'success', message: response.data.message || '兑换成功' })
-        setMaterials(response.data.materials || {})
-        loadShop()
+        if (isFormalOnlineMode()) {
+          await loadShop()
+        } else {
+          setMaterials(response.data.materials || {})
+          loadShop()
+        }
       } else {
         setFeedback({ type: 'error', message: response.data.message || '兑换失败' })
       }
@@ -282,5 +302,4 @@ const ShopPage: React.FC = () => {
 }
 
 export default ShopPage
-
 

@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useAuthStore } from '../stores/authStore'
+import { isFormalOnlineMode } from '../config'
+import { createIdempotencyKey, ensureOnlineSession, onlineApi } from '../services/onlineApi'
 import './WorldBossPage.css'
 
 interface WorldBossRanking {
@@ -132,6 +135,7 @@ const chestRewardText = (chest: WorldBossChest) => {
 
 const WorldBossPage: React.FC = () => {
   const navigate = useNavigate()
+  const player = useAuthStore((state) => state.player)
   const [bosses, setBosses] = useState<WorldBossStatus[]>([])
   const [selectedDungeonId, setSelectedDungeonId] = useState('')
   const [loading, setLoading] = useState(true)
@@ -163,7 +167,10 @@ const WorldBossPage: React.FC = () => {
   const loadWorldBosses = async () => {
     setLoading(true)
     try {
-      const response = await axios.get('/api/world-boss/dungeons')
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.get(`/world-boss/${session!.player.id}/dungeons`)
+        : await axios.get('/api/world-boss/dungeons')
       if (response.data.success) {
         setBosses(response.data.dungeons || [])
       }
@@ -177,7 +184,10 @@ const WorldBossPage: React.FC = () => {
   const refreshSelectedBoss = async () => {
     if (!selectedBoss) return
     try {
-      const response = await axios.get(`/api/world-boss/${selectedBoss.dungeon.dungeon_id}/status`)
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.get(`/world-boss/${session!.player.id}/${selectedBoss.dungeon.dungeon_id}/status`)
+        : await axios.get(`/api/world-boss/${selectedBoss.dungeon.dungeon_id}/status`)
       if (response.data.success) {
         replaceSelectedBoss(response.data)
         setMessage('World boss status refreshed')
@@ -188,6 +198,10 @@ const WorldBossPage: React.FC = () => {
   }
 
   const runMaintenance = async () => {
+    if (isFormalOnlineMode()) {
+      setMessage('赛季维护由服务器自动处理')
+      return
+    }
     setBusy(true)
     try {
       const response = await axios.post('/api/world-boss/seasons/maintenance')
@@ -205,6 +219,10 @@ const WorldBossPage: React.FC = () => {
 
   const submitManualDamage = async () => {
     if (!selectedBoss) return
+    if (isFormalOnlineMode()) {
+      setMessage('请通过正式副本战斗提交伤害，不能手动填写伤害值')
+      return
+    }
     const damage = Number(manualDamage)
     if (!Number.isFinite(damage) || damage <= 0) {
       setMessage('Enter valid damage')
@@ -231,6 +249,10 @@ const WorldBossPage: React.FC = () => {
 
   const settleRewards = async () => {
     if (!selectedBoss) return
+    if (isFormalOnlineMode()) {
+      setMessage('赛季奖励由服务器自动结算')
+      return
+    }
     setBusy(true)
     try {
       const response = await axios.post(`/api/world-boss/${selectedBoss.dungeon.dungeon_id}/settle`, {
@@ -253,7 +275,12 @@ const WorldBossPage: React.FC = () => {
     if (!selectedBoss) return
     setBusy(true)
     try {
-      const response = await axios.post(`/api/world-boss/${selectedBoss.dungeon.dungeon_id}/chests/${chestId}/open`)
+      const session = isFormalOnlineMode() ? await ensureOnlineSession(player) : null
+      const response = isFormalOnlineMode()
+        ? await onlineApi.post(`/world-boss/${session!.player.id}/${selectedBoss.dungeon.dungeon_id}/chests/${chestId}/open`, {}, {
+          headers: { 'Idempotency-Key': createIdempotencyKey('world-boss-chest') },
+        })
+        : await axios.post(`/api/world-boss/${selectedBoss.dungeon.dungeon_id}/chests/${chestId}/open`)
       if (response.data.success) {
         replaceSelectedBoss(response.data.status)
         const reward = response.data.chest?.reward_payload
@@ -268,6 +295,10 @@ const WorldBossPage: React.FC = () => {
 
   const openBatch = async () => {
     if (!selectedBoss) return
+    if (isFormalOnlineMode()) {
+      setMessage('在线模式暂不支持批量开箱，请逐个开启')
+      return
+    }
     setBusy(true)
     try {
       const response = await axios.post(`/api/world-boss/${selectedBoss.dungeon.dungeon_id}/chests/open-batch`, {
@@ -287,6 +318,10 @@ const WorldBossPage: React.FC = () => {
 
   const enterChallenge = () => {
     if (!selectedBoss) return
+    if (isFormalOnlineMode()) {
+      navigate('/dungeons')
+      return
+    }
     navigate('/dungeons/multiplayer', {
       state: { dungeon_id: selectedBoss.dungeon.dungeon_id }
     })
@@ -336,9 +371,9 @@ const WorldBossPage: React.FC = () => {
                   <p>{selectedBoss.dungeon.recommendation?.summary}</p>
                 </div>
                 <div className="world-boss-actions">
-                  <button disabled={busy} onClick={enterChallenge}>Challenge Room</button>
+                  <button disabled={busy} onClick={enterChallenge}>{isFormalOnlineMode() ? '进入挑战' : 'Challenge Room'}</button>
                   <button disabled={busy} onClick={refreshSelectedBoss}>Refresh Status</button>
-                  <button disabled={busy} onClick={runMaintenance}>Season Check</button>
+                  {!isFormalOnlineMode() && <button disabled={busy} onClick={runMaintenance}>Season Check</button>}
                 </div>
               </section>
 
@@ -380,17 +415,18 @@ const WorldBossPage: React.FC = () => {
                   ) : (
                     <p className="world-boss-muted">No attempts this season.</p>
                   )}
-                  <div className="manual-score-row">
+                  {!isFormalOnlineMode() && <div className="manual-score-row">
                     <input value={manualDamage} onChange={(event) => setManualDamage(event.target.value)} />
-                    <button disabled={busy} onClick={submitManualDamage}>Submit Test Damage</button>
-                  </div>
+                    {!isFormalOnlineMode() && <button disabled={busy} onClick={submitManualDamage}>Submit Test Damage</button>}
+                  </div>}
+                  {isFormalOnlineMode() && <p className="world-boss-muted">全服伤害仅计入已完成的服务端战斗结算。</p>}
                 </div>
 
                 <div className="world-boss-panel">
                   <h3>Settlement</h3>
                   <div className="world-boss-stat-row"><span>Rule</span><strong>10 fragments / 50 layers</strong></div>
                   <div className="world-boss-stat-row"><span>Current claim</span><strong>{formatNumber(selectedBoss.settlement.milestone_rule?.current_fragments)}</strong></div>
-                  <button disabled={busy} onClick={settleRewards}>Run Settlement</button>
+                  {!isFormalOnlineMode() && <button disabled={busy} onClick={settleRewards}>Run Settlement</button>}
                 </div>
               </section>
 
@@ -414,7 +450,7 @@ const WorldBossPage: React.FC = () => {
                 <div className="world-boss-title-line">
                   <h3>Layer Chests</h3>
                   <span>Unopened {formatNumber(selectedBoss.chests.unopened_count)} / Opened {formatNumber(selectedBoss.chests.opened_count)}</span>
-                  <button disabled={busy || selectedBoss.chests.unopened_count <= 0} onClick={openBatch}>Open 100</button>
+                  {!isFormalOnlineMode() && <button disabled={busy || selectedBoss.chests.unopened_count <= 0} onClick={openBatch}>Open 100</button>}
                 </div>
                 <div className="world-boss-tags">
                   {(selectedBoss.chests.tier_rules || []).map((rule) => (

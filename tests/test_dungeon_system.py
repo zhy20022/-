@@ -293,7 +293,7 @@ def test_dungeon_monster_spawner():
     print(f"\n5人本怪物生成时间: {len(spawner.spawn_times)}波")
     print(f"5人本Boss生成时间: {len(spawner.boss_spawn_times)}个")
     assert len(spawner.spawn_times) == 60, "5人本应该有60波怪物"
-    assert len(spawner.boss_spawn_times) == 4, "5人本应该有4个Boss"
+    assert spawner.boss_spawn_times == [60.0], "5人本60秒登场一套Boss"
     
     print("[OK] 副本怪物生成器测试通过")
 
