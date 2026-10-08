@@ -1,319 +1,67 @@
 # Next Steps
 
-## Release Candidate 本轮计划
+更新：2026-10-08，Asia/Singapore。
 
-2026-10-08：本轮冻结完整候选提交，然后从干净本地 clone 重新安装既有锁定依赖、构建和执行真实核心回归。下文“尚未形成提交”的描述属于上一阶段，最终结果以本轮完成记录为准。
+## 唯一首要任务：关闭 H06 Docker Gate
 
-本机无 Docker/Compose；已检查项目现有 Actions，没有隔离双 Compose job，也没有配置的远程 runner。不得为了当前候选触发生产/公网验收或未经授权 push。**唯一剩余发布门禁是取得可访问的隔离 Docker runner，在实际 candidate commit 上执行两套 Compose 的构建、迁移、镜像 worker/content、Redis/API readiness 和业务冒烟。**
+**提供可访问的隔离 Docker runner，从 `afa8a00f67aec246a63670e0856d3ca37202eec4` 干净 checkout 分别真实验收两套生产 Compose。**
 
-入口：在干净候选 checkout 的 `server-nest` 目录执行 `node scripts/verify-docker-candidate.mjs`。测试卷与项目使用随机隔离身份，结束只清理自身项目。该入口不验证公网 TLS/网关启动，相关环境需要另行受控验收；不能把脚本语法检查当作 H06 PASS。
+候选已经冻结，migration、H01-H05、多人回归和必要脚本均已跟踪。最终候选的 Python 221 项/486 子场景、前后端构建/类型、Nest lint、worker、13 步真实核心回归和双账号 3+2 连续十局/20 条独立结算/逐局 SQL 对账已通过。不要重复执行历史“先补未提交候选”的任务。
 
-选角不足仍记 Known Risk / Not Blocking Current Release Gate；继续保存失败证据，不因再次绿色重跑宣称根因已修复。本次不扩展新玩法。
+当前判定：**CONDITIONAL ALPHA，仅开发者监督下的隔离本地合成账号内部测试；不是受控公网 Alpha 许可。** 本机 Docker/Compose 不存在，现有 Actions 和远程配置中未找到可用隔离 runner；H06 为 NOT VERIFIED，而非项目构建 FAIL。候选源码和本地构建可复现，不代表容器部署已复现。
 
-## 当前执行计划：P0 最终验收后
+后续验收文档单独提交，不 amend 已验证候选，也不未经授权 push。旧审计计划保留在 Git 历史，不再作为当前待办。
 
-更新：2026-10-08，Asia/Singapore。阶段：Validated Multiplayer Alpha / Stabilization。发布结论：**CONDITIONAL ALPHA，仅隔离内部功能测试；不是公网/生产部署许可**。
+## Runner 验收范围
 
-本节取代下面的首次审计计划。历史“先修 H01/H02”“H03/H04 未验证”等任务不再是当前优先级，不能重复执行旧清单。
+1. 校验候选 hash、clean checkout、schema `MultiplayerRoomPresence1788513000000`，使用测试秘密、新 PostgreSQL 16/Redis 7、新卷和 loopback 端口。禁止生产库、真实玩家和覆盖本地数据库。
+2. 分别执行 `deploy/production/docker-compose.prod.yml` 与 `deploy/production/docker-compose.public-api.yml`：config -> build -> image -> schema -> API -> readiness。
+3. 无源码/content 挂载地检查镜像内 Node、Python worker、content、六个 migration；校验运行用户、启动命令及持续运行状态。
+4. 容器 HTTP 真正完成注册/登录 -> 获取角色 -> 核心入口 -> worker 战斗 -> 结算，并记录数据库读写、镜像 ID、commit/schema、健康及日志。
+5. 各套分别记录 Build/Start/Migration/Readiness/Worker/Content PASS/FAIL。先失败的一套不允许掩盖另一套未测。
+6. 补网关启动/配置和受控证书/TLS 验收。没有域名/证书时明确 NOT VERIFIED，不能只 API ready 就宣称整个生产 Compose PASS。
+7. 补 PostgreSQL 16 下正式备份/隔离恢复/恢复后启动；本地 PostgreSQL 18.1 结果不能替代目标版本兼容性。
+8. 对容器环境至少完成双账号 3+2 两局真实 UI 冒烟；若修改核心业务，重跑安全/恢复/结算及十局 SQL 对账，不复用旧版本结果。
 
-### 已关闭的本轮门禁
-
-- H01/H02：最新真实双浏览器 3+2 连续十局、20 条独立结算、逐局数据库对账通过。
-- H03：真实 HTTP 的未鉴权、跨账号、动态 Boss/固定权威榜写入拒绝；合法 worker 结算真实写榜通过。
-- H04：真实管理员封禁/解封，旧 Token 和新登录限制、两个 API 实例一致性通过。
-- H05：本地 PostgreSQL 18.1，六迁移/旧 schema 升级/重复迁移、真实备份恢复、恢复服务启动和核心查询通过；合成备份加密/解密哈希一致。
-- 本次范围内 Python、Node/worker、构建/类型/lint、奖励 fixture integration、多人 API/浏览器回归通过。Mock/Contract 结果单独标记，不能混入真实 E2E。
-
-详细版本、迁移集、命令结果、失败记录和边界以 `PROJECT_STATUS.md` 当前章节为准。
-
-## 唯一首要任务：关闭 H06 部署门禁
-
-**将完整候选版本冻结后，在有 Docker 的隔离环境中，从干净 checkout 实际验证两个生产 Compose。**
-
-### 为什么只做这一项
-
-核心闭环、安全和本地恢复已经有当前证据；未完成的是“这一版本真的能以声明的生产配置部署”。本机无 Docker/Podman，静态路径正确、npm build 和源码导出都不能替代容器结果。
-
-HEAD `d163ea6bf4c65656460e43dd1dfd49a8c1410afb` 不包含全部验收改动，presence migration 和 active-account guard 等关键文件仍未跟踪。直接 checkout HEAD 会得到不同版本；先冻结候选是 H06 的输入依赖，不是另开功能任务。
-
-### 执行边界
-
-1. 由负责人审阅并纳入本轮必要业务、迁移、配置和验收脚本，排除无关审计/平衡报告；建立明确 candidate commit。本次没有自动提交。
-2. 归档候选清单及本次最终 PASS/前次 FAIL 证据；当前临时目录不是持久产物。源码哈希 `ac217b7fe7fe7daac714a73908415c8be5aabd88b8164a7289d28c80196adb97` 可用于比对，最终提交哈希另记。
-3. 在隔离 runner checkout 该提交，使用测试秘密与独立数据库/卷/端口，禁止生产库和真实玩家数据。
-4. 分别执行 `deploy/production/docker-compose.prod.yml` 和 `docker-compose.public-api.yml` 的 config、build、schema、api 启动与 readiness。
-5. 实际在镜像内验证 Python、作者技能 worker、content、六迁移文件和写入权限；容器 HTTP 验证正常开战/结算，不能靠宿主 Python 或挂载本地源码掩盖镜像缺失。
-6. 使用 Compose 声明的 PostgreSQL 16 与 Redis 7 证明迁移/恢复兼容性和 `/api/health/ready`。当前本地 PostgreSQL 18.1 的结果不可冒充版本 16 验收。
-7. 先验证不依赖公网证书的服务链，再记录正式环境变量、网关/TLS、备份运行依赖和容器健康检查结果；公网秘密或域名不可用时对应项继续 NOT VERIFIED。
-8. 若修复涉及鉴权、结算、schema 或多人入口，重跑对应安全/恢复和多人两局冒烟、连续十局、数据库对账；不得只复用旧截图。
-
-### Definition of Done
-
-- 两个 Compose 均从不可变候选的干净 checkout 构建成功，镜像包含所需 worker/content/迁移。
-- schema 成功完成，API/Redis/PostgreSQL 的依赖顺序与 readiness 真实通过。
-- 目标 PostgreSQL 版本下重复迁移、正式备份/隔离恢复/恢复服务启动通过。
-- candidate commit、schema、镜像标识、构建/健康检查/HTTP/SQL日志可追踪并可靠归档。
-- 重跑后的核心安全、多人闭环和数据库对账仍通过；没有新 Blocker/Critical。
-- 然后重新判断发布，而不是因为 npm build 或 YAML 解析通过就改成 Ready。
-
-### 当前不做
-
-不自动开发匹配、聊天、支付、平台登录、新角色、新副本、公会 UI、音频、美术或活动。也不重写已验证的多人共享战斗逻辑。
-
-## 当前可运行的复验入口
-
-以下命令会创建/写入隔离测试数据库，不要把连接指向生产。
+现有入口：
 
 ```powershell
-# 项目根目录
-python -B -m pytest tests -q -p no:cacheprovider
-
-# server-nest 目录；先保证依赖安装及独立 PostgreSQL 可用
-npm run build
-npm run typecheck
-npm run lint
-node scripts/test-battle-worker.mjs
-node scripts/test-skill-slot-rules.mjs
-node scripts/test-acquire-connection.mjs
-$env:E2E_DATABASE_URL='postgres://TEST_USER@127.0.0.1:TEST_PORT/gamer_rewards_e2e_TEST'
-$env:E2E_ARTIFACT_DIR='C:\ABSOLUTE\ISOLATED\ARTIFACT_DIR'
-node scripts/verify-p0-final.mjs
-
-# web 目录
-npx tsc --noEmit --incremental false
-npm run build
-node scripts/test-guide-account.cjs
-node scripts/test-server-battle-replay.mjs
+# 在干净候选 checkout 的 server-nest 目录执行
+$env:E2E_CANDIDATE_COMMIT='afa8a00f67aec246a63670e0856d3ca37202eec4'
+node scripts/verify-docker-candidate.mjs
 ```
 
-`verify-p0-final.mjs` 需要 `createdb`/`pg_restore`/`psql` 在 PATH、真实 Chrome/Playwright 和空闲端口。默认使用本机 Chrome 路径，迁移使用 `TYPEORM_SYNCHRONIZE=false`。脚本失败即失败，不跳过步骤。旧 `e2e-http`/`e2e-online-loop` 的客户端结算假设未在本轮重写，不把它们当作发布证明。
+此脚本目前**没有真实 Docker 验收**。它设计为随机项目/测试卷/测试秘密、迁移与 Redis/API readiness、无挂载镜像检查和真实业务 HTTP 冒烟。它不启动网关/TLS、不执行容器恢复或容器浏览器多人流程；首套失败会停止，必须保留失败日志并补第二套。不要把脚本存在或语法检查视为门禁通过。
 
-本次测试进程已退出，临时 PostgreSQL 结束验收后停止；复验前需要明确重新启动测试实例或另建隔离实例。
+## 关闭标准
 
-## H06 之后再决定的阶段
+- 两套 Compose 各自具有上述实际结果，worker/content 不能由宿主文件掩盖。
+- 候选/source/schema/image/数据库版本和逐步日志可追踪，关键回归没有退化。
+- 环境故障和项目故障分开记录；真正缺文件或 Dockerfile/context 错误只作最小修复，并冻结新的候选再验证。
+- 更新 `PROJECT_STATUS.md` 并重新给出 READY / CONDITIONAL / NOT READY；当前不预先宣布 H06 PASS。
 
-只有 H06 和候选闭合完成后，才讨论以下阶段，不在本轮自动执行：
+## 保留限制
 
-- 四账号二十角色真实玩家流程、三人以上好友拓扑和并发/断线/票据到期/崩溃恢复。
-- H10 多人 Boss 贡献、失败伤害、层数和奖励归属规则，使用真实多账号 SQL 对账。
-- H09 直接助战的权威来源、授权开关和幂等事务；H11 公会贡献的权威资源消费或服务端真正隔离。
-- 选角不足偶发的复现与请求时序定位、390 视口裁切及移动后台节流；不把一次重跑通过当作根因修复。
-- 小规模容量/worker 超时/数据库锁/告警/回滚/恢复演练，再制定账号白名单、运行范围和受控 Alpha 标准。
+选角不足仍未完全定位，保留为 **Known Risk / Not Blocking Current Release Gate**。原失败显示房主一名 + 队友两名，online/ready 正常但总数不足；缺少当时完整 selectedIds/请求时序。保留旧失败证据，不能因十局重跑通过就宣布根因已修复，也不能降低测试标准。
 
-这些路径未隔离前，不开放真实经济或公开 API。内部功能测试只能使用合成账号和隔离机器；“隐藏界面”不等于服务端安全隔离。
+当前可测试：隔离合成账号的单人闭环、两账号 SQUAD、榜安全、封禁和本地恢复。当前不能开放：公网/生产、真实经济，以及未验收直接助战、公会贡献、多人 Boss 经济路径；隐藏 UI 不等于服务端安全隔离。
 
----
+八属性主题/标签规则及两页四视口的浏览器视觉 Contract 已通过，不代表所有旧伤害/Buff/文字完成对比度审核。既有标题/布局缺口作为风险保留，不在本轮大范围改版。
 
-## 历史记录：首次审计计划（已被上面的当前计划取代）
+H06 全部通过后再制定受控 Alpha -> 真实用户规模扩大 -> 四账号/二十角色 -> 并发/异常 -> Boss 贡献 -> 容量基线计划，不在本轮自动扩展。暂不新增角色、匹配、支付、聊天、音频或大型活动。
 
-基准：2026-10-08，Asia/Shanghai；当前本地工作树，HEAD `d163ea6`。配套证据与H编号见 `PROJECT_STATUS.md`。本文件是后续执行建议，本次审计没有实施以下业务修改。
-
-## 1. Current Objective
-
-**将当前Alpha推进到“可重复游玩的正式在线多人切片，并具有可验证的安全和恢复门禁”。**
-
-阶段范围优先收窄为：单人养成 + 两账号五角色协作 + 四账号二十角色房间的基础回归。不要用“MMORPG全部完成”作为本轮不可验收目标。
-
-暂不以美术扩充、支付或匹配队列为必需条件；负责人仍需裁定本轮必须交付的正式功能。未达标的功能应明确隐藏/标注，不能让原型接口被误当成在线功能。
-
-## 2. Most Important Next Task
-
-### Task
-
-**修复并真实验收“两账号创建房间 -> 分别选3+2角色 -> 同步准备 -> 房主开战 -> 双方观看同一战斗 -> 各自奖励一次 -> 返回 -> 再次开局”的连续10局闭环。**
-
-首要修改点是H01全队角色统计、H02finished房间生命周期。验收必须走真实页面按钮，不能直接调用start API来替代UI。
-
-### Why
-
-- H01阻塞通常的首局协作，H02阻塞下一局；它们位于Critical Player Journey两端。
-- 现有房间HTTP测试可绕过两处UI断点，现有重连浏览器脚本仅覆盖等待房间，因此增补功能不能替代闭环测试。
-- 完成此任务后，战斗一致性、奖励、防重放、刷新重连和真实多人负载才有可靠验证入口。
-- 明天只允许一个任务时，先交付这条可复玩切片；安全P0关闭前不要公开发布或接真实经济。
-
-### Dependencies
-
-- 明确使用Nest正式模式，禁用静态演示和Python原型回退。
-- 准备隔离本地PostgreSQL及测试环境，不能复用玩家库；提供测试专用Redis或明确依赖策略。
-- 固定当前待验提交、作者角色配置和schema；presence迁移必须与相关代码一起进入该版本。
-- 选择拥有明确好友关系的两个账号；测试fixture可只用于准备3+2名真实作者角色，不得替换worker胜负/伤害或HTTP业务结果。
-- 使用真实浏览器的独立上下文，覆盖1280与390宽度。可以分别代表两账号，不能共享localStorage。
-
-### Implementation Scope
-
-1. waiting房间返回/显示一致的全队选角汇总；开战门槛同时检查在线、准备、唯一角色总数和账号角色归属。
-2. 制定finished/cancelled生命周期：保留历史结算可查，但`current`/界面不能把已结束房间当作不可退出的活跃房间；允许安全返回并创建新局。
-3. 保护尚未结算成员：第一个成员完成不能破坏其他成员的结算/恢复凭证；定义何时释放成员和旧票据。
-4. 稳定一次房间开战身份与共享快照；至少验证失败时不留下会覆盖后续开战的部分activeBattleSeed。
-5. 补真实双浏览器完整流程测试：UI选角、准备、开战、结算返回、第二局；保留现有API/presence测试作为补充。
-6. 每局核对数据库：同一房间battleSeed/可信快照一致；每账号一条结算、一次奖励、一次进度；没有孤立starting房间或跨账号写入。
-
-避免在此任务中重写全部战斗引擎、升级框架、做新的匹配系统或大范围UI改版。
-
-### Definition of Done
-
-- 两个真实账号在真实React + NestJS + PostgreSQL + Python worker中，通过页面自然完成10局；每局结束后无需手动清存储、SQL重置或curl建房，能从UI开始下一局。
-- 至少包含一次3+2角色协作，不通过“房主自己选满5名”绕过全队统计。
-- 总队伍5名角色与双方归属合法；双方battleSeed一致，可信结果/快照一致。
-- 每账号每局只发一次奖励，重复/并发结算返回同一记录或明确已完成状态，数据库余额与进度对账一致。
-- 至少覆盖3类异常：重复点击/并发请求、房主等待阶段断线后恢复或转移、战斗中刷新/临时断网恢复；补一例房间已结束后刷新再开局。
-- 至少各一轮1280/390视口，页面无异常，无开战永远disabled，无finished死锁，无不正确账号恢复。
-- 迁移从旧schema升级和重复启动通过；不能只依靠TYPEORM_SYNCHRONIZE。
-- 失败原因、测试版本、fixture范围、seed、DB断言与运行结果写入验收记录；任何mock契约测试单独标记，不混入真实e2e统计。
-
-### Validation
-
-建议验证顺序：
+## 当前证据入口
 
 ```text
-无输出静态检查
-  -> 前后端构建 + 当前Python全量
-  -> 真实worker/skill-slot回归
-  -> 隔离DB完整迁移/重复迁移
-  -> 现有房间API/助战/presence e2e
-  -> 新双浏览器完整10局
-  -> 同库SQL余额/进度/记录对账
+Candidate: afa8a00f67aec246a63670e0856d3ca37202eec4
+Schema: MultiplayerRoomPresence1788513000000
+Archive: C:\Users\12107\Desktop\4\release-evidence\afa8a00
+Core: core\core-regression.json
+Multiplayer: core\gamer-multiplayer-delivery\result.json
+Security/restore: core\gamer-p0-delivery\result.json
+Docker preflight: docker-preflight\result.json / 1-docker.log
+Visual contract: visual-contract\result.json
+Prior failure: prior-selection-failure\result.json
 ```
 
-现有命令可复用：
-
-```powershell
-# 项目根目录；当前系统Python能执行，.venv尚缺pytest
-python -B -m pytest tests -q -p no:cacheprovider
-
-# server-nest目录
-npm run build
-node scripts/test-battle-worker.mjs
-node scripts/test-skill-slot-rules.mjs
-node scripts/test-acquire-connection.mjs
-
-# 仅在明确隔离库下运行；这些命令会写数据库
-npm run e2e:multiplayer-room
-npm run e2e:multiplayer-room-browser
-```
-
-现有浏览器脚本不包含完整开战/复玩，要先扩展测试范围，不将“脚本绿色”当作上述DoD已经满足。测试票据时钟若需缩短等待，仅限隔离库、明确记录；不得修改引擎结果与奖励。
-
-## 3. P0
-
-P0按“核心开发阻塞/公开发布门禁”分组，不把所有缺失都升为Blocker。
-
-| Priority | Task | Why | Dependency | Definition of Done |
-|---|---|---|---|---|
-| P0-Play | H01/H02多人首局与下一局完整闭环 | 真实玩家流程当前断开 | 隔离DB、当前schema、两账号 | 通过本文件10局DoD，真实UI而非直接API。 |
-| P0-Security | H03关闭未经鉴权的排名写入，并保护实际Boss榜key | 可伪造真实赛季排名 | 明确全部server-owned榜、可信结算来源 | 无令牌/跨账号/动态Boss榜自报score均被拒绝；合法服务端结算仍进榜；实际HTTP/SQL负向回归通过。 |
-| P0-Security | H04立即封禁已登录账号的访问 | 30天现有令牌可继续通过校验 | 账号状态/会话撤销策略 | 封号后旧token不能继续读写核心业务；新登录被拒绝；解封和缓存/多实例策略有测试。 |
-| P0-Recovery | H05统一当前schema与备份恢复验收 | 最新版本无法通过旧恢复门禁 | 确定发布迁移集 | 当前备份下载、加密校验、隔离恢复、新增表/列/关系检查和恢复后启动通过；旧备份有明确兼容/升级策略。 |
-| P0-Deploy | H06修正两个生产Compose构建上下文 | 按现有正式说明部署会失败 | 可运行Docker环境、固定发布版本 | 两套目标Compose均能从干净checkout构建，worker/内容文件在镜像内，迁移和ready通过；不影响已可用Render路径。 |
-| P0-Verify | 可复现发布版本/隔离e2e门禁 | 本地改动、未跟踪迁移不能证明线上运行 | 上述核心修复与迁移集 | 提交前确认包含presence迁移；干净环境构建+迁移+奖励/房间e2e；记录commit/schema，不把本地origin缓存当最新远程。 |
-
-安全问题不需要等待新玩法；若只有一个开发者，先修两局闭环可留在隔离环境验证，**在P0-Security与P0-Recovery完成前不要扩大公开测试**。
-
-## 4. P1
-
-| Priority | Task | Why | Dependency | Definition of Done |
-|---|---|---|---|---|
-| P1-Room | H07共享战斗快照、原子票据发布和starting恢复 | 避免部分账号已开战/快照不一致 | P0-Play入口可用 | 开战在每成员都可见前不发布；同房间同结果；逐成员失败和进程重启可恢复/补偿；一轮故障不污染下一轮。 |
-| P1-Room | H08单活跃房间约束与好友拓扑裁定 | 三/四账号房间可能不能开战；并发多房间 | 阶段人数定义、共享房间授权规则 | 三账号“仅共同房主好友”按产品决定成功或明确拒绝；并发建房/入两房不会留下双活跃成员。 |
-| P1-Data | 统一跨账号结算锁序并做真实并发验证 | 防数据库死锁/部分失败 | 稳定票据/隔离DB | 两/四账号并发结算可重复通过；不同key/重复请求没有双发；DB死锁/超时有可重试且不会失账的行为。 |
-| P1-Assist | H09治理直接助战奖励入口和助战关闭语义 | 公开路径缺事务/来源；开关不生效 | 明确房间协作与异步借角区别 | 直接自报请求不能发奖；真实结算发奖一次；默认manager不触发无事务锁；关闭后不能新增借角且现有票据规则明确。 |
-| P1-Boss | H10个人伤害、失败贡献、参与者宝箱与赛季收尾 | 层数/排名/奖励可能重复或遗漏 | P0榜保护、贡献规则裁定 | 两/四成员同场总累计不超过规则定义；失败伤害按裁定处理；清层/50层碎片与UI一致；跨季度只结算一次。 |
-| P1-Guild | H11关闭客户端自报贡献，补原子扣款/来源 | 容易伪造公会进度与每日目标 | 贡献玩法与资源规则 | 可信事件/已扣资源驱动贡献；幂等并发回归；创建失败无孤立公会、加入不超员。当前未开放UI可先限制写接口。 |
-| P1-Test | H12淘汰或更新过时e2e断言，扩大CI | 旧成功假设掩盖真实权威流程 | 新权威回归规范 | 旧脚本不再立即伪结算/固定伤害断言；CI执行Python全量、奖励/房间e2e和两局UI；mock测试明确标注。 |
-| P1-Session | 活跃战斗覆盖/过期/结算后缓存清理 | 中途退出可能失去奖励，旧凭证残留 | 战斗生命周期产品规则 | 再开战不静默覆盖未结算局；关闭重开恢复/弃战/过期补偿有测试；已结算缓存不错误恢复。 |
-| P1-Idle | 挂机start/stop/claim并发与重启恢复 | 领取受保护但会话切换非统一事务 | 隔离DB和时间规则 | 同账号同时start最多一条active；切换/领取不会丢收益或双发；失败重试确定。 |
-| P1-Content | 冻结Alpha正式功能清单并更新入口与说明 | 三种模式与过时coverage导致误判断 | 负责人范围裁定 | 所有公开入口均有正式API或明确未开放；团队战报不调Python；精炼/邮件/立绘/战魂标注准确。 |
-| P1-Capacity | worker/轮询/限流小规模负载和日志 | 一进程最多2 worker、NAT限流、无容量基线 | 正确性和真实回归通过 | 先约定目标并发与p95/SLO；测503/429恢复、DB锁、CPU内存、>100房间扫描；不凭少量账号测试声称容量达标。 |
-
-P1-Assist、P1-Boss、P1-Guild若在当前公开服已开放涉及真实经济，应在该功能发布前提升为P0安全/数据门禁。
-
-## 5. P2
-
-| Priority | Task | Why |
-|---|---|---|
-| P2 | 正式邮件领奖UI/API、立绘兑换与素材接入、战魂迁移 | 补齐既有资源消费/补偿闭环；先确定是否本版本必需。 |
-| P2 | 更多任务/成就及配置化 | 当前只有基础定义；扩内容比重写系统更有价值。 |
-| P2 | 纪元/满级解锁规则与各模式统一 | 原型有规则但正式入口未证明约束；若当前版本要求则提高优先级。 |
-| P2 | 正式战报/公会管理界面、房间聊天 | 做已有后端的可用体验，避免无功能入口。 |
-| P2 | 原型驱散/prepare TODO、原型活动管理员校验/奖励材料补齐 | 原型若不对外可后置；若公开提供则先处理安全缺口。 |
-| P2 | 统一Python开发依赖、弃用警告与文档 | 让干净机器可复现测试，避免依赖个人系统Python。 |
-| P2 | JS分包与移动端表现/音频 | 主包613KB；先实测加载，再做有数据依据的优化。 |
-| Future | 自动匹配、支付、平台登录、新纪元及大量新角色 | 不解除当前开战/结算/复玩阻塞，必须有明确产品需求后再排期。 |
-
-## 6. Critical Path
-
-```text
-核心玩家路径：
-全队选角计数 + finished生命周期
-  -> 固定共享票据/恢复与结算
-  -> 隔离schema迁移
-  -> 真实双浏览器10局 + 异常 + 对账
-  -> 四账号二十角色回归
-  -> 候选版本提交/干净环境复现
-
-发布门禁路径：
-Boss榜鉴权/来源保护 + 封号生效
-  -> 安全HTTP/DB回归
-备份schema一致 + Compose可构建
-  -> 备份恢复 + ready
-
-三条路径汇合：
-目标部署commit/schema核对
-  -> 公网新账号养成及两账号复玩验收
-  -> 受控在线Alpha测试
-```
-
-没有假定必须先做自动匹配、聊天或支付才能验证现有房间。不要把未来功能扩张塞进Critical Path。
-
-## 7. Suggested Development Order
-
-1. 冻结这轮功能范围，准备隔离环境，先写会复现H01/H02的真实两局UI失败用例。
-2. 修全队汇总与结束房间退出/创建，确保至少两局自然连续通过。
-3. 同步处理Boss排名鉴权、旧token封号和直接奖励入口；留在测试环境直到安全回归通过。
-4. 统一房间可信快照、部分开战补偿、锁序与activeBattle生命周期；扩展到10局和三类异常。
-5. 验证presence迁移，更新备份恢复版本/表清单及生产Compose。
-6. 更新过时e2e，加入CI；从干净checkout重跑构建、迁移、奖励、双浏览器闭环。
-7. 四账号二十角色房间及Boss贡献对账，随后再测worker/DB/轮询容量。
-8. 经批准部署候选版本，核对commit/schema/恢复记录，再做公网验证。
-9. 根据测试结果补阶段必需内容与表现，不以堆新功能代替稳定性验收。
-
-## 8. Suggested 1-2 Week Roadmap
-
-这是依赖顺序建议，不是对人员/工时的保证；未提供团队规模和目标SLO。遇到数据库一致性缺陷时缩减内容范围，不跳过安全/恢复。
-
-| 时间 | 目标 | 可交付验证 |
-|---|---|---|
-| 2026-10-09至10-10 | H01/H02修复与真实两局；并行关闭榜写入/封号缺陷 | 两浏览器3+2角色可自然开战和复玩；安全负向测试。 |
-| 2026-10-11至10-13 | 共享快照、失败补偿、结算并发及重连 | 十局、三异常、SQL对账；4账号锁序/好友拓扑探针。 |
-| 2026-10-14至10-15 | 迁移、备份恢复、Compose、干净构建和CI | 当前schema恢复可启动；固定commit自动回归。 |
-| 2026-10-16至10-18 | 四账号二十角色、Boss贡献/赛季规则及容量基线 | 不重复贡献/发奖；目标并发下可测p95、503/429行为。 |
-| 2026-10-19至10-22 | 候选部署与受控公网验收；必要修复和入口收敛 | 公网版本/存档/连续复玩确认；未完成功能明确隔离。 |
-
-第一周结束至少交付“闭环、安全门禁、恢复可验证”的证据。若十局未通过，第二周继续处理断点，而不是转去新增角色和活动。
-
-## 9. What NOT to Work On Yet
-
-- 不以新增角色、更多副本、精美抽卡动画、支付或自动匹配来掩盖现有房间无法开战/复玩的事实。
-- 不整体迁移/重写Python战斗引擎、状态系统或全部前端；现有规则与worker测试已经有价值。
-- 不仅修改coverage字符串或勾选README就宣布功能完成。
-- 不在公开数据库跑会插入fixture、改约束或提前票据时间的e2e。
-- 不仅修好直接助战的事务报错就开放客户端自报发奖。
-- 不把同seed独立模拟、固定参考队通关、HTTP直接start或mock界面测试叫作“多人全链路完成”。
-- 不发布缺迁移的schema常量，不把旧恢复脚本绿色当作新版本恢复成功。
-- 不擅自覆盖当前未提交改动、升级依赖或改lockfile以求测试通过。
-
-## 10. Exit Criteria for the Current Stage
-
-从本轮Alpha推进到“已验证多人在线切片/稳定化”需全部满足：
-
-- 核心单人链：真实新账号注册、抽取、作者技能配置、经验本、升级、装备、结算、重登录存档恢复通过。
-- 核心多人链：本文件十局DoD通过；至少一次四账号二十角色完整房间验证，无隐藏好友拓扑/跨账号状态问题。
-- 所有本阶段Blocker/Critical关闭或未开放的功能彻底隔离；Boss榜不能客户端伪造，封号旧会话立即失效。
-- 真实结算/领奖/助战/贡献来源权威且防重复；SQL对账验证，无负余额、双发或孤立活跃状态。
-- 当前schema可从旧版升级、重复迁移；备份可恢复到隔离数据库并启动当前服务。
-- 目标部署方式可从干净checkout构建；候选版本commit/schema可追踪，CI关键链通过。
-- 桌面/移动端正常与异常流程可用，刷新/断网/返回不丢失已确认结果；未完成页面不悄悄访问旧Python接口。
-- 明确并达到受控测试目标并发/SLO；有错误、worker、DB锁和恢复日志，不假定免费托管或小样本等于长期稳定。
-- 产出一份固定版本验收记录：环境、命令、角色/seed、真实与mock边界、成功/失败数、余额对账与剩余风险。
-
-达到以上标准仍不自动等于全部设计Feature Complete。Beta/Release Candidate还需要负责人确认完整内容与资源交付、赛季运营、兼容性、合规及长期负载标准。
+归档含合成测试备份，不是生产玩家数据；交接时复制到受控持久位置。所有本轮测试子进程及自己的 PostgreSQL 55439 已正常停止，复验需重新提供隔离数据库。

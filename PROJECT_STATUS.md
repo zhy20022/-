@@ -1,24 +1,124 @@
 # Project Status
 
-## Release Candidate 本轮状态
+## Release Candidate Verification：当前有效状态
 
-2026-10-08：已核对 H01-H05、六个 migration、两个生产 Compose 及真实回归脚本，准备冻结为本轮 candidate/release commit。本轮不升级依赖、不修改 lockfile；上一阶段已有的 Playwright 测试依赖随候选纳入。用户无关审计/平衡报告不纳入、不删除。
+验收日期：2026-10-08，Asia/Singapore。阶段：**Frozen Candidate / Docker Gate Pending**。
 
-本轮增加统一八属性 `ElementTheme`、属性名称/独立图形标识/配色、角色/副本/多人/技能/战斗展示；worker 只增加属性元数据，不改变战斗规则。对比度规则与构建已通过，冻结后的完整回归结果待记录。
+发布判断：**CONDITIONAL ALPHA**，仅开发者监督下、隔离本地、合成账号的内部测试。**不是 READY FOR CONTROLLED ALPHA，不许可公网或生产部署。** H06 缺少实际 Docker 证据，是环境未满足，不伪记项目 FAIL，也不以静态检查代替 PASS。
 
-Docker 环境已实查：`docker version`、`docker compose version` 均提示命令不存在；没有可用 WSL Linux 或配置的远程 SSH runner。现有三个 GitHub Actions 中无隔离双 Compose 验收，不能对未推送候选执行它们，也不能用公网业务任务替代隔离门禁。**H06 继续 NOT VERIFIED，不记为构建 FAIL 或 PASS。**
+本节是当前唯一有效状态。下面两个审计阶段均为历史记录；其中未提交文件、dirty candidate、旧 HEAD 和旧测试结果不能替代本节的不可变候选。
 
-新增 `server-nest/scripts/verify-docker-candidate.mjs` 作为后续隔离 runner 的执行入口：要求 clean checkout、随机项目/新卷/测试秘密/loopback 端口，两套 Compose 分别构建、迁移、Redis/API readiness、镜像内容检查和真实注册/抽取/战斗/结算；不启动公网证书网关。脚本存在不等于本轮 Docker 已执行。
+### Candidate Manifest
 
-本节优先于下面上一阶段的 dirty-candidate 描述；下文为上一阶段验收证据，不能代替本轮 candidate 回归。最终 commit 和本轮结果将在验收结束后更新。
+| 项目 | 本轮实际值 |
+|---|---|
+| Candidate Commit | `afa8a00f67aec246a63670e0856d3ca37202eec4` |
+| Branch | `main` |
+| 前置冻结提交 | `505dbee4a70632d9f1feb838c242d0d3baa230b4`，已由最终候选取代 |
+| Schema Version | `MultiplayerRoomPresence1788513000000` |
+| Production Compose Files | `deploy/production/docker-compose.prod.yml`；`deploy/production/docker-compose.public-api.yml` |
+| Dockerfile | `server-nest/Dockerfile`；prod 网关为 `deploy/production/nginx/Dockerfile`；public-api 网关为 Caddy 镜像 |
+| 独立检出目录 | `C:\Users\12107\AppData\Local\Temp\gamer-rc-final-20261008`，HEAD 与候选完全一致 |
+| Tracked Changes | 候选已包含 H01-H05、多人十局脚本、备份恢复检查、双 Compose context 修复、八属性主题及对应测试；无关键未跟踪源文件 |
+| Untracked Changes | 原工作树十份无关审计/平衡报告，保留原样且不纳入；独立检出没有这些文件 |
+| 可复现边界 | **源码/本地构建 YES**：干净 Git clone、两端 `npm ci`、构建、核心测试通过；**完整 Docker 部署 NOT VERIFIED** |
+| Git 操作 | 已创建两个 release commit，没有 push；验收结论另作 docs-only commit，不 amend 候选 |
 
-## 当前结论：P0 Final Verification
+六个 Migration Files 均已被 Git 跟踪：
+
+```text
+server-nest/src/database/migrations/1788502608304-InitialOnlineSchema.ts
+server-nest/src/database/migrations/1788509000000-ConcurrentMutationSafety.ts
+server-nest/src/database/migrations/1788510000000-OnlineLegacyFeatures.ts
+server-nest/src/database/migrations/1788511000000-QuestRewardPeriods.ts
+server-nest/src/database/migrations/1788512000000-MultiplayerRooms.ts
+server-nest/src/database/migrations/1788513000000-MultiplayerRoomPresence.ts
+```
+
+候选测试文件包括 `verify-p0-final.mjs`、`e2e-p0-delivery.mjs`、`e2e-multiplayer-delivery.mjs`、`e2e-multiplayer-room-browser.mjs`、`test-legacy-migration.mjs`、`test-battle-worker.mjs`、`verify-docker-candidate.mjs`、Python `tests/` 和 web 的 theme/browser/replay/guide 测试。完整交付文件清单可由 `git diff --name-status d163ea6 afa8a00` 复核。
+
+无关报告为 `buff_duration_final_audit.md`、`buff_duration_update_report.md`、`mechanic_rule_library_draft.md`、`mechanic_rule_library_final.md`、`mechanic_skill_simulation_report.md`、`skill_cycle_balance_after_chichi_qiyusi_adjust.md`、`skill_cycle_balance_final_check.md`、`skill_cycle_balance_simulation_report.md`、`skill_cycle_balance_simulation_report_v2.md`、`special_effect_audit.md`。没有删除或覆盖它们。
+
+本轮未升级依赖或编辑 lockfile；候选包含上一阶段已经存在的 Playwright 测试依赖改动。独立 clone 的 Nest lock Git blob 为 `79a96116ba44a5fcd944b1f67fd7aadf71dbb313`，与候选一致；Windows checkout 的 CRLF/LF 可使文件 SHA256 不同，不代表依赖改动。
+
+### 当前 Gate
+
+| Gate | 本轮结果 | 实测边界 |
+|---|---|---|
+| A / H01-H02 | PASS：真实 3+2 两局及连续十局通过 | React + Nest + 独立 PostgreSQL + Python worker，20 条独立结算、十局 SQL 对账，不使用 Mock 替换业务 |
+| B / H03 Ranking Security | PASS | 未鉴权/跨账号/动态 Boss 和固定权威榜拒绝；可信 worker Boss 结算一次写入真实榜 |
+| B / H04 Ban Token | PASS | 封禁后旧 Token 读写/新登录被拒绝；解封恢复；同库两 API 实例一致 |
+| C / H05 | PASS（本地） | 六迁移、旧 schema 升级、重复迁移、正式 HTTP 备份、真实恢复、恢复后启动和查询/重放 |
+| D / H06 Compose #1 | NOT VERIFIED | 无 Docker runner；只有 YAML/context/COPY 输入静态检查通过 |
+| D / H06 Compose #2 | NOT VERIFIED | 同上，没有执行任何镜像构建或容器启动 |
+| E / Candidate | PASS（Git 完整性和本地复现） | 不可变提交、独立 clone、锁定依赖和构建；不能据此宣称 Docker 可复现 |
+| F / Core Regression | PASS：构建、单项和 13 步完整回归 | 本轮 `core-regression.json` 为 verified=true，13 步退出码均为 0 |
+
+### Docker 实际证据
+
+本机执行 `docker version`、`docker compose version`，命令不存在；未找到 Docker Desktop/Podman、可用 WSL Linux、已配置远程 SSH runner、可用 GitHub CLI 凭证。已检查三个现有 Actions：`database-backup.yml`、`deploy-github-pages.yml`、`online-post-deploy.yml`；没有针对本候选的隔离双 Compose runner。不能以生产备份任务或公网业务写入任务代替隔离验收，也没有未经授权 push。
+
+在最终候选干净 checkout 的 `server-nest` 目录实际运行 `node scripts/verify-docker-candidate.mjs`：报告 commit 正确，`verified=false`、`suites=[]`，环境预检日志为 **`spawnSync docker ENOENT`**。这不是 Docker build 失败，也没有生成镜像。
+
+| 项目 | Compose #1 / prod | Compose #2 / public-api |
+|---|---|---|
+| Build | NOT VERIFIED | NOT VERIFIED |
+| Container Start | NOT VERIFIED | NOT VERIFIED |
+| Migration（容器） | NOT VERIFIED | NOT VERIFIED |
+| Readiness（PostgreSQL 16 + Redis 7） | NOT VERIFIED | NOT VERIFIED |
+| Worker（镜像内） | NOT VERIFIED | NOT VERIFIED |
+| Content（镜像内） | NOT VERIFIED | NOT VERIFIED |
+| 注册/登录/抽取/战斗/结算（容器） | NOT VERIFIED | NOT VERIFIED |
+| 网关 / TLS | NOT VERIFIED | NOT VERIFIED |
+
+Docker gate 脚本是后续执行入口，尚未在 Docker 上验收。设计采用随机 project、新卷、测试秘密和 loopback 端口，检查无 content 挂载的镜像，再做真实 HTTP 业务冒烟；不启动网关/TLS，也不包含容器备份恢复或容器浏览器多人验收。首套失败会停止，届时必须保留失败证据并单独补第二套，不能声称两套均已验证。完整生产 Compose 验收仍需补这些边界。
+
+### 最终候选回归与证据
+
+- 独立 clone：web 106 / Nest 509 包 `npm ci` 成功，无依赖升级。Nest build/typecheck/lint，web TypeScript/build 均 PASS。
+- Python：`python -B -m pytest tests -q -p no:cacheprovider --junitxml=...`，**221 tests、486 subtests PASS**。有弃用警告，不修改测试消除它们。
+- Worker：SINGLE/SQUAD/TEAM/SERVER_BOSS、作者技能 ABC/盾回放、五/二十不同角色队伍 PASS。部分测试战斗按预期失败，不把角色胜率等同测试通过。
+- `test-skill-slot-rules.mjs`、`test-acquire-connection.mjs`、`test-guide-account.cjs`、`test-server-battle-replay.mjs`、`test-element-theme.cjs` PASS；repository/连接桩测试明确是 Contract，不是数据库 E2E。
+- `test-element-theme-browser.cjs`：真实 Chrome 上 1280/390 两页面四组视觉 Contract PASS，八属性名称/图形和实际 DOM 文字对比度 >= 4.5:1、无横向溢出；API 使用 Mock，不计入多人真实 E2E。
+- `verify-p0-final.mjs` 当前候选真实隔离回归：13 步均退出码 0，`verified=true`，于 `2026-10-08T10:52:26Z` 完成。包括 H03/H04/H05、单人可信战斗、并发注册、奖励回滚 fixture integration、房间 API、presence 浏览器及完整十局。奖励 fixture 故意触发约束错误以检查回滚，不是忽略失败。
+- 多人：两个真实浏览器上下文、1280/390 视口、3+2 选择、准备、开战、共同可信快照、双方结算/返回/下一局全部通过；十局 `reconciled=true`、20 个不同 recordId、browser errors 为 0。包括等待断线/房主转移/恢复、战斗临时断网/刷新恢复、重复开战/并发结算一次发奖；没有加速票据时钟或改 worker 胜负。
+
+本轮 H03 合法 Boss seed `4c59992f-7147-41bf-b180-1714e8dc7006`；可信伤害/实际榜分 **636000**；record `943358e3-3b81-4742-aa16-be66955db616`。
+
+本轮 H05 环境是 PostgreSQL **18.1 Windows**；恢复库 `gamer_rewards_e2e_restore_1791456173530`；备份 SHA256 `e9cea11aa0a30df9d5536b3bb60aacf9a2cabaec408f47552ec661282a0018b8`；恢复验收记录时间 `2026-10-08T10:43:18.465Z`。对这份合成备份按 workflow 参数执行 AES-256-CBC/PBKDF2、200000 iterations 加密/解密，哈希完全一致。这不是生产玩家备份；未执行托管备份 workflow、远程灾难恢复或生产 PostgreSQL 16 恢复。
+
+已将 JSON、13 步日志、Python JUnit、准备页面截图、Docker 预检、视觉 Contract 及原选角失败记录复制归档到项目旁，不纳入候选源码。归档目录：
+
+```text
+C:\Users\12107\Desktop\4\release-evidence\afa8a00
+  core\core-regression.json
+  core\gamer-p0-delivery\result.json
+  core\gamer-multiplayer-delivery\result.json
+  docker-preflight\result.json
+  docker-preflight\1-docker.log
+  visual-contract\result.json
+  prior-selection-failure\result.json
+```
+
+原始临时目录仍保留：`gamer-rc-evidence-afa8a00`、`gamer-docker-gate-TsEEXH`、`gamer-element-visual`。测试 Nest/Vite/Chrome 子进程均已退出，4180/4181/4197/3019/3033 无测试监听；自己的独立 PostgreSQL 55439 已正常停止，没有操作其他 PostgreSQL 服务。
+
+### 八属性视觉与 Known Risk
+
+`web/src/services/elementTheme.ts` 统一管理 Primary/Secondary/Highlight/Background/Dark/Text/OnPrimary。火红、水蓝、土棕、木绿、雷紫、风青、光黄、暗黑；`ElementBadge` 同时展示名称和独立图形，不只依赖颜色。已接入角色卡/头像/技能、抽取、副本、正式多人选择、战斗单位及技能事件；worker 只补属性元数据，不改战斗逻辑。对比度覆盖主题和属性标签，不宣称所有既有伤害/Buff/界面文字均已完成可访问性审核。
+
+**选角不足：仍未完全定位，Known Risk / Not Blocking Current Release Gate。** 上一阶段第九局开战按钮超时，之前八局通过；只读 SQL 观察房主仅一名角色、队友两名，online/ready 为真，总数三而非五，服务端/前端门槛正确拒绝。原失败缺少当时 selectedIds 和请求时序完整证据，不能认定根因已解决。`loadFormalData` 异步回写选择状态是需调查的时序点，不是已证实原因。当前脚本增加每次选择后的 UI 数量、准备响应数量断言和失败截图/请求证据，没有降低开战数量或绕过测试。
+
+最大剩余发布风险是 **生产双 Compose 及容器业务链没有真实证据**。其次为选角时序偶发、四账号/二十角色真人流程、Boss 贡献、容量/故障恢复、既有移动端标题/布局和部分属性色文字对比度缺口。当前只允许隔离合成账号测试单人闭环/两账号 SQUAD；不得开放真实经济、公网、未验收公会贡献/直接助战/多人 Boss，不能仅靠隐藏 UI 视为服务端隔离。
+
+**下一步唯一最重要任务：提供可访问的隔离 Docker runner，对 `afa8a00` 分别完成两套 Compose 的真实构建、启动、迁移、readiness、镜像 worker/content 和核心业务冒烟，再重新裁定 Release Gate。**
+
+## 历史记录：上一阶段 P0 Final Verification（非当前候选）
 
 验收日期：2026-10-08，Asia/Singapore。当前项目阶段：**Validated Multiplayer Alpha / Stabilization**。
 
 发布判断：**CONDITIONAL ALPHA**。只支持开发者监督下的隔离、本地、合成账号内部测试；**尚未达到 Ready for Controlled Alpha，不授权公网或生产部署**。
 
-本节是当前状态的唯一有效基准。后面的首次审计保留为历史记录，其中“多人未打通”“封号无效”“没有真实数据库验收”等描述是修复前状态，不能当作当前结论。
+本节仅保留上一阶段证据。其 dirty candidate、未提交文件和旧 HEAD 描述已由上面的不可变候选记录取代；后面的首次审计同样不能当作当前结论。
 
 ### Candidate Version
 
