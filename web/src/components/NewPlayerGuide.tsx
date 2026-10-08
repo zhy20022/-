@@ -11,6 +11,7 @@ import {
   setNewPlayerGuideHidden
 } from '../services/newPlayerGuide'
 import './NewPlayerGuide.css'
+import ElementBadge from './ElementBadge'
 
 type GuidePage = 'home' | 'gacha' | 'dungeons' | 'characters' | 'battle'
 
@@ -133,13 +134,13 @@ const NewPlayerGuide: React.FC<NewPlayerGuideProps> = ({
 
       {page === 'dungeons' && (
         <div className="element-counter-strip">
-          <span>风克火</span>
-          <span>火克木</span>
-          <span>木克风</span>
-          <span>雷克水</span>
-          <span>水克土</span>
-          <span>土克雷</span>
-          <span>光暗互克</span>
+          <span><ElementBadge attribute="WIND" /> 克 <ElementBadge attribute="FIRE" /></span>
+          <span><ElementBadge attribute="FIRE" /> 克 <ElementBadge attribute="WOOD" /></span>
+          <span><ElementBadge attribute="WOOD" /> 克 <ElementBadge attribute="WIND" /></span>
+          <span><ElementBadge attribute="THUNDER" /> 克 <ElementBadge attribute="WATER" /></span>
+          <span><ElementBadge attribute="WATER" /> 克 <ElementBadge attribute="EARTH" /></span>
+          <span><ElementBadge attribute="EARTH" /> 克 <ElementBadge attribute="THUNDER" /></span>
+          <span><ElementBadge attribute="LIGHT" /> 与 <ElementBadge attribute="DARK" /> 互克</span>
         </div>
       )}
 

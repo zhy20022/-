@@ -56,6 +56,12 @@ export class MultiplayerRoomsController {
     return this.rooms.updateMember(session.playerId, roomId, dto.characterIds, dto.isReady);
   }
 
+  @Post(':roomId/heartbeat')
+  heartbeat(@Headers('authorization') authorization: string | undefined, @Param('roomId') roomId: string) {
+    const session = this.auth.verifyAuthorization(authorization);
+    return this.rooms.heartbeat(session.playerId, roomId);
+  }
+
   @Post(':roomId/start')
   start(@Headers('authorization') authorization: string | undefined, @Headers('idempotency-key') idempotencyKey: string | undefined, @Param('roomId') roomId: string) {
     const session = this.auth.verifyAuthorization(authorization);

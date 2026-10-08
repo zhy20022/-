@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminController } from './admin/admin.controller';
 import { AdminService } from './admin/admin.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
+import { ActiveAccountGuard } from './auth/active-account.guard';
 import { BattleSettlementController } from './battle-settlement/battle-settlement.controller';
 import { BattleSettlementService } from './battle-settlement/battle-settlement.service';
 import { BattleSimulationService } from './battle-settlement/battle-simulation.service';
@@ -90,6 +92,7 @@ import { MultiplayerRoomsService } from './multiplayer-rooms/multiplayer-rooms.s
   providers: [
     AdminService,
     AuthService,
+    { provide: APP_GUARD, useClass: ActiveAccountGuard },
     BattleSettlementService,
     BattleSimulationService,
     DailyGoalsService,

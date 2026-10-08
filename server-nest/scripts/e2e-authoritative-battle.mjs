@@ -10,7 +10,7 @@ assert(databaseUrl && ['127.0.0.1', 'localhost'].includes(new URL(databaseUrl).h
 const api = 'http://127.0.0.1:4198/api';
 const server = spawn(process.execPath, ['dist/main.js'], { windowsHide: true, stdio: 'pipe', env: {
   ...process.env, NODE_ENV: 'test', PORT: '4198', DATABASE_URL: databaseUrl, DB_SSL: 'false',
-  TYPEORM_SYNCHRONIZE: 'true', REDIS_URL: 'redis://127.0.0.1:6399', CONTENT_DIR: '../data/content',
+  TYPEORM_SYNCHRONIZE: 'false', REDIS_URL: 'redis://127.0.0.1:6399', CONTENT_DIR: '../data/content',
   BACKUP_ENABLED: 'false', AUTH_TOKEN_SECRET: randomUUID() + randomUUID(),
 } });
 let tail = '';

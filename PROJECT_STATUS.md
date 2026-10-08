@@ -1,0 +1,567 @@
+# Project Status
+
+## Release Candidate 本轮状态
+
+2026-10-08：已核对 H01-H05、六个 migration、两个生产 Compose 及真实回归脚本，准备冻结为本轮 candidate/release commit。本轮不升级依赖、不修改 lockfile；上一阶段已有的 Playwright 测试依赖随候选纳入。用户无关审计/平衡报告不纳入、不删除。
+
+本轮增加统一八属性 `ElementTheme`、属性名称/独立图形标识/配色、角色/副本/多人/技能/战斗展示；worker 只增加属性元数据，不改变战斗规则。对比度规则与构建已通过，冻结后的完整回归结果待记录。
+
+Docker 环境已实查：`docker version`、`docker compose version` 均提示命令不存在；没有可用 WSL Linux 或配置的远程 SSH runner。现有三个 GitHub Actions 中无隔离双 Compose 验收，不能对未推送候选执行它们，也不能用公网业务任务替代隔离门禁。**H06 继续 NOT VERIFIED，不记为构建 FAIL 或 PASS。**
+
+新增 `server-nest/scripts/verify-docker-candidate.mjs` 作为后续隔离 runner 的执行入口：要求 clean checkout、随机项目/新卷/测试秘密/loopback 端口，两套 Compose 分别构建、迁移、Redis/API readiness、镜像内容检查和真实注册/抽取/战斗/结算；不启动公网证书网关。脚本存在不等于本轮 Docker 已执行。
+
+本节优先于下面上一阶段的 dirty-candidate 描述；下文为上一阶段验收证据，不能代替本轮 candidate 回归。最终 commit 和本轮结果将在验收结束后更新。
+
+## 当前结论：P0 Final Verification
+
+验收日期：2026-10-08，Asia/Singapore。当前项目阶段：**Validated Multiplayer Alpha / Stabilization**。
+
+发布判断：**CONDITIONAL ALPHA**。只支持开发者监督下的隔离、本地、合成账号内部测试；**尚未达到 Ready for Controlled Alpha，不授权公网或生产部署**。
+
+本节是当前状态的唯一有效基准。后面的首次审计保留为历史记录，其中“多人未打通”“封号无效”“没有真实数据库验收”等描述是修复前状态，不能当作当前结论。
+
+### Candidate Version
+
+| 项目 | 本次实际版本 |
+|---|---|
+| HEAD | `d163ea6bf4c65656460e43dd1dfd49a8c1410afb` |
+| Branch | `main` |
+| Candidate Commit | **尚未形成**。本次验证对象是 HEAD + 未提交工作树，不是单独的 HEAD。 |
+| Schema Version | `MultiplayerRoomPresence1788513000000` |
+| 源码快照 | 523 文件，SHA256 `ac217b7fe7fe7daac714a73908415c8be5aabd88b8164a7289d28c80196adb97` |
+| 可复现边界 | 已导出源码、保存逐文件哈希，独立目录重新 `npm ci`、构建和类型检查通过；这不等于 Git clean checkout 或容器可复现。 |
+
+迁移集为：
+
+```text
+InitialOnlineSchema1788502608304
+ConcurrentMutationSafety1788509000000
+OnlineLegacyFeatures1788510000000
+QuestRewardPeriods1788511000000
+MultiplayerRooms1788512000000
+MultiplayerRoomPresence1788513000000
+```
+
+工作树包含既有未提交业务修复：房间共享开战/结算、前端多人和回放、鉴权、排行榜、schema、备份工作流、两个生产 Compose，以及依赖文件。完整 Dirty Files 清单已保存到 `candidate-manifest.json` 的 `dirtyStatus`，没有撤销用户改动，也没有代为提交。
+
+以下关键文件仍未跟踪，必须纳入最终候选提交：
+
+```text
+server-nest/src/auth/active-account.guard.ts
+server-nest/src/database/migrations/1788513000000-MultiplayerRoomPresence.ts
+server-nest/scripts/e2e-multiplayer-room-browser.mjs
+server-nest/scripts/e2e-multiplayer-delivery.mjs
+server-nest/scripts/e2e-p0-delivery.mjs
+server-nest/scripts/verify-p0-final.mjs
+server-nest/scripts/snapshot-p0-candidate.mjs
+PROJECT_STATUS.md
+NEXT_STEPS.md
+```
+
+源码快照包含关键业务/测试文件，不包含这些未跟踪报告、秘密、数据库文件或原工作树的依赖目录。报告更新不会改变该源码哈希。
+
+### 发布门禁
+
+| Gate | 当前结果 | 真实证据及限制 |
+|---|---|---|
+| H01 Multiplayer First Game | **Resolved / Verified / PASS** | 最新真实 React + Nest + PostgreSQL + Python worker，双方分别选择 3+2，准备、按钮开战、结算成功。 |
+| H02 Replay | **Resolved / Verified / PASS** | 连续十局均自然返回、刷新、创建下一房间并重新加入；finished 不阻塞下一局。 |
+| H03 Ranking Security | **Verified / PASS** | 未登录写榜 401、跨账号 401、动态及固定权威榜直写 400；合法服务端 Boss 结算真实写榜。 |
+| H04 Ban Token | **Verified / PASS** | 管理员封禁后旧 Token 的核心读写和新登录 403；解封恢复；同一数据库的两个 API 实例一致。 |
+| H05 Migration / Backup / Restore | **Verified / PASS（本地）** | 隔离库全迁移、旧 schema 升级、重复迁移、正式备份 HTTP、真实恢复、恢复后服务启动/登录/查询/结算重放。 |
+| H06 Production Compose | **NOT VERIFIED** | context 修复已包含，两个 Compose 的解析/路径静态检查通过；本机没有 Docker/Podman，未构建镜像或启动容器。 |
+| Core Regression | **PASS（本节列明范围）** | Python、worker、前后端检查和 13 步数据库/HTTP/浏览器回归均通过；未运行所有历史/公网脚本。 |
+| Multiplayer 10-Game Regression | **PASS** | 最新完整重跑十局、两个独立 Chrome 上下文、1280/390 视口、20 条不同账号结算记录。 |
+| Database Reconciliation | **PASS** | 十局逐局核对票据、共享 seed/快照/时间、收益、材料、进度、角色等级/经验/归属；每账号奖励一次，局外账号不变。 |
+| 不可变版本/生产可复现 | **未关闭** | 未提交 migration/guard 等文件，HEAD 不能代表本次验收版本；快照不是 release commit。 |
+
+**New Blockers：没有新增已确认业务 Blocker；H06 和候选提交闭合仍是已有发布阻塞。**
+
+### H03 / H04 实测
+
+- H03：真实 `world_boss:<dungeonId>` key 和固定权威榜均拒绝普通用户直接自报 score；非权威公共榜允许本人写入，不能将其误称为 Boss 绕过。
+- 合法 Boss 使用真实作者技能 worker：seed `68285937-ef0d-448b-b2cc-f51c1ec4198a`，可信伤害和实际榜分均为 **645000**；记录 `b1bffd56-c93f-4fb1-a937-1bd49efeeefa`。
+- 四个并发结算请求跨两个实例只产生一条记录、一次榜尝试；伪造 `damageScore=999999999` 和奖励不生效，伪造玩家/阵容/seed 被拒绝。
+- H04：旧 Token 封禁后拒绝，重新登录拒绝，其他账号不受影响。无管理员凭证解封 401；带合法管理员凭证解封 201，新登录和未过期旧 Token 在两个实例恢复访问。
+- 账号状态按请求查数据库，没有状态缓存；“解封后旧 Token 恢复”是本次实际策略，不是永久撤销 Token 的机制。
+
+### H05 实测与备份元数据
+
+- PostgreSQL：**18.1，Windows x86_64**；独立测试实例 `127.0.0.1:55439`，未访问生产库。
+- `TYPEORM_SYNCHRONIZE=false`：从空库执行全部六个迁移、初始旧 schema 升级到当前六迁移、再次执行均通过。
+- 最新备份由 `/api/admin/database/backup` 实际下载，schema/commit HTTP 头符合预期；commit 头是上述 HEAD，不能掩盖 dirty candidate。
+- 备份验收记录时间：`2026-10-08T09:33:18.282Z`。该字段由测试在恢复验收末尾记录，不是精确的备份开始时刻。
+- 备份 SHA256：`f15643390e07f691531a7c0e89abad708cdc051cec2e09c4d2157b76e3a36a4a`。
+- 恢复库：`gamer_rewards_e2e_restore_1791451974326`。真实 `pg_restore`、新增表/列/presence/关系与基础计数检查通过。
+- 恢复后的当前 Nest 启动、登录、档案、战斗记录查询和旧结算幂等重放通过；恢复库重复迁移通过。
+- 对最新合成数据备份执行工作流同参数的 AES-256-CBC/PBKDF2 加密/解密，SHA256 一致。**没有执行托管 GitHub Actions、生产秘密配置和远程灾难恢复。**
+- 备份含 2 用户、2 玩家、20 角色、1 战斗记录、1 背包物品；这是合成测试样本。新增房间表结构已检查，不代表恢复后活跃多人房间恢复/崩溃续跑已经验收。
+- 生产 Compose 声明 PostgreSQL 16，本次真实本地恢复使用 PostgreSQL 18.1；不能据此宣称生产 16 的迁移和恢复兼容性通过。
+
+### 回归清单及证据等级
+
+| 检查 | 结果 / 等级 |
+|---|---|
+| Python 全量 | 221 passed，486 subtests，5 弃用警告，最新重跑 2.75s。 |
+| Nest build / typecheck / ESLint | PASS；独立导出目录锁文件安装后也通过。 |
+| Web TypeScript / production build | PASS；独立目录也通过，保留 Vite CJS 和大于 500KB chunk 警告。 |
+| Battle worker | PASS；真实 Node/Python 进程，四类副本、同种子重复、ABC/护盾和不同角色组队。 |
+| Skill slot | PASS；规则测试及 **repository stubs / Contract verification**，不当作 HTTP E2E。 |
+| Connection retry | PASS；**Stub / Contract verification**，不是远程网络故障测试。 |
+| Account isolation / Guide / Replay mapping | PASS；本地规则/存储/映射测试，不当作完整真人流程 E2E。 |
+| 单人权威战斗 | PASS；真实 HTTP/worker/数据库，过早/跨账号拒绝，伪造字段忽略、六路结算一次。 |
+| 注册并发 | PASS；真实 HTTP/数据库，六路并发、同名冲突和档案失败回滚。 |
+| Reward | PASS；**数据库 fixture integration**：历史战斗/周期 fixture、约束故障注入、两个 API 实例；不是自然战斗到全部奖励的真实 E2E。 |
+| Multiplayer API | PASS；真实 HTTP/数据库/自然回放时长，presence 异常有显式数据库 fixture，不能代替 UI 证明。 |
+| Multiplayer presence browser | PASS；真实双浏览器 HTTP，房主断线、转移、宽限期重连。 |
+| Multiplayer 十局 UI | PASS；真实登录/建房/邀请/接受/3+2/准备/按钮开战/自然 4x 回放/结算/返回，无 HTTP mock 或业务时钟修改。 |
+| git diff --check | PASS；只见 CRLF 提示。 |
+
+最终顺序回归有 13 个步骤，全部退出码 0，时间 `2026-10-08T09:32:47.226Z` 至 `2026-10-08T09:41:59.287Z`。
+
+十局已覆盖两局冒烟、重复按钮/并发 start、等待时断网刷新、战斗时断网刷新、结束刷新再开、重复结算；没有按 SQL 修改玩法状态使十局通过。仅开局前准备拥有角色的 fixture；每局保存 seed、角色归属、快照哈希、奖励、记录和对账结果。
+
+**失败也保留**：前一次最终十局运行完成 8 局后，第 9 局等待 3+2 开战超时。只读 SQL 显示房主实际提交 1 名角色，门禁正确拒绝。新增逐次选角 UI 断言、准备响应角色数断言和失败诊断后，从新隔离库重跑全部流程及十局通过，没有弱化断言或修改多人业务逻辑。选角不足的确切触发原因尚未完全定位，不能仅凭重跑通过宣称此偶发风险已根治。
+
+截图人工检查：桌面准备状态正确显示 5/5；390 宽度截图存在顶部/边缘裁切，自动横向溢出断言通过不等于移动端视觉完美。未以此非门禁 UI 问题扩展本阶段改版范围。
+
+证据目录：
+
+```text
+C:\Users\12107\AppData\Local\Temp\gamer-p0-final-20261008\
+  candidate-manifest.json
+  candidate-source\
+  core-regression.json                       # 前次失败，不能用于 PASS
+  multiplayer-final-ten.log                  # 前次失败日志
+  rerun-selection-assertions\
+    core-regression.json                     # 当前最终 PASS
+    gamer-p0-delivery\result.json
+    gamer-p0-delivery\delivery.dump
+    gamer-p0-delivery\restore-verification.txt
+    gamer-multiplayer-delivery\result.json
+    gamer-multiplayer-delivery\ready-*.png
+```
+
+这些是本机临时路径，不是已发布的持久 CI 产物；下一步需归档到可靠存储。
+
+### 模块完成状态
+
+已实现并接入正式在线端：账号、抽取、64 角色/192 技能、九槽、升级、装备、背包、制作/强化、单人副本、权威战斗结算、挂机/每日目标、基础任务/成就/商店/好友/Boss。此次不是这些模块全部玩法和配置的穷举验收。
+
+本次新增确认完成的有限范围：双账号五角色多人可复玩闭环、Boss 榜写入安全、按请求封号/解封控制、当前 schema 的本地升级与备份恢复。四账号二十角色玩家流程、赛季运营、公会/邮件完整体验、资源音频、支付/平台登录等不能标记 Completed。
+
+### 剩余风险与临时限制
+
+1. **H06 未验证、候选提交未形成**：不能称可部署。缺镜像/Python/content/migration 容器验收、Redis readiness、TLS/环境变量/真实 CI。
+2. **H09/H10/H11 保留**：直接助战事务/权威来源、多人全服 Boss 整队伤害按成员计入、公会客户端贡献仍未在本阶段关闭。只隐藏 UI 不能隔离公开 API。
+3. 长期悬挂房间、票据过期、服务崩溃恢复、三人以上好友拓扑、四账号二十角色及容量未验收。
+4. 原始选角不足偶发、移动端裁切、worker 超时及后台节流仍需观察，不伪称不存在风险。
+
+允许范围：隔离本机、合成账号、开发者监督、双账号 SQUAD 3+2 功能测试。禁止：公网暴露、真实经济/支付、未验证公会/直接助战、多人 SERVER_BOSS 经济结算、原型接口公开和容量承诺。这些是操作约束，不是已实现的路由开关或功能隔离。
+
+**Most Important Next Task：冻结完整候选源码并在有 Docker 的隔离 runner 上关闭 H06，验证两个生产 Compose 的 clean checkout -> build -> migration -> worker/content -> Redis readiness；不扩展新玩法。**
+
+---
+
+## 历史记录：首次全面审计（修复前，不代表当前状态）
+
+审计日期：2026-10-08，Asia/Shanghai。项目：灾异志 / 灾异纪元。
+
+审计范围：`C:\Users\12107\Desktop\4\Gamer` 当前本地工作树，包括未提交改动；外层 `4` 是设定文档和部分素材目录，不是 Git 根目录。本次只新增两份审计报告，没有修改业务代码、资源、配置或依赖。
+
+## 1. Executive Summary
+
+**结论：已有可运行的角色养成与自动战斗核心，处于 Alpha，正在补齐多人闭环与发布可靠性；不能认定 Feature Complete、Beta 或 Release Candidate。**
+
+- 已实现并接入正式在线端：账号、抽取、64角色/192专属技能、九槽配置、升级、装备、背包、制作、强化、单人经验本、Boss挑战、服务端战斗与结算、挂机、每日目标，以及基础任务、成就、商店、好友和全服Boss。
+- 本次实际通过：Python 221项测试、486个子场景；前后端类型检查、Nest lint、前后端生产构建；四类Node/Python真实战斗进程测试；技能槽、连接重试、新手引导、回放映射测试。
+- **多人API存在不等于玩家多人流程完成。** 真实前端构建产物的浏览器契约测试复现了“全队已准备但不能开战”和“结算后不能再创建/退出房间”两个断点，1280/390两种宽度均复现。
+- 发现正式Boss排行榜写入口没有身份校验，保护名单没有覆盖真实 `world_boss:<dungeonId>` 名称。现有封号不撤销已签发的30天令牌。
+- 当前备份/恢复检查仍硬编码旧schema；两个正式Compose的构建上下文与Dockerfile不匹配。存在发布与恢复阻塞。
+- 本次没有对真实PostgreSQL执行写入型e2e，没有验证当前公网部署、CI最近结果或负载能力。历史验收不能替代当前版本验收。
+
+**明天只做一项任务：打通并验收“两账号真实浏览器创建房间 -> 分别选3+2角色 -> 准备 -> 开战 -> 各自一次结算 -> 返回 -> 再次开局”，连续10局。** 安全与备份问题是公开发布前必须并行关闭的P0门禁，详见 `NEXT_STEPS.md`。
+
+## 2. Project Type & Technology Stack
+
+| 方面 | 实际证据与结论 |
+|---|---|
+| 游戏形态 | 浏览器角色收集/养成、阵容配置、自动技能战斗、副本及异步多人协作；不是已验证的开放世界实时MMORPG。 |
+| 引擎 | 未发现Unity、Unreal、Godot工程；战斗是自研Python模拟器，界面为React DOM/CSS，不是3D引擎场景。 |
+| 客户端 | React 18、TypeScript、HashRouter、Zustand、Axios、Vite；一个代码库内分正式在线、Python原型、静态演示三条路径。 |
+| 正式服务端 | NestJS 10、TypeScript、Express、TypeORM、PostgreSQL；通过子进程调用Python战斗worker。 |
+| 原型服务端 | Flask、Flask-SocketIO、SQLAlchemy、APScheduler；PostgreSQL不可用时可能使用SQLite。 |
+| 网络 | 正式端HTTP、Bearer令牌、房间轮询/心跳、战斗快照轮询。Socket.IO用于旧Python路径；未发现正式Nest WebSocket房间同步实现。 |
+| 战斗同步 | 开战时服务端预计算结果并保存票据，按服务器时间逐步公开快照，前端以4x回放；不是玩家实时操作广播。 |
+| 配置 | `data/content/*.json`、数据库GameConfig覆盖、构建环境变量和 `window.__GAMER_RUNTIME_CONFIG__`。角色执行技能绑定worker文件版本，部分任务/商店/副本规则仍写在代码中。 |
+| 存储 | 正式PostgreSQL实体和迁移；原型SQLAlchemy/SQLite；客户端localStorage存账号会话与引导，sessionStorage存恢复战斗凭证。Redis主要用于依赖检查/基础服务，不是多人同步权威源。 |
+| UI/资源 | 页面、CSS、文字/图标/占位立绘；未发现完整可打包的64角色立绘目录或音频播放链路。外层有少量PNG，但未证明接入客户端。 |
+| 测试 | Python pytest/unittest及subtests；Node assert脚本；HTTP/SQL e2e；Playwright；ESLint和TypeScript。 |
+| 构建部署 | Nest build、Vite build；Docker/Compose、Render Blueprint、GitHub Pages、Sites Worker代理；Actions构建、公网验收、并发检查和数据库恢复任务。 |
+| 第三方SDK | Axios、Socket.IO客户端、bcryptjs、ioredis、pg、class-validator等；未发现支付或平台登录的完整SDK集成。 |
+
+技术识别依据：[E01]、[E02]、[E03]、[E10]、[E11]。SDK枚举值存在不等于对应平台认证已实现。
+
+## 3. Current Development Stage
+
+**Alpha / Core Gameplay已具备，向可重复多人Vertical Slice和Stabilization推进。**
+
+支持依据：
+
+1. 实际可执行战斗不是空框架：64角色、192技能、怪物机制与四类副本worker均有测试，真实Node/Python进程联调通过。
+2. 注册、抽取、经验、装备与结算已在前后端接线；存在历史真实HTTP/PostgreSQL验收记录。
+3. 多人目前仍存在前端开战与再开局断点；当前真实端到端闭环未重新验收。
+4. 赛季收尾、立绘/战魂、公会/邮件玩家界面、资源与音频不完整；奖励、鉴权和发布门禁存在实质风险。
+5. 单测与构建通过并不足以证明当前线上稳定、经济安全或可运营。
+
+若将目标收窄为“单人自动战斗技术切片”，它比Prototype成熟；若目标是README完整网游设计，仍不能宣布功能完成。
+
+## 4. Overall Progress
+
+| 口径 | 估计 | 说明 |
+|---|---:|---|
+| 当前核心玩法实现与接线 | 75% | 大多数核心模块有真实实现，单人闭环较成熟；多人仍有阻塞。 |
+| 稳定公开发布准备 | 50% | 已有构建、部署和备份框架，但安全、迁移恢复、当前版本e2e与容量门禁未达标。 |
+| README全部长期网游设计 | 无法确认 | 缺少经过负责人确认的版本范围、完整内容量、支付要求、资源交付标准、SLO与排期基线。 |
+
+这是按功能与玩家流程给出的粗粒度审计估计，不是代码行数统计、工时预测，也不是“剩余25%即可上线”的承诺。没有以提交数量推断进度。
+
+## 5. Feature / Module Status
+
+状态标记：**I = Implemented；G = Integrated；R = Runnable；V = Verified；C = Completed。** `V单测`、`V进程`、`V契约`与`V真实HTTP/DB`不等价。表中“历史”表示已有记录但本次未复测；C仅用于明确、有限的规则子范围，不表示整个模块生产完成。
+
+| Module | Status | Progress | Evidence | Risk |
+|---|---|---:|---|---|
+| 8职业、8属性及克制规则 | I/G/R/V单测；C规则子范围 | 100% | Python本次全量；`tests/test_game_systems.py` | 不代表所有阵容已平衡。 |
+| 账号注册/密码登录 | I/G；历史V真实HTTP/DB | 90% | [E03]、[E12]；事务注册、bcrypt、冲突处理 | 当前公网未复测；已登录封号无效；无完整找回密码。 |
+| 大厅/会话/新手引导 | I/G/R/V引导单测 | 75% | [E02]；`web/scripts/test-guide-account.cjs`本次通过 | loadPlayer仅恢复缓存，不实时核验封号/最新档案；资源显示存在缓存路径。 |
+| 64角色/192技能与九槽 | I/G/R/V单测+进程；历史V真实HTTP | 90% | [E04]、[E12]；本次skill-slot和worker | 并非192技能与所有组合的穷举验收。 |
+| 战斗/怪物/Boss | I/G/R/V单测+真实进程 | 90% | [E04]；四类worker、固定种子重复输出一致 | 容量、15秒超时、故障恢复尚未证明；非实时操作战斗。 |
+| 服务端结算/奖励存档 | I/G；历史V真实HTTP/DB | 75% | [E05]、[E08] | 房间跨账号事务、过期票据、并发死锁等缺本次真实验收。 |
+| 单人经验本/扫荡/升级 | I/G/R引擎；历史V真实HTTP | 90% | [E05]、[E12]；24经验本定义 | 50次通关后扫荡；本次未验证真实浏览器全链路。 |
+| 五人/二十人/全服Boss计算 | I/G/R/V进程 | 90% | [E04]；24 Boss入口定义、不同角色参考队通过 | 五人/二十人是角色槽位，不必然等于5/20真实账号。 |
+| 多人房间API | I/G；测试脚本存在 | 75% | [E06]、[E08] | 部分开战落库非原子；加入多个房间、好友关系拓扑和重试风险。 |
+| 多人玩家完整闭环 | I/G部分；V契约确认断点 | 50% | [E06]；本次1280/390浏览器复现 | Blocker：通常不能从按钮开战；结算后不能再开局。 |
+| 心跳/重连/房主转移 | I/G；未验证当前真实HTTP/DB | 75% | [E06]、[E08]；未提交presence迁移 | 浏览器脚本仅等待房间；战斗断线/服务器重启未覆盖。 |
+| 抽取/重复转换/背包 | I/G；历史V真实HTTP | 90% | `gacha`、`inventory`服务和对应页面 | 需当前经济回归；不是支付商城。 |
+| 制作/装备/强化/突破 | I/G；历史测试脚本与验收 | 90% | [E07]；强化同步已穿装备副本 | 未证明全部装备配置一致；未发现正式精炼闭环。 |
+| 挂机/每日目标 | I/G；e2e存在 | 75% | [E07]、[E08] | 挂机启动/停止非统一事务；不同请求并发与重启恢复待测。 |
+| 正式任务/成就 | I/G；周期和并发测试脚本存在 | 75% | [E07]、[E08] | 仅4任务/5成就；不等于完整主支线内容。周期已实现，不能沿用旧文档称缺失。 |
+| 好友/助战 | I/G；e2e存在 | 75% | [E07]、[E08] | 正式借角没有核验assistEnabled；直接助战API事务错误。 |
+| 活动商店 | I/G基础兑换 | 50% | [E07]；每月购买限额与事务兑换 | 商品硬编码；未发现正式活动排期/完整轮换生命周期。 |
+| 全服Boss赛季/层数/宝箱 | I/G基础 | 50% | [E07] | 无旧赛季收尾；共享伤害多账号累计需确认；真实榜写入未保护。 |
+| 排行榜 | I/G Boss界面；V探针发现绕过 | 50% | [E09] | 无鉴权写入口；动态Boss榜不在保护名单。 |
+| 公会 | I后端；局部接每日目标 | 50% | [E09]；`guild`服务/控制器 | 缺玩家UI、退出/治理；客户端可自报贡献，非原子保存。 |
+| 邮件 | I后台发放/列表；无完整领奖链 | 25% | [E09]；`mail.controller.ts`仅GET | 补偿奖励不能认定已可领取；无玩家邮件页面。 |
+| 立绘/战魂 | 原型I；正式G未完成 | 25% | [E13] | 正式端跳过加载；碎片产出没有完整正式消费闭环。 |
+| 正式聊天/自动匹配 | 未发现正式主流程 | 0% | [E06]、[E13] | 旧原型有房间聊天；不能说全项目聊天从未实现。自动匹配是否本阶段必须做需裁定。 |
+| 纪元隔离 | 原型I/R/V单测；正式未接线 | 25% | `src/versions/version.py`、[E05] | Nest入口只校验角色数/部分属性；不能认定版本与满级解锁规则全部生效。 |
+| 资源/音频/演出 | 局部UI；音频链未发现 | 25% | [E13] | 占位立绘与素材接入；无完整资源验收基线。 |
+| 运维/备份/迁移/CI | I/G构建；发布路径有断点 | 50% | [E10]、[E11] | 旧schema验收和Compose路径错误；当前部署状态无法确认。 |
+| 支付/平台登录 | 未发现完整实现 | 0% | [E03]、[E13] | Provider枚举不是功能实现；不自动将其列为Alpha阻塞。 |
+
+## 6. Completed
+
+本次可在有限范围内确认完成：
+
+- 职业、属性、克制基础规则及对应测试。
+- ABC技能槽的合法布局、重复技能、未知/跨角色ID拒绝规则；实际技能执行和护盾进入回放的进程级验证。
+- 前后端可构建、类型检查与Nest lint；真实Python战斗worker四类输入的运行与重复性。
+- 新手引导账号隔离、坏存储处理、回放映射以及连接重试次数/释放规则的本次测试。
+
+已实现的核心产品能力包括注册、抽取、成长、装备、单人副本、服务端结算等，但它们整条当前HTTP/DB/浏览器链路没有在本次重跑，不将它们一概标为生产Completed。
+
+## 7. Implemented but Not Verified
+
+- 当前工作树的多人presence字段、迁移、API心跳、定时检查和重连显示。
+- 当前工作树下真实PostgreSQL的房间共享战斗、独立结算和两局连续复玩。
+- 当前正式API的奖励并发、回滚、跨账号安全、公会及挂机并发。
+- 当前Render、Pages、Sites运行提交与schema、定时备份是否实际成功。
+- 账号找回、长期离线回归、浏览器进程关闭后单人战斗恢复、服务器崩溃后starting房间恢复。
+- 性能、内存、长期数据增长、并发容量、移动设备后台节流及多实例房间扫描。
+
+测试脚本存在只是“有测试能力”；本次未运行的脚本不记为Passed。
+
+## 8. Partially Completed
+
+- 多人完整流程：API开战存在，但UI准入条件和finished清理断开。
+- 社交：好友建立和借角色开战已接线；助战开关未约束角色名册/授权；前端“添加好友”直接建立accepted关系，和申请/接受API语义不一致。
+- 活动：原型自动轮换已接启动器；正式商店有月度限额，但没有完整活动轮换。
+- Boss：季度key、共享层、累计榜、宝箱存在；赛季关闭、结算、历史奖励回收/补偿缺乏正式链路证据。
+- 邮件：可由运营发邮件并存储奖励字段，但没有看到正式玩家领取API。
+- 公会：创建、加入、贡献和查询有代码，无完整玩家管理体验与权威贡献来源。
+- 立绘、战魂、纪元、精炼、团队战报：原型或局部实现不能当成正式在线完成。
+
+## 9. Not Started
+
+在正式在线端未发现自动匹配队列、匹配取消/超时、正式聊天、支付、Apple/微信认证、完整音频播放链路。
+
+这些“不存在”结论限于已扫描源码/配置。是否为当前版本必需功能，需要先确认范围；不能仅因README提到MMORPG就将全部长期内容列为Blocker。
+
+## 10. Hidden Issues
+
+### H01 / Blocker：全队已准备但开战按钮仍不可用
+
+`web/src/pages/MultiplayerRoomPage.tsx:916` 使用 `room?.character_ids.length || selectedIds.length`。等待房间的顶层 `characterIds` 初始为空；服务端只在 `start()` 中汇总并保存（`multiplayer-rooms.service.ts:194`）。前端却先用该汇总结果启用按钮，形成循环依赖。
+
+两账号分别选3+2名角色且都准备时，UI显示3/5，开战按钮disabled。本次真实生产React在1280/390宽度、模拟合法HTTP响应下均复现。不是实际服务器完整开局验证，但断点本身已确认。极端“房主自己选齐5名”可绕过，不能据此认为正常协作流程已通。
+
+### H02 / Blocker：结算后不能从房间界面再次开始
+
+服务端 `current()` 返回最近成员的finished房间（`multiplayer-rooms.service.ts:54`）；settle设置finished但保留成员；leave只接受waiting（`:249`）。前端仅在 `!room` 显示创建，finished的准备/开战/离开都disabled（`MultiplayerRoomPage.tsx:1196`、`:1210`）。
+
+本次1280/390浏览器契约测试均复现。直接调用create API可绕过，因此“后端能创建第二房间”不证明玩家UI可复玩。
+
+### H03 / Critical：真正使用的Boss榜可被客户端写入，且写入口没有鉴权
+
+`ranking.controller.ts:26` 的POST不使用AuthService；`ranking.service.ts:6`只禁止3个固定名称，但实际榜名是 `world_boss:${dungeonId}`（`online-features.service.ts:372`）。
+
+本次使用当前编译代码和内存repository复现动态Boss榜接受自报分数；不曾攻击公网或实际改数据库。结合控制器调用可判定发布安全缺陷，需真实HTTP负向回归。
+
+### H04 / Critical：封号不撤销现有令牌
+
+`admin.service.ts:96`写banned；登录检查该状态，但 `auth.service.ts:104` 只验证签名/到期，不读取账号状态，令牌签发期限为30天。本次内存探针确认旧令牌通过鉴权且未查询user。
+
+结论仅为现有受此AuthService保护路径不能立即封禁已登录账号；不将“新登录会拒绝”误说成封号全部失效。
+
+### H05 / Blocker（发布恢复）：备份/恢复检查落后于schema
+
+当前schema为 `MultiplayerRoomPresence1788513000000`；HEAD已是 `MultiplayerRooms1788512000000`，而workflow和恢复SQL仍要求 `ConcurrentMutationSafety1788509000000`。[E10]
+
+因此对最新schema的备份，workflow头检查/恢复版本断言会拒绝；新增任务、成就、Boss和房间表也没有加入恢复表清单。未实际跑恢复，但版本矛盾可直接确认。不能因此宣称线上数据已丢失。
+
+### H06 / Blocker（该部署路径）：两个正式Compose不能使用当前Dockerfile完整构建
+
+`docker-compose.prod.yml:32`、`docker-compose.public-api.yml:34` 将context设为 `../../server-nest`；对应Dockerfile需要从项目根复制 `server-nest/`、`src/`、`data/content/`。[E11]
+
+文件在该context不可见。Render及根目录开发Compose使用根context，不受同一错误影响。本机无Docker命令，未实际构建容器。
+
+### H07 / Critical候选：多人开战不是一个共享快照/原子发布
+
+房间先提交starting，再逐个成员调用独立 `dungeons.start()`；每次重读角色并运行模拟。中途失败只把房间改回waiting，不清除之前已提交的票据和activeBattleSeed。[E05]、[E06]
+
+故障时可留下部分账号已开战；服务进程中断则starting无恢复路径。成员间装备/技能变更可能让相同seed产生不同快照结果。当前只做代码判定，未进行真实故障注入，不能声称已经观察到结果分叉。
+
+### H08 / Major：房间成员与好友校验约束不一致
+
+邀请只要求被邀请者是房主好友；每个成员开战又要求所有借用角色主人都是自己的accepted好友。三人以上房间可能需要成员互为好友，而不只是房主的好友。
+
+create先查后写无统一玩家锁；acceptInvitation没有“该玩家是否已有另一活跃房间”的检查。不同房间并发加入/建房与activeBattle覆盖需要SQL级回归，尚未证实实际发生。
+
+### H09 / Major：助战开关和直接助战接口不完整
+
+`assistRoster()`、`resolveAssistCharacters()`未核验helper的 `flags.assistEnabled`；界面可关闭，但不能据此拒绝借角。
+
+直接POST助战可达 `recordAssist()`，却不传事务manager；方法使用pessimistic_write。本次已加载全部实体的TypeORM内存探针复现 `PessimisticLockTransactionRequiredError`，未建立数据库连接。[E07]
+
+**不能把这个路径直接断言为“已可无限刷金币”**：目前事务缺失可能先阻止执行。正确结论是接口不可认定可用，且设计缺少真实战斗来源/一次性约束；不能仅加事务而保留客户端自报发奖。
+
+### H10 / Major：Boss评分/奖励契约存在矛盾
+
+每名房间成员独立结算同一整队damageScore并调用全服累计，可能将整队伤害按成员数重复累计；只有success才记录贡献；宝箱目前给触发清层的结算玩家。需先裁定个人贡献、失败伤害、参与者奖励规则。
+
+UI声明“每50层10碎片”，实际开箱按tier给1/2/5片，没有发现独立里程碑领取实现。未做真实多账号Boss对账，以上区分为代码/契约风险，不伪称已经造成经济损失。
+
+### H11 / Major：公会贡献不是权威资源消费
+
+`guild.controller.ts`允许客户端提供amount/source/payload；service只检查正数，直接增加贡献并并行保存，无对应资源扣除或一次性业务来源；加入限额也是先计数后插入。已核对代码，未复现并发超员/丢更新。公会未接玩家主流程不代表公开API没有风险。
+
+### H12 / Major：旧e2e会产生误导
+
+`e2e-http.mjs`开战后立即结算且要求damageScore=0；`e2e-online-loop.mjs`要求客户端指定击杀对应的固定经验。当前权威结算有elapsed校验且实际使用worker伤害，两者明显落后。它们不是当前闭环通过的可靠证据。
+
+现有房间HTTP测试绕过UI直接调用start；新浏览器presence脚本只测等待房间重连，没有点击选角/准备/开战或第二局，因此可以漏掉H01/H02。
+
+## 11. Technical Debt
+
+| 分类 | 内容 | 影响 |
+|---|---|---|
+| Critical | 多账号玩家/角色锁序不统一 | 两成员同时结算各自先锁本人，再锁全队角色/对方玩家；潜在数据库死锁。本次未复现，不与已确认UI阻塞混为一谈。 |
+| Major | 模式与文档漂移 | README全未勾选、旧75%文档、API coverage的Pending说明与新代码互相冲突。 |
+| Major | 配置分散/缺内容文件回退 | known content列出不存在的文件；部分奖励有fallback、任务商店硬编码。需要校验配置完整性和版本一致。 |
+| Major | activeBattleSeed覆盖与过期 | 新开战可覆盖旧未结算票据；结算票据超过3600秒拒绝；缺明确弃战/补偿产品规则。 |
+| Major | 房间扫描与轮询 | 每5秒查最多100房间，无明确分页、公平扫描与错误可观测性；玩家每2.5秒轮询两接口并另发心跳，需容量/NAT限流评估。 |
+| Major | 部分API非事务 | 公会、直接助战、挂机start/stop；范围应逐个裁定，不必重写整个服务层。 |
+| Minor | 原型TODO/乱码 | 原型驱散查找返回None；prepare_character仍TODO；原型手动活动轮换未校验管理员，任务材料发放未完成。若公开原型则安全等级上升。 |
+| Minor | 构建/日期警告 | Python10条弃用警告；Vite CJS警告及613KB主JS chunk；影响维护与加载，不是当前最大阻塞。 |
+| Future | 内容及表现层扩展 | 新角色、大型场景、支付、更多动画、音频、自动匹配应在范围确定后排期。 |
+
+TODO搜索做了上下文判断：HTML输入placeholder、测试Mock、模拟固定值属于合理实现/测试手段，不列为未完成业务。
+
+## 12. QA / Testing Status
+
+### 本次实际执行
+
+| 检查 | 结果 | 证明范围 |
+|---|---|---|
+| `.venv/Scripts/python.exe -B -m pytest ...` | 未能执行：No module named pytest | 环境缺依赖，不是测试断言失败；未安装任何包。 |
+| `python -B -m pytest tests -q -p no:cacheprovider` | **221 passed，486 subtests passed，10 warnings，8.59秒** | 系统Python跑当前全部Python tests；不生成pytest cache/pyc。 |
+| Nest `tsc --noEmit --incremental false` | PASS | 当前源码类型检查。 |
+| Web `tsc --noEmit --incremental false` | PASS | 包括未提交页面改动；不等于UI逻辑正确。 |
+| Nest `npm run lint` | PASS | 没有使用--fix。 |
+| Nest `npm run build` | PASS | 生成本地忽略目录dist，不部署。 |
+| Web `npm run build` | PASS | 188模块，613.02KB JS、120.81KB CSS；有chunk/CJS警告。 |
+| `test-battle-worker.mjs` | PASS | 真实Node/Python：SINGLE、SQUAD、TEAM、SERVER_BOSS；固定seed重复一致；作者技能/护盾、5/20不同角色参考队通过。 |
+| `test-skill-slot-rules.mjs` | PASS | 规则及repository stub下加载/保存/迁移，非真实数据库。 |
+| `test-acquire-connection.mjs` | PASS | stub连接的有限重试、释放、永久错误不重试。 |
+| `test-guide-account.cjs` | PASS | VM/localStorage模拟的账号隔离、坏存储。 |
+| `test-server-battle-replay.mjs` | PASS | 合成快照映射，不是实际线上战斗。 |
+| `audit-online-api-coverage.mjs` | PASS | 15条路由声明存在；只是字符串/声明检查，没有请求API，也遗漏multiplayer/team-records路由。 |
+| 临时内存风险探针 | 确认H03/H04及直接助战事务前置错误 | 当前编译代码+stub或TypeORM元数据，无数据库连接/写入。未持久化探针文件。 |
+| 真实React构建/Playwright契约探针 | **1280/390均复现H01/H02；无页面错误/横向溢出** | 实际Chrome、生产React和临时只读HTTP静态服务器；业务HTTP全mock。无截图文件、服务器测试后已关闭。 |
+| 本地4100/5000探测 | ECONNREFUSED | 默认端口没有正在服务；不代表其他端口或公网离线。 |
+
+### 测试覆盖的真实缺口
+
+- 没有本次真实PostgreSQL/HTTP结果；未运行会写账号、改表、发奖励或修改测试票据时钟的脚本，遵守只读审计。
+- 没有“两个真实浏览器十局复玩”“四账号二十人房间”“中途服务重启恢复”“全部成员最终奖励对账”的当前记录。
+- 没有当前schema全迁移 + 恢复 + 启动验收；不能用TYPEORM_SYNCHRONIZE测试代替迁移验证。
+- 没有当日公网版本、CORS、账户重登录与资源恢复结果。
+- 一些浏览器技能/入口测试mock HTTP；一些HTTP测试通过SQL放入满级角色并提前票据时钟。它们有效验证其断言，但不是从新账号自然成长的全链路。
+- CI没有跑Python全量、奖励e2e、房间e2e和上述双局UI门禁；当前构建CI只是部分覆盖。
+
+### 异常路径矩阵
+
+| 异常 | 已见处理/测试 | 尚缺证据 |
+|---|---|---|
+| 注册冲突/连接失败 | 事务、唯一冲突、有限连接重试；本次连接stub通过 | 当日实际DB并发与网络恢复。 |
+| 请求超时/503/429 | Axios60秒、worker15秒和busy拒绝、IP限流、UI错误提示 | 多人开战结果不明时的正确重试/补偿。 |
+| 重复抽取/结算/领奖 | IdempotencyService事务+请求hash；e2e-rewards脚本覆盖同/异key、回滚 | 本次真实运行；对业务入口完整覆盖。 |
+| 房间满/未准备/非房主 | 服务端校验与行锁 | UI完整请求/错误提示，跨房间加入和完整好友拓扑。 |
+| 房主离开/断线 | waiting转移房主、15秒离线、30秒宽限；presence脚本 | 移动端切后台、战斗中断线、超过宽限再入、重启。 |
+| 服务中断 | worker失败不发奖；starting仅有catch回waiting | Node进程崩溃后的状态回收、部分成员已提交票据的补偿。 |
+| 保存失败 | 多数核心变更使用事务；奖励脚本有SQL故障注入 | 房间开战、公会、直接助战、挂机生命周期的原子性。 |
+| 数据不存在/腐坏 | 多个NotFound、非法skill校验、引导坏JSON处理 | 完整档案/技能/装备腐坏、迁移失败可恢复方案。 |
+| 退出/返回/再开始 | 单人UI有返回定时器；房间leave只waiting | H02已确认；战斗凭证sessionStorage未见结算后清除。 |
+
+## 13. Build / Deployment Status
+
+- 当前本地前后端构建可执行；无需升级依赖。
+- 系统Python能运行测试与worker，但`.venv`缺pytest；开发测试环境不可完全按requirements复现，requirements也未声明pytest/subtests开发依赖。
+- 当前默认本地服务端口未运行；未为审计启动会初始化/写入业务库的Nest/Flask。
+- Render Dockerfile、Blueprint与根目录开发Compose使用正确根context；另两个生产Compose有H06。
+- 生产环境有密钥长度、HTTPS CORS、禁synchronize等启动校验；Redis不可用可使ready失败。
+- 当前presence迁移未跟踪，已修改CURRENT_SCHEMA_VERSION；必须把迁移、实体、schema常量及回归作为同一发布单元。已有业务改动均未提交/覆盖。
+- 当前backup pipeline使用旧版本，不能据其文件存在宣称备份恢复已完成。
+- CI有构建、公开注册/成长和并发验收，但本次未访问远程执行状态；远程分支记录是本地缓存，没有fetch。
+- 未做公网注册/抽卡测试，以免只读审计向正式库写数据；公网在线版本和长期可用性均无法确认。
+
+## 14. Critical Player Journey
+
+### 单人核心链
+
+```text
+部署/启动
+  -> 注册/登录
+  -> 大厅/新手引导
+  -> 抽角色并存档
+  -> 选同属性经验本/配置角色
+  -> 服务端票据 + Python真实计算
+  -> 逐步公开快照/前端4x回放
+  -> 权威胜负、经验、金币、进度一次性结算
+  -> 返回副本
+  -> 升级/穿装备/再次挑战
+  -> 重登录恢复
+```
+
+代码接线完整，规则/计算本次已跑，历史有HTTP验收；本次没有真实数据库+浏览器完整重跑，因此结论是“具备闭环实现与部分可靠证据”，不是当天整链Verified。
+
+### 多人关键链
+
+```text
+两账号登录
+  -> accepted好友
+  -> 创建/邀请/接受房间 [Implemented/Integrated]
+  -> 各自选3+2并准备 [Implemented]
+  -> 全队计数/开战按钮 [BROKEN：H01]
+  -> 房主调用start [API存在；部分提交风险H07]
+  -> 每成员票据/回放 [Implemented；快照一致待测]
+  -> 各账号结算一次 [脚本存在；本次真实DB未验]
+  -> finished房间
+  -> 返回/退出/新局 [BROKEN：H02]
+```
+
+五人本房间最多5账号但要求总共5角色；二十人本房间最多4账号、每账号最多5角色。产品文案必须区分“角色数”和“账号人数”。
+
+## 15. Broken / Missing Links
+
+1. 最早的多人断点：全队计数 -> 开战按钮。
+2. 最后的多人断点：finished -> 清理成员/恢复大厅 -> 再开局。
+3. 开战失败/进程重启 -> 回滚全部成员票据/一致恢复，缺乏完整机制。
+4. Boss合法伤害 -> 受保护排名，动态key可绕过；封号 -> 现有会话禁用未接通。
+5. 立绘碎片 -> 正式兑换/加载资源，以及邮件奖励 -> 玩家领取未接通。
+6. 最新数据库 -> 自动备份恢复验收，以及生产Compose -> 可构建镜像，存在配置断点。
+7. 原型团队战报页仍请求Python `/api/battle/team-records`；正式端没有对应承接，路由仍注册，但不能计为正式战报。
+
+## 16. Current Blockers
+
+| Blocker | 阻塞目标 | 性质 |
+|---|---|---|
+| H01开战门槛循环依赖 | 正常两账号多人游戏首局 | 已复现真实UI契约错误。 |
+| H02finished房间不能复玩 | 多人完整闭环与连续回归 | 已复现真实UI契约错误。 |
+| H05恢复版本错位 | 最新版本可验证恢复/发布门禁 | 静态版本矛盾确定。 |
+| H06Compose上下文错位 | 这两套生产部署方案 | 静态路径矛盾确定；Render不受同一问题影响。 |
+| 当前隔离DB/生产模式验收缺失 | 将Implemented提升为Verified/公开发布 | 本次为只读限制而未执行写入测试，不宣称项目永远无法测试。 |
+
+H03/H04是公开发布的Critical安全门禁，不能被高测试通过率覆盖。长期内容、匹配、支付和美术扩充不是解除当前多人阻塞的先决条件。
+
+## 17. Critical Path
+
+```text
+A. 修复全队计数 + finished再开局
+  -> B. 固定共享快照/开战失败补偿 + 跨账号结算一致
+  -> C. 当前schema隔离DB正式迁移
+  -> D. 两真实浏览器10局 + 至少3异常场景 + SQL对账
+  -> E. 提交包含presence迁移的可复现版本
+  -> F. 修复部署/恢复检查，并通过备份恢复
+  -> G. 目标部署commit/schema核对 + 公网新账号冒烟
+  -> 可接受的在线多人Alpha验收
+
+S. Boss榜鉴权/来源保护 + 已登录封号 + 直接奖励入口治理
+  -> 安全回归
+  -> 与G共同构成公开测试门禁
+```
+
+解除最多玩家链路阻塞的是A并附带真实两局测试；解除公开发布风险需要S和F，不能只修两个按钮后直接上线。
+
+## 18. Key Risks
+
+- 当前“测试多”可能掩盖“测试没有走实际入口/第二局”；所有Ready和API覆盖声明都须绑定运行断言。
+- 已签发凭证与匿名排名写入破坏长期运营可信度；不能在真实经济上线后再治理。
+- 多人逐账号计算/事务、好友拓扑、锁序和成员状态可能导致分叉、部分发奖或失败；必须使用真实PostgreSQL验证。
+- 一进程最多2战斗worker，每成员开战再计算；没有证明高并发房间可用。需先正确再测容量，不凭6账号验收推断负载上限。
+- 资源、赛季、奖励、版本和主线内容的阶段范围未冻结；继续新增容易扩大未验证面积。
+- 未提交迁移和多套部署模式让“本地可玩”和“远程可恢复”脱节。
+
+## 19. Audit Notes
+
+- Git分支main；HEAD `d163ea6bf4c65656460e43dd1dfd49a8c1410afb`，最近提交2026-09-29。本地只有main与origin/main，均指向该提交；没有查询服务器是否另有分支。
+- 最近30提交集中在线迁移、数据库安全、作者技能、玩法回归和多人协作；最近10提交检查了stat。未发现该范围内merge/revert提交，不能据此断言全部历史无此类提交。
+- 审计开始即存在10个已修改tracked文件，另有未跟踪技能报告、presence迁移和浏览器脚本。未修改、删除、移动或提交它们。
+- 标准构建仅重新生成既有忽略目录dist和构建缓存，没有修改依赖/lockfile。Python使用-B及关闭pytest cache；临时探针未保存脚本或截图。
+- 未运行`npm ci/install`、Docker、数据库写入e2e、公开注册验收、备份下载或部署；未读取/输出真实密钥。
+- 文档矛盾：README的实现计划未勾选；旧文档称75%；`formal-online-api-coverage.md`称五条Pending，但代码已接线；代码coverage仍称任务周期/助战未完成，而实现和脚本已有对应逻辑。以当前代码与实际运行结果为准。
+- 更正前次模块概述：存在多人代码并不意味着多人玩家闭环完成；任务周期和成就并发测试代码已经有，不能再当作“未实现”；发现直接助战发奖函数也不能未经事务检查声称已可刷奖励。
+- 审计未覆盖所有函数/随机种子/角色组合，未穷举外层Word设定与代码的一致性。所有无法确认项均留为待验证，不人为填写100%。
+
+## 20. Evidence / References
+
+以下路径相对本报告所在Git根目录；行号指2026-10-08审计时本地工作树。
+
+| ID | Evidence |
+|---|---|
+| E01 | `README.md`；`web/package.json`；`server-nest/package.json`；`requirements.txt`；`server-nest/src/app.module.ts`。 |
+| E02 | `web/src/main.tsx`；`web/src/App.tsx`；`web/src/config.ts`；`web/src/stores/authStore.ts`；`web/src/services/onlineApi.ts`；`web/src/pages/MainMenu.tsx`。 |
+| E03 | `server-nest/src/auth/auth.service.ts:39`注册事务、`:90`登录封禁、`:104`请求鉴权、`:129`30天签发；`server-nest/src/admin/admin.service.ts:96`封号。 |
+| E04 | `scripts/nest_battle_worker.py`；`src/combat/battle.py`；`src/skills/authored_characters.py`；`src/skills/characters/registry.py`；`data/content/authored-character-skills.json`；`server-nest/scripts/test-battle-worker.mjs`；`tests/test_authored_characters.py`及角色测试文件。 |
+| E05 | `server-nest/src/dungeons/dungeons.service.ts:121`开战、`:177`快照、`:193`扫荡；`server-nest/src/battle-settlement/battle-settlement.service.ts:43`结算；`server-nest/src/common/idempotency.service.ts`；`battle-simulation.service.ts`。 |
+| E06 | `server-nest/src/multiplayer-rooms/multiplayer-rooms.service.ts:54`current、`:84`create、`:137`accept、`:180`start、`:230`settle、`:249`leave、`:276`presence；`web/src/pages/MultiplayerRoomPage.tsx:916`计数、`:918`开战判定、`:1196`创建、`:1210`离开；`web/src/pages/BattlePage.tsx:604`回放恢复。 |
+| E07 | `server-nest/src/online-features/online-features.service.ts:56`任务、`:63`成就、`:136`兑换、`:204`任务、`:255`成就、`:285`Boss、`:346`伤害、`:398`宝箱、`:464`周期；`friends-assist.service.ts:62`发奖、`:96`借角；`friends-assist.controller.ts:64`公开调用；`workshop.service.ts`；`idle.service.ts`；`daily-goals.service.ts`。 |
+| E08 | `server-nest/scripts/e2e-rewards.mjs`；`e2e-registration.mjs`；`e2e-multiplayer-assist.mjs`；`e2e-multiplayer-room.mjs`；未跟踪的`e2e-multiplayer-room-browser.mjs`；`e2e-authoritative-battle.mjs`；`e2e-http.mjs`；`e2e-online-loop.mjs`；`web/scripts/test-skill-slots-browser.cjs`。 |
+| E09 | `server-nest/src/ranking/ranking.controller.ts:26`无鉴权提交；`ranking.service.ts:6`保护集合、`:15`提交；`guild/guild.controller.ts`及`guild.service.ts:62`贡献；`mail/mail.controller.ts`；`admin/admin.service.ts`。 |
+| E10 | `server-nest/src/database/schema-version.ts:1`；`database/run-migrations.ts`；未跟踪的`migrations/1788513000000-MultiplayerRoomPresence.ts`；`database/database-backup.service.ts`；`.github/workflows/database-backup.yml:61`；`server-nest/scripts/verify-restored-backup.sql:46`。 |
+| E11 | `server-nest/Dockerfile:3`、`:21`；`deploy/production/docker-compose.prod.yml:32`；`docker-compose.public-api.yml:34`；`deploy/render/Dockerfile`；`render.yaml`；`docker-compose.nest.yml`；`.github/workflows/online-post-deploy.yml`、`deploy-github-pages.yml`；`web/scripts/create-sites-worker.mjs`。 |
+| E12 | 历史材料：`docs/character-release-acceptance-2026-09-17.md`；`character-http-acceptance-2026-09-17.json`；`three-step-progress-2026-09-11.md`；`seven-dps-balance-review-2026-09-23.md`；`new-player-journey-2026-09-17.md`。不当作本次运行结果。 |
+| E13 | `web/src/pages/CharacterPage.tsx:175`、`:660`正式模式跳过原型；`TeamRecordsPage.tsx`；`src/server/scheduler.py`；`run_server.py`；`src/versions/version.py`；`src/combat/ai_system.py:155`；`src/dungeons/dungeon_battle.py:399`；`src/server/routes.py:5785`、`:6007`；`web/src/services/onlineFeatureCoverage.ts`；`docs/formal-online-api-coverage.md`。 |
+
+本次命令结果、临时内存探针和浏览器契约探针已在本报告记录，不另生成第三份产物。历史关键提交：`3276e20`（2026-09-17角色）、`e936abf`、`a96872b`、`13826f7`、`d163ea6`（2026-09-29在线玩法/助战/房间）。

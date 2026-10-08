@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
 import { IsInt, IsObject, IsOptional, IsString, Min } from 'class-validator';
 import { RankingService } from './ranking.service';
+import { AuthService } from '../auth/auth.service';
 
 class SubmitScoreDto {
   @IsString()
@@ -21,10 +22,11 @@ class SubmitScoreDto {
 
 @Controller('ranking')
 export class RankingController {
-  constructor(private readonly ranking: RankingService) {}
+  constructor(private readonly ranking: RankingService, private readonly auth: AuthService) {}
 
   @Post(':rankingKey/score')
-  submit(@Param('rankingKey') rankingKey: string, @Body() dto: SubmitScoreDto) {
+  submit(@Headers('authorization') authorization: string | undefined, @Param('rankingKey') rankingKey: string, @Body() dto: SubmitScoreDto) {
+    this.auth.assertPlayerAccess(authorization, dto.playerId);
     return this.ranking.submitScore(dto.playerId, rankingKey, dto.score, dto.seasonId || 'default', dto.payload || {});
   }
 

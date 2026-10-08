@@ -31,7 +31,8 @@ services:
 
   schema:
     build:
-      context: ../../server-nest
+      context: ../..
+      dockerfile: server-nest/Dockerfile
     restart: "no"
     command: ["node", "dist/database/run-migrations.js"]
     environment: &api-environment
@@ -61,7 +62,8 @@ services:
 
   api:
     build:
-      context: ../../server-nest
+      context: ../..
+      dockerfile: server-nest/Dockerfile
     restart: unless-stopped
     environment: *api-environment
     depends_on:

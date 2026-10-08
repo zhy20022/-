@@ -19,7 +19,7 @@ export class RankingService {
     seasonId = 'default',
     payload: Record<string, unknown> = {},
   ) {
-    if (SERVER_AUTHORITATIVE_RANKINGS.has(rankingKey)) {
+    if (SERVER_AUTHORITATIVE_RANKINGS.has(rankingKey) || rankingKey.startsWith('world_boss:')) {
       throw new BadRequestException('ranking is server-authoritative');
     }
     return this.upsertScore(playerId, rankingKey, score, seasonId, payload);

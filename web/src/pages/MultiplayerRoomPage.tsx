@@ -8,6 +8,8 @@ import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import type { OnlineLegacyCharacter, OnlineLegacyDungeon } from '../services/onlineGameAdapter'
 import './MultiplayerRoomPage.css'
+import ElementBadge from '../components/ElementBadge'
+import { elementThemeStyle } from '../services/elementTheme'
 
 interface Dungeon {
   dungeon_id: string
@@ -855,6 +857,8 @@ interface FormalRoomMember {
   username: string
   character_ids: string[]
   is_ready: boolean
+  connection_status: 'online' | 'offline'
+  reconnect_remaining_seconds?: number | null
 }
 
 interface FormalRoom {
@@ -911,9 +915,14 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   const requiredCount = activeDungeon?.dungeon_type === 'TEAM' || activeDungeon?.dungeon_type === 'SERVER_BOSS' ? 20 : 5
   const currentMember = room?.members.find((member) => member.player_id === player?.player_id)
   const isLeader = Boolean(room && player?.player_id === room.leader_id)
-  const totalSelectedCount = room?.character_ids.length || selectedIds.length
+  const teamCharacterIds = room?.status === 'waiting'
+    ? room.members.flatMap((member) => member.character_ids)
+    : room?.character_ids || []
+  const totalSelectedCount = teamCharacterIds.length
   const allCharactersById = useMemo(() => new Map(characters.map((character) => [character.character_id, character])), [characters])
-  const battleReady = Boolean(room && room.status === 'waiting' && room.members.length >= 2 && room.members.every((member) => member.is_ready) && totalSelectedCount === requiredCount)
+  const battleReady = Boolean(room && room.status === 'waiting' && room.members.length >= 2 &&
+    room.members.every((member) => member.is_ready && member.connection_status === 'online' && member.character_ids.length > 0) &&
+    totalSelectedCount === requiredCount && new Set(teamCharacterIds).size === totalSelectedCount)
   const navigationRoomRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -977,6 +986,17 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
       setConnectionState(typeof navigator !== 'undefined' && navigator.onLine ? 'reconnecting' : 'offline')
     } finally {
       refreshInFlightRef.current = false
+    }
+  }
+
+  const heartbeatRoom = async (roomId: string) => {
+    if (!player || (typeof navigator !== 'undefined' && !navigator.onLine)) return
+    try {
+      const response = await onlineApi.post(`/multiplayer-rooms/${roomId}/heartbeat`)
+      setRoom(response.data as FormalRoom)
+      setConnectionState('online')
+    } catch {
+      setConnectionState(typeof navigator !== 'undefined' && navigator.onLine ? 'reconnecting' : 'offline')
     }
   }
 
@@ -1106,25 +1126,30 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
       if (document.visibilityState === 'visible') void refreshFormalState()
     }
     const timer = window.setInterval(() => void refreshFormalState(), 2500)
+    const heartbeatTimer = window.setInterval(() => {
+      if (room?.room_id) void heartbeatRoom(room.room_id)
+    }, 5000)
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       window.clearInterval(timer)
+      window.clearInterval(heartbeatTimer)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
-  }, [player?.player_id])
+  }, [player?.player_id, room?.room_id])
 
   const renderCharacterButton = (character: OnlineLegacyCharacter) => (
     <button
       key={character.character_id}
-      className={selectedIds.includes(character.character_id) ? 'selected' : ''}
+      className={`element-themed ${selectedIds.includes(character.character_id) ? 'selected' : ''}`}
+      style={elementThemeStyle(character.attribute_type)}
       onClick={() => toggleCharacter(character.character_id)}
     >
       <strong>{character.name}</strong>
-      <span>Lv.{character.level} / {character.attribute_type} / {getProfessionLabel(character.profession_type)}</span>
+      <span>Lv.{character.level} / <ElementBadge attribute={character.attribute_type} /> / {getProfessionLabel(character.profession_type)}</span>
       <small>我的角色</small>
     </button>
   )
@@ -1190,7 +1215,7 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
                   </button>
                 )}
                 {room && (
-                  <button onClick={() => void leaveRoom()} disabled={room.status !== 'waiting'}>离开房间</button>
+                  <button onClick={() => void leaveRoom()} disabled={!['waiting', 'finished', 'cancelled'].includes(room.status)}>离开房间</button>
                 )}
                 <button onClick={() => void loadFormalData()} disabled={loading}>刷新名册</button>
               </div>
@@ -1207,9 +1232,13 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
               )}
               {room && <div className="member-list">
                 {room.members.map((member) => (
-                  <div className="member-row" key={member.player_id}>
+                  <div className="member-row" key={member.player_id} data-player-id={member.player_id}>
                     <div><strong>{member.username}{member.player_id === room.leader_id ? '（房主）' : ''}</strong><span>{member.character_ids.length} 名角色</span></div>
-                    <em className={member.is_ready ? 'ready' : ''}>{member.is_ready ? '已准备' : '未准备'}</em>
+                    <em className={`${member.is_ready ? 'ready' : ''} ${member.connection_status}`}>
+                      {member.connection_status === 'offline'
+                        ? `已断线，${member.reconnect_remaining_seconds ?? 0}s 后移出`
+                        : member.is_ready ? '已准备，在线' : '未准备，在线'}
+                    </em>
                   </div>
                 ))}
               </div>}

@@ -98,6 +98,7 @@ def simulate(request):
         for unit in units:
             metadata.setdefault(unit.character.character_id, {'id': unit.character.character_id, 'name': unit.character.name,
                 'isPlayer': unit.is_player, 'maxHealth': unit.max_health,
+                'attributeType': unit.character.attribute.attribute_type.name,
                 'definition': getattr(unit, 'authored_monster', None)})
         frames.append({'time': round(battle.current_time, 2), 'units': [
             [u.character.character_id, round(u.current_health, 2),

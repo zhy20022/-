@@ -19,6 +19,15 @@ export class MultiplayerRoomMemberEntity {
   @Column({ default: false })
   isReady: boolean;
 
+  @Column({ length: 16, default: 'online' })
+  connectionStatus: 'online' | 'offline';
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastSeenAt?: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  disconnectedAt?: Date | null;
+
   @CreateDateColumn()
   joinedAt: Date;
 

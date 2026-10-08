@@ -41,7 +41,7 @@ export class BattleSettlementService {
     @InjectRepository(DungeonProgressEntity) private readonly progress: Repository<DungeonProgressEntity>,
   ) {}
 
-  async settle(input: BattleSettlementInput) {
+  async settle(input: BattleSettlementInput, transactionManager?: EntityManager) {
     if (!input.dungeonId || !input.characterIds?.length) {
       throw new BadRequestException('dungeonId and characterIds are required');
     }
@@ -59,6 +59,9 @@ export class BattleSettlementService {
         where: { playerId: input.playerId, operation: 'battle-start', idempotencyKey: battleSeed },
       });
       const ticket = started?.response;
+      if (ticket?.roomId && (!transactionManager || input.clientTrace?.roomId !== ticket.roomId)) {
+        throw new BadRequestException('settle multiplayer battles through the room endpoint');
+      }
       const dungeon = ticket?.dungeon as { dungeonId?: string } | undefined;
       if (!ticket || dungeon?.dungeonId !== input.dungeonId ||
           JSON.stringify(ticket.characterIds) !== JSON.stringify(input.characterIds)) {
@@ -194,7 +197,7 @@ export class BattleSettlementService {
         serverRewards: experienceResult,
         outcome: effectiveInput.success ? 'success' : 'failed',
       };
-    });
+    }, transactionManager);
   }
 
   async records(playerId: string) {

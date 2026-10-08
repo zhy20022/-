@@ -18,6 +18,7 @@ for (const [dungeonType, count, duration] of [['SINGLE', 1, 60], ['SQUAD', 5, 18
   assert(first.frames.length <= 32);
   assert(Number.isSafeInteger(first.damageScore));
   assert(Object.values(first.units).some((unit) => unit.definition), 'must execute authored monsters');
+  assert(Object.values(first.units).every(unit => typeof unit.attributeType === 'string'), 'unit replay metadata must include attribute identity');
   if (first.success) assert(first.frames.at(-1).units.every(([id, health]) => first.units[id].isPlayer || health <= 0), 'last scheduled enemies must actually be defeated');
   console.log(JSON.stringify({ dungeonType, duration: first.duration, success: first.success,
     frames: first.frames.length, bytes: Buffer.byteLength(JSON.stringify(first)), damage: first.damageScore }));

@@ -20,11 +20,14 @@ const server = spawn(process.execPath, ['dist/main.js'], {
     PORT: new URL(api).port || '4199',
     DATABASE_URL: databaseUrl,
     DB_SSL: 'false',
-    TYPEORM_SYNCHRONIZE: 'true',
+    TYPEORM_SYNCHRONIZE: 'false',
     REDIS_URL: 'redis://127.0.0.1:6399',
     CONTENT_DIR: '../data/content',
     BACKUP_ENABLED: 'false',
     AUTH_TOKEN_SECRET: randomUUID() + randomUUID(),
+    MULTIPLAYER_HEARTBEAT_INTERVAL_MS: '500',
+    MULTIPLAYER_DISCONNECT_TIMEOUT_MS: '1000',
+    MULTIPLAYER_RECONNECT_GRACE_MS: '2500',
   },
 });
 const db = new pg.Client({ connectionString: databaseUrl });
@@ -44,7 +47,7 @@ async function request(path, body, token, expected = body === undefined ? 200 : 
   });
   const text = await response.text();
   const value = text ? JSON.parse(text) : null;
-  assert.equal(response.status, expected, `${path}: ${JSON.stringify(value)}`);
+  assert.equal(response.status, expected, `${path}: ${JSON.stringify(value)}\nserver: ${output}`);
   return value;
 }
 
@@ -129,6 +132,7 @@ try {
   assert(leaderReady.members.find((member) => member.player_id === leader.player.id).is_ready);
   const teammateReady = await request(`/multiplayer-rooms/${room.room_id}/member`, { characterIds: teammateCharacters, isReady: true }, teammate.accessToken);
   assert(teammateReady.members.find((member) => member.player_id === teammate.player.id).is_ready);
+  assert.deepEqual(teammateReady.character_ids, [...leaderCharacters, ...teammateCharacters]);
 
   const startKey = randomUUID();
   const started = await request(`/multiplayer-rooms/${room.room_id}/start`, {}, leader.accessToken, 201, startKey);
@@ -138,12 +142,20 @@ try {
   assert.equal(currentForTeammate.battle_seed, started.battle_seed);
   assert.equal(currentForTeammate.room_id, started.room_id);
 
-  await db.query(
-    `UPDATE operation_requests
-     SET response = jsonb_set(response, '{serverTime}', to_jsonb((now() - interval '10 minutes')::text))
-     WHERE "playerId" = ANY($1::text[]) AND operation = 'battle-start' AND "idempotencyKey" = $2`,
-    [[leader.player.id, teammate.player.id], started.battle_seed],
-  );
+  const heartbeatTimer = setInterval(() => {
+    for (const session of [leader, teammate]) {
+      void request(`/multiplayer-rooms/${room.room_id}/heartbeat`, {}, session.accessToken).catch(() => undefined);
+    }
+  }, 500);
+  try {
+    const deadline = Date.now() + 90_000;
+    while (!(await request(`/multiplayer-rooms/${room.room_id}/battle`, undefined, leader.accessToken)).ready) {
+      assert(Date.now() < deadline, 'natural replay did not finish');
+      await delay(500);
+    }
+  } finally {
+    clearInterval(heartbeatTimer);
+  }
   const leaderBattle = await request(`/multiplayer-rooms/${room.room_id}/battle`, undefined, leader.accessToken);
   const teammateBattle = await request(`/multiplayer-rooms/${room.room_id}/battle`, undefined, teammate.accessToken);
   assert.equal(teammateBattle.battleSeed, leaderBattle.battleSeed);
@@ -196,7 +208,36 @@ try {
     [teammate.player.id, 1],
   ].sort());
   const finalRoom = await request('/multiplayer-rooms/current', undefined, leader.accessToken);
-  assert.equal(finalRoom.status, 'finished');
+  assert.equal(finalRoom, null);
+  assert.equal((await db.query('SELECT status FROM multiplayer_rooms WHERE id=$1', [room.room_id])).rows[0].status, 'finished');
+  await request(`/multiplayer-rooms/${room.room_id}/leave`, {}, leader.accessToken);
+  await request(`/multiplayer-rooms/${room.room_id}/leave`, {}, teammate.accessToken);
+
+  const presenceRoom = await request('/multiplayer-rooms', { dungeonId: 'fire_type_squad_001' }, leader.accessToken);
+  const presenceInvite = await request(`/multiplayer-rooms/${presenceRoom.room_id}/invite`, { inviteePlayerId: teammate.player.id }, leader.accessToken);
+  await request(`/multiplayer-rooms/invitations/${presenceInvite.invitation_id}/accept`, {}, teammate.accessToken);
+  await request(`/multiplayer-rooms/${presenceRoom.room_id}/heartbeat`, {}, leader.accessToken, 201);
+  await request(`/multiplayer-rooms/${presenceRoom.room_id}/heartbeat`, {}, teammate.accessToken, 201);
+  await db.query(
+    `UPDATE multiplayer_room_members SET "lastSeenAt" = now() - interval '3 seconds', "disconnectedAt" = NULL
+     WHERE "roomId" = $1 AND "playerId" = $2`,
+    [presenceRoom.room_id, leader.player.id],
+  );
+  const transferredRoom = await request('/multiplayer-rooms/current', undefined, teammate.accessToken);
+  const transferredMember = transferredRoom.members.find((member) => member.player_id === leader.player.id);
+  assert.equal(transferredRoom.leader_id, teammate.player.id);
+  assert.equal(transferredMember.connection_status, 'offline');
+  assert((transferredMember.reconnect_remaining_seconds || 0) > 0);
+  await request(`/multiplayer-rooms/${presenceRoom.room_id}/heartbeat`, {}, leader.accessToken, 201);
+  const recoveredRoom = await request('/multiplayer-rooms/current', undefined, teammate.accessToken);
+  assert.equal(recoveredRoom.members.find((member) => member.player_id === leader.player.id).connection_status, 'online');
+  await db.query(
+    `UPDATE multiplayer_room_members SET "connectionStatus" = 'offline', "disconnectedAt" = now() - interval '4 seconds'
+     WHERE "roomId" = $1 AND "playerId" = $2`,
+    [presenceRoom.room_id, leader.player.id],
+  );
+  const expiredRoom = await request('/multiplayer-rooms/current', undefined, teammate.accessToken);
+  assert.equal(expiredRoom.members.some((member) => member.player_id === leader.player.id), false);
 
   console.log(JSON.stringify({
     ok: true,
@@ -209,6 +250,8 @@ try {
       'both accounts read identical battle outcome',
       'both accounts receive independent rewards and progress',
       'concurrent settlement is replay-safe per account',
+      'leader transfer and reconnect grace countdown',
+      'expired disconnected member removed',
     ],
   }, null, 2));
 } finally {

@@ -2,7 +2,7 @@ export interface ServerBattleStatus {
   ready: boolean
   speed: number
   frame: { time: number; units: unknown[][] }
-  units: Record<string, { isPlayer: boolean; definition?: { phases?: unknown[]; shared_health?: boolean } }>
+  units: Record<string, { isPlayer: boolean; attributeType?: string; definition?: { phases?: unknown[]; shared_health?: boolean } }>
   events: Array<{ time: number; event_type: string; message: string; payload?: Record<string, unknown> }>
   outcome: { success: boolean; duration: number; damageScore: number } | null
 }
@@ -16,6 +16,7 @@ export function serverBattleSnapshot(status: ServerBattleStatus, duration: numbe
     const maxHealth = Number(row[6])
     return {
       character_id: id, name: String(row[5]), health, max_health: maxHealth,
+      attribute_type: meta.attributeType,
       physical_health: health, max_physical_health: maxHealth,
       magical_health: 0, max_magical_health: 0, is_alive: health > 0,
       shield: Number(row[2]), phase: Number(row[3]) + 1,

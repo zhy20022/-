@@ -132,6 +132,12 @@ export class AdminController {
     return this.admin.banUser(userId, 'admin', dto.reason);
   }
 
+  @Post('users/:userId/unban')
+  unban(@Headers('x-admin-token') token: string, @Param('userId') userId: string) {
+    this.assertAdminToken(token);
+    return this.admin.unbanUser(userId, 'admin');
+  }
+
   @Post('mail')
   mail(@Headers('x-admin-token') token: string, @Body() dto: SendMailDto) {
     this.assertAdminToken(token);

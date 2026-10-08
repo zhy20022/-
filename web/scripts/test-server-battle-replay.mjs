@@ -12,12 +12,14 @@ const status = {
     ['boss', 35, 12, 1, true, 'New phase', 200, ['Skill two'], true, true],
     ['dead', 0, 0, 0, false, 'Dead monster', 50, []],
   ] },
-  units: { player: { isPlayer: true }, boss: { isPlayer: false }, dead: { isPlayer: false } },
+  units: { player: { isPlayer: true, attributeType: 'FIRE' }, boss: { isPlayer: false, attributeType: 'WIND' }, dead: { isPlayer: false } },
   events: [{ time: 10, event_type: 'boss_mechanic', message: 'Phase changed' }],
 }
 const snapshot = serverBattleSnapshot(status, 60)
 assert.equal(snapshot.current_time, 12)
 assert.equal(snapshot.player_units[0].health, 0)
+assert.equal(snapshot.player_units[0].attribute_type, 'FIRE')
+assert.equal(snapshot.enemy_units[0].attribute_type, 'WIND')
 assert.equal(snapshot.player_units[0].is_alive, false)
 assert.equal(snapshot.enemy_units.length, 1)
 assert.equal(snapshot.enemy_units[0].shield, 12)

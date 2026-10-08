@@ -33,8 +33,13 @@ try {
   await db.connect();
   try {
     const { rows } = await db.query('SELECT name FROM typeorm_migrations ORDER BY id');
-    assert.deepEqual(rows.map(row => row.name), ['InitialOnlineSchema1788502608304', 'ConcurrentMutationSafety1788509000000']);
+    assert.deepEqual(rows.map(row => row.name), [
+      'InitialOnlineSchema1788502608304', 'ConcurrentMutationSafety1788509000000',
+      'OnlineLegacyFeatures1788510000000', 'QuestRewardPeriods1788511000000',
+      'MultiplayerRooms1788512000000', 'MultiplayerRoomPresence1788513000000',
+    ]);
     await db.query('SELECT count(*) FROM operation_requests');
+    await db.query('SELECT "connectionStatus", "lastSeenAt", "disconnectedAt" FROM multiplayer_room_members LIMIT 1');
     console.log('PASS: legacy adoption, subsequent migration, repeated startup, and a pool-size-one configuration');
   } finally {
     await db.end();

@@ -1,0 +1,67 @@
+.element-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 2px 7px;
+  border: 1px solid var(--element-primary);
+  border-radius: 4px;
+  background: var(--element-primary);
+  color: var(--element-on-primary);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.element-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 18px;
+  flex: 0 0 16px;
+  font-size: 15px;
+}
+
+.character-card.element-themed,
+.unit-card.element-themed,
+.character-room-grid button.element-themed {
+  border-color: var(--element-primary);
+  border-top: 4px solid var(--element-primary);
+  background: var(--element-background);
+  color: var(--element-text);
+}
+
+.character-room-grid button.element-themed.selected {
+  outline: 2px solid var(--element-primary);
+  outline-offset: -4px;
+  background: var(--element-background);
+}
+
+.character-card.element-themed .character-avatar,
+.illustration-placeholder.element-themed {
+  background: var(--element-background);
+  border-color: var(--element-primary);
+}
+
+.element-themed .skill-slot-group h4 {
+  color: var(--element-text);
+  border-left: 4px solid var(--element-primary);
+  padding-left: 8px;
+}
+
+.element-themed .skill-slot-group select:focus {
+  outline: 2px solid var(--element-primary);
+  outline-offset: 2px;
+}
+
+.unit-card .element-badge {
+  margin-bottom: 6px;
+}
+
+.log-entry.element-themed {
+  border-left: 3px solid var(--element-primary);
+  padding-left: 8px;
+}

@@ -8,6 +8,8 @@ import { isExperienceSupportRole, isExperienceRoleWarningMuted, muteExperienceRo
 import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import './DungeonPage.css'
+import ElementBadge from '../components/ElementBadge'
+import { getAttributeColor } from '../services/elementTheme'
 
 interface DungeonProgress {
   completion_count: number
@@ -528,21 +530,6 @@ const DungeonPage: React.FC = () => {
     }
   }
 
-  const getAttributeColor = (attribute: string) => {
-    const colorMap: Record<string, string> = {
-      'FIRE': '#ff4444',
-      'WATER': '#4444ff',
-      'WIND': '#44ff44',
-      'EARTH': '#ff8844',
-      'LIGHT': '#ffff44',
-      'DARK': '#8844ff',
-      'THUNDER': '#ff44ff',
-      'ICE': '#44ffff',
-      'WOOD': '#44aa44'  // 木属性
-    }
-    return colorMap[normalizeAttribute(attribute)] || '#666'
-  }
-
   return (
     <div className="dungeon-page">
       <div className="page-container">
@@ -670,7 +657,7 @@ const DungeonPage: React.FC = () => {
                   <div className="dungeon-info">
                     <div className="info-item">
                       <span className="info-label">属性：</span>
-                      <span>{dungeon.attribute_type}</span>
+                      <ElementBadge attribute={dungeon.attribute_type} />
                     </div>
                     <div className="info-item">
                       <span className="info-label">倍率：</span>

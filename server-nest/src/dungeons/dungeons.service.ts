@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { randomUUID } from 'node:crypto';
+import { EntityManager, In, Repository } from 'typeorm';
+import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { IdempotencyService } from '../common/idempotency.service';
-import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, PlayerCharacterEntity, PlayerEntity, OperationRequestEntity } from '../database/entities';
+import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, MultiplayerRoomEntity, PlayerCharacterEntity, PlayerEntity, OperationRequestEntity } from '../database/entities';
 import { BattleSimulationService, ServerBattle } from '../battle-settlement/battle-simulation.service';
 import { FriendsAssistService } from '../friends-assist/friends-assist.service';
 
@@ -128,6 +128,9 @@ export class DungeonsService {
     const battleSeed = idempotencyKey || randomUUID();
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(battleSeed)) throw new BadRequestException('battle start Idempotency-Key must be a UUID');
     const ticket = await this.idempotency.execute(playerId, 'battle-start', battleSeed, { dungeonId, characterIds }, async ({ manager, player }) => {
+      if (player.flags?.activeBattleSeed && await manager.findOne(MultiplayerRoomEntity, {
+        where: { battleSeed: String(player.flags.activeBattleSeed), status: 'in_battle' },
+      })) throw new BadRequestException('settle the room battle before starting another');
       const owned = await manager.find(PlayerCharacterEntity, { where: { playerId, id: In(characterIds) }, lock: { mode: 'pessimistic_write' } });
       const ownedIds = new Set(owned.map((character) => character.id));
       const assistIds = characterIds.filter((characterId) => !ownedIds.has(characterId));
@@ -191,6 +194,49 @@ export class DungeonsService {
         [id, { ...(metadata as Record<string, unknown>), name: rows.get(id)?.[5], maxHealth: rows.get(id)?.[6], currentSkillCycle: rows.get(id)?.[7] }])),
       events: result.events.filter((event) => event.time <= visible),
       outcome: elapsed >= result.duration ? { success: result.success, duration: result.duration, damageScore: result.damageScore } : null };
+  }
+
+  async startRoom(manager: EntityManager, dungeonId: string, members: Array<{ playerId: string; characterIds: string[] }>, battleSeed: string, roomId: string) {
+    const playerIds = members.map((member) => member.playerId).sort();
+    const players = await manager.find(PlayerEntity, {
+      where: { id: In(playerIds) }, order: { id: 'ASC' }, lock: { mode: 'pessimistic_write' },
+    });
+    if (players.length !== playerIds.length) throw new NotFoundException('room player not found');
+    if (players.some((player) => player.flags?.activeBattleSeed)) {
+      throw new BadRequestException('finish the active battle before starting another room');
+    }
+    const characterIds = members.flatMap((member) => member.characterIds);
+    const characters = await manager.find(PlayerCharacterEntity, {
+      where: { id: In(characterIds) }, order: { id: 'ASC' }, lock: { mode: 'pessimistic_write' },
+    });
+    const ordered = characterIds.map((id) => characters.find((character) => character.id === id));
+    if (ordered.some((character, index) => !character ||
+        !members.some((member) => member.playerId === character.playerId && member.characterIds.includes(characterIds[index])))) {
+      throw new BadRequestException('room characters must belong to their selecting members');
+    }
+    const roster = ordered as PlayerCharacterEntity[];
+    const dungeon = this.assertCanEnter(dungeonId, roster);
+    const serverBattle = await this.simulation.simulate({
+      seed: battleSeed, dungeon,
+      characters: roster.map((character) => ({ ...character, attributeType: this.normalizeAttribute(character.attributeType) })),
+    });
+    const serverTime = new Date().toISOString();
+    const characterOwners = Object.fromEntries(roster.map((character) => [character.id, character.playerId]));
+    // One simulation and clock are committed together with every member's entry.
+    for (const player of players) {
+      player.flags = { ...player.flags, activeBattleSeed: battleSeed };
+      await manager.save(player);
+      await manager.save(manager.create(OperationRequestEntity, {
+        playerId: player.id, operation: 'battle-start', idempotencyKey: battleSeed,
+        requestHash: createHash('sha256').update(JSON.stringify({ characterIds, dungeonId })).digest('hex'),
+        response: {
+          battleSeed, roomId, playerId: player.id, characterIds, characterOwners,
+          assistCharacterIds: roster.filter((character) => character.playerId !== player.id).map((character) => character.id),
+          dungeon, serverBattle, engineVersion: serverBattle.engineVersion, serverTime,
+        },
+      }));
+    }
+    return battleSeed;
   }
 
   async sweep(playerId: string, dungeonId: string, characterId: string, count: number, idempotencyKey?: string) {

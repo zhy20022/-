@@ -103,6 +103,16 @@ export class AdminService {
     return user;
   }
 
+  async unbanUser(userId: string, actor: string) {
+    const user = await this.users.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('user not found');
+    user.status = 'active';
+    user.metadata = { ...user.metadata, unbannedAt: new Date().toISOString() };
+    await this.users.save(user);
+    await this.log(actor, 'unban_user', userId);
+    return user;
+  }
+
   async sendMail(actor: string, playerId: string, title: string, body: string, rewards: Array<Record<string, unknown>>) {
     const player = await this.players.findOne({ where: { id: playerId } });
     if (!player) throw new NotFoundException('player not found');

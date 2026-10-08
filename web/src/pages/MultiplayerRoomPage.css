@@ -365,6 +365,10 @@
   color: #15803d;
 }
 
+.member-row em.offline {
+  color: #b91c1c;
+}
+
 .member-actions {
   display: flex !important;
   align-items: center;

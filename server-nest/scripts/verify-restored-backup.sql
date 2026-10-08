@@ -1,5 +1,12 @@
 \set ON_ERROR_STOP on
 
+\if :{?expected_schema_version}
+SELECT set_config('gamer.expected_schema_version', :'expected_schema_version', false);
+\else
+\echo 'expected_schema_version must be supplied from the release schema-version.ts'
+\quit 1
+\endif
+
 DO $$
 DECLARE
   required_tables text[] := ARRAY[
@@ -19,6 +26,14 @@ DECLARE
     'inventory_items',
     'mails',
     'operation_requests',
+    'quest_progress',
+    'achievement_progress',
+    'shop_purchases',
+    'world_boss_states',
+    'world_boss_chests',
+    'multiplayer_rooms',
+    'multiplayer_room_members',
+    'multiplayer_room_invitations',
     'player_characters',
     'players',
     'ranking_entries',
@@ -43,8 +58,23 @@ BEGIN
   ORDER BY id DESC
   LIMIT 1;
 
-  IF current_version IS DISTINCT FROM 'ConcurrentMutationSafety1788509000000' THEN
+  IF current_version IS DISTINCT FROM current_setting('gamer.expected_schema_version') THEN
     RAISE EXCEPTION 'restore verification failed; unexpected schema version: %', current_version;
+  END IF;
+
+  IF (SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public'
+      AND table_name = 'multiplayer_room_members'
+      AND column_name IN ('connectionStatus', 'lastSeenAt', 'disconnectedAt')) <> 3 THEN
+    RAISE EXCEPTION 'restore verification failed; multiplayer presence columns missing';
+  END IF;
+
+  SELECT count(*) INTO orphan_count
+  FROM multiplayer_room_members m
+  LEFT JOIN multiplayer_rooms r ON r.id = m."roomId"
+  LEFT JOIN players p ON p.id = m."playerId"
+  WHERE r.id IS NULL OR p.id IS NULL;
+  IF orphan_count > 0 THEN
+    RAISE EXCEPTION 'restore verification failed; orphan room members: %', orphan_count;
   END IF;
 
   SELECT count(*) INTO orphan_count

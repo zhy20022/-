@@ -8,6 +8,8 @@ import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, loadOnlineProfile, mapOnlineCharacter, onlineApi } from '../services/onlineGameAdapter'
 import { mapOnlineInventoryItem } from '../services/onlineInventoryAdapter'
 import './CharacterPage.css'
+import ElementBadge from '../components/ElementBadge'
+import { elementThemeStyle } from '../services/elementTheme'
 
 interface CharacterStats {
   hp?: number
@@ -319,21 +321,6 @@ const CharacterPage: React.FC = () => {
     setCharacters(prev => prev.map(char => char.character_id === updated.character_id ? normalized : char))
   }
 
-  const getAttributeColor = (attribute: string) => {
-    const colorMap: Record<string, string> = {
-      'FIRE': '#ff4444',
-      'WATER': '#4444ff',
-      'WIND': '#44ff44',
-      'EARTH': '#ff8844',
-      'LIGHT': '#ffff44',
-      'DARK': '#8844ff',
-      'THUNDER': '#ff44ff',
-      'ICE': '#44ffff',
-      'WOOD': '#44aa44'  // 木属性
-    }
-    return colorMap[attribute] || '#666'
-  }
-
   return (
     <div className="character-page">
       <div className="page-container">
@@ -444,7 +431,8 @@ const CharacterPage: React.FC = () => {
                 {filteredAndSortedCharacters.map((char) => (
                   <div
                     key={char.character_id}
-                    className={`character-card ${char.is_locked ? 'locked' : ''}`}
+                    className={`character-card element-themed ${char.is_locked ? 'locked' : ''}`}
+                    style={elementThemeStyle(char.attribute_type)}
                     onClick={() => handleCharacterClick(char)}
                   >
                     {/* 锁定图标 */}
@@ -464,12 +452,7 @@ const CharacterPage: React.FC = () => {
                     )}
                     
                     <div className="character-avatar">
-                      <div
-                        className="attribute-badge"
-                        style={{ backgroundColor: getAttributeColor(char.attribute_type) }}
-                      >
-                        {char.attribute_type}
-                      </div>
+                      <ElementBadge attribute={char.attribute_type} />
                     </div>
                     <div className="character-info">
                       <h3 className="character-name">{char.name}</h3>
@@ -519,7 +502,6 @@ const CharacterPage: React.FC = () => {
           <CharacterDetailModal
             character={selectedCharacter}
             onClose={handleCloseDetail}
-            getAttributeColor={getAttributeColor}
             onLockToggle={(characterId, isLocked) => toggleLock(characterId, isLocked, { stopPropagation: () => {} } as React.MouseEvent)}
             onNavigate={navigate}
             battleSoulData={battleSoulData}
@@ -535,7 +517,6 @@ const CharacterPage: React.FC = () => {
 interface CharacterDetailModalProps {
   character: Character
   onClose: () => void
-  getAttributeColor: (attribute: string) => string
   onLockToggle: (characterId: string, isLocked: boolean) => void
   onNavigate: (path: string) => void
   battleSoulData: Record<string, BattleSoulInfo>
@@ -546,7 +527,6 @@ interface CharacterDetailModalProps {
 const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   character,
   onClose,
-  getAttributeColor,
   onLockToggle,
   onNavigate,
   battleSoulData,
@@ -1235,7 +1215,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content character-detail-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content character-detail-modal element-themed" style={elementThemeStyle(character.attribute_type)} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="header-left">
             <h2>{character.name}</h2>
@@ -1262,11 +1242,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
           <div className="illustration-section">
             <div className="illustration-container">
               <div
-                className="illustration-placeholder"
-                style={{ 
-                  background: `linear-gradient(135deg, ${getAttributeColor(character.attribute_type)}22, ${getAttributeColor(character.attribute_type)}44)`,
-                  borderColor: getAttributeColor(character.attribute_type)
-                }}
+                className="illustration-placeholder element-themed"
               >
                 {illustrationImagePath ? (
                   <img 
@@ -1276,12 +1252,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                   />
                 ) : (
                   <div className="illustration-fallback">
-                    <div
-                      className="attribute-badge-large"
-                      style={{ backgroundColor: getAttributeColor(character.attribute_type) }}
-                    >
-                      {character.attribute_type}
-                    </div>
+                    <ElementBadge attribute={character.attribute_type} />
                     <p>{character.name}</p>
                   </div>
                 )}

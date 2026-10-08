@@ -20,11 +20,12 @@ export class IdempotencyService {
     suppliedKey: string | undefined,
     request: unknown,
     work: (context: MutationContext) => Promise<T>,
+    transactionManager?: EntityManager,
   ): Promise<T & { idempotency: { key: string; operation: string; replayed: boolean } }> {
     const key = this.normalizeKey(suppliedKey);
     const requestHash = this.hashRequest(request);
     const flightKey = `${playerId}:${operation}:${key}`;
-    const running = this.inFlight.get(flightKey);
+    const running = transactionManager ? undefined : this.inFlight.get(flightKey);
     if (running) {
       if (running.requestHash !== requestHash) {
         throw new ConflictException('idempotency key is currently processing a different request');
@@ -33,7 +34,7 @@ export class IdempotencyService {
       return this.decorate(replay as T, key, operation, true);
     }
 
-    const execution = this.dataSource.transaction(async (manager) => {
+    const execute = async (manager: EntityManager) => {
       const insert = await manager.createQueryBuilder()
         .insert()
         .into(OperationRequestEntity)
@@ -69,7 +70,10 @@ export class IdempotencyService {
         { response: value as never },
       );
       return this.decorate(value as T, key, operation, false);
-    });
+    };
+    // Caller-owned transactions must not publish a result before their commit.
+    if (transactionManager) return execute(transactionManager);
+    const execution = this.dataSource.transaction(execute);
     this.inFlight.set(flightKey, { requestHash, promise: execution });
     try {
       return await execution;

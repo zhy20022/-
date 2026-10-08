@@ -8,6 +8,8 @@ import './BattlePage.css'
 import { serverBattleSnapshot, type ServerBattleStatus } from '../services/serverBattleReplay'
 import { ensureOnlineSession, restoreOnlineSession } from '../services/onlineApi'
 import { useAuthStore } from '../stores/authStore'
+import ElementBadge from '../components/ElementBadge'
+import { elementThemeStyle } from '../services/elementTheme'
 
 interface StateInfo {
   code: string
@@ -187,6 +189,7 @@ interface BattleSnapshot {
   duration: number
   player_units: Array<{
     character_id: string
+    attribute_type?: string
     name: string
     health: number
     max_health: number
@@ -211,6 +214,7 @@ interface BattleSnapshot {
   }>
   enemy_units: Array<{
     character_id: string
+    attribute_type?: string
     name: string
     health: number
     max_health: number
@@ -390,6 +394,14 @@ const BattlePage: React.FC = () => {
     if (eventType === 'damage' || eventType === 'dot') return 'damage'
     if (eventType === 'heal') return 'heal'
     return 'normal'
+  }
+
+  const getEventAttribute = (event: BattleEvent) => {
+    const payload = event.payload
+    if (typeof payload?.attributeType === 'string') return payload.attributeType
+    const casterId = payload?.caster_id
+    return [...(snapshot?.player_units || []), ...(snapshot?.enemy_units || [])]
+      .find(unit => unit.character_id === casterId)?.attribute_type
   }
 
   const applySnapshot = (newSnapshot: BattleSnapshot) => {
@@ -615,9 +627,14 @@ const BattlePage: React.FC = () => {
     setSpeedSyncMessage('服务器回放：4x')
     let disposed = false
     let pending = false
+    const heartbeatRoom = () => {
+      if (!multiplayerRoomId || disposed || (typeof navigator !== 'undefined' && !navigator.onLine)) return
+      void onlineApi.post(`/multiplayer-rooms/${multiplayerRoomId}/heartbeat`).catch(() => undefined)
+    }
     const refreshOnlineBattle = () => {
       if (disposed || (typeof navigator !== 'undefined' && !navigator.onLine)) return
       setConnectionState('reconnecting')
+      heartbeatRoom()
       void tick()
     }
     const tick = async () => {
@@ -650,6 +667,7 @@ const BattlePage: React.FC = () => {
     }
     void tick()
     onlineBattleTimerRef.current = window.setInterval(() => void tick(), 2000)
+    const heartbeatTimer = multiplayerRoomId ? window.setInterval(heartbeatRoom, 5000) : null
     const handleOnline = () => refreshOnlineBattle()
     const handleOffline = () => setConnectionState('offline')
     const handleVisibility = () => {
@@ -660,6 +678,7 @@ const BattlePage: React.FC = () => {
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       disposed = true
+      if (heartbeatTimer !== null) window.clearInterval(heartbeatTimer)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       document.removeEventListener('visibilitychange', handleVisibility)
@@ -1574,8 +1593,9 @@ const BattlePage: React.FC = () => {
                   const health = unit.health ?? unit.physical_health + unit.magical_health
                   const maxHealth = unit.max_health ?? unit.max_physical_health + unit.max_magical_health
                   return (
-                    <div key={unit.character_id} className="unit-card">
+                    <div key={unit.character_id} className="unit-card element-themed" style={elementThemeStyle(unit.attribute_type)}>
                       <h3>{unit.name}</h3>
+                      <ElementBadge attribute={unit.attribute_type} />
                       {!unit.is_alive && <div>已阵亡</div>}
                       {!!unit.shield && <div>护盾：{unit.shield}</div>}
                       <div className="health-bars">
@@ -1603,8 +1623,9 @@ const BattlePage: React.FC = () => {
                   const maxHealth = unit.max_health ?? unit.max_physical_health + unit.max_magical_health
                   const isBoss = unit.spawn_category === 'boss' || !!unit.boss_type
                   return (
-                    <div key={unit.character_id} className={`unit-card enemy-unit-card ${isBoss ? 'boss-unit-card' : ''}`} title={`${unit.name} ${health}/${maxHealth}`}>
+                    <div key={unit.character_id} className={`unit-card enemy-unit-card element-themed ${isBoss ? 'boss-unit-card' : ''}`} style={elementThemeStyle(unit.attribute_type)} title={`${unit.name} ${health}/${maxHealth}`}>
                       <h3>{unit.name}</h3>
+                      <ElementBadge attribute={unit.attribute_type} />
                       {!!unit.shield && <div>护盾：{unit.shield}</div>}
                       {isBoss && unit.current_skills?.length ? <div className="server-skill-cycle">{unit.current_skills.join(' → ')}</div> : null}
                       {isBoss && (
@@ -1640,8 +1661,9 @@ const BattlePage: React.FC = () => {
                 <div className="log-content">
                   {(snapshot.battle_events && snapshot.battle_events.length > 0)
                     ? snapshot.battle_events.map((event, index) => (
-                      <p key={`${event.time_text}-${index}`} className={`log-entry ${getBattleEventClass(event.event_type)}`}>
+                      <p key={`${event.time_text}-${index}`} className={`log-entry element-themed ${getBattleEventClass(event.event_type)}`} style={elementThemeStyle(getEventAttribute(event))}>
                         <span className="log-time">[{event.time_text}]</span>
+                        {getEventAttribute(event) && <ElementBadge attribute={getEventAttribute(event)} />}
                         <span>{event.message}</span>
                       </p>
                     ))

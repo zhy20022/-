@@ -25,6 +25,7 @@ export class AuthService {
       user = this.users.create({ accountId, provider: 'guest', metadata: { deviceId: deviceId || null } });
       await this.users.save(user);
     }
+    if (user.status !== 'active') throw new ForbiddenException('account is unavailable');
 
     let player = await this.players.findOne({ where: { userId: user.id } });
     if (!player) {
@@ -128,6 +129,15 @@ export class AuthService {
       if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('invalid authorization payload');
     }
+  }
+
+  async verifyActiveAuthorization(authorization: string) {
+    const session = this.verifyAuthorization(authorization);
+    const user = await this.users.findOne({ where: { id: session.userId } });
+    if (!user || user.status !== 'active') throw new ForbiddenException('account is unavailable');
+    const player = await this.players.findOne({ where: { id: session.playerId, userId: session.userId } });
+    if (!player) throw new UnauthorizedException('player profile is missing');
+    return session;
   }
 
   private signToken(userId: string, playerId: string) {

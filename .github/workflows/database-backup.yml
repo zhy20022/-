@@ -39,6 +39,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Read release schema version
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const fs=require('fs'); const source=fs.readFileSync('server-nest/src/database/schema-version.ts','utf8'); const version=source.match(/CURRENT_SCHEMA_VERSION\s*=\s*'([^']+)'/)[1]; fs.appendFileSync(process.env.GITHUB_ENV, 'EXPECTED_SCHEMA_VERSION='+version+'\n');"
+
       - name: Validate backup secrets
         shell: bash
         run: |
@@ -58,7 +64,7 @@ jobs:
             "${ONLINE_API_URL%/}/api/admin/database/backup" \
             -o backup/gamer.dump
           test -s backup/gamer.dump
-          grep -qi '^x-backup-schema-version: ConcurrentMutationSafety1788509000000' backup/response-headers.txt
+          grep -qi "^x-backup-schema-version: ${EXPECTED_SCHEMA_VERSION}" backup/response-headers.txt
           sha256sum backup/gamer.dump > backup/gamer.dump.sha256
 
       - name: Encrypt and decrypt the recovery artifact
@@ -96,6 +102,7 @@ jobs:
             -v "$PWD:/workspace:ro" \
             postgres:18-alpine \
             psql -h 127.0.0.1 -U restore_user -d gamer_restore \
+              -v "expected_schema_version=${EXPECTED_SCHEMA_VERSION}" \
               -f /workspace/server-nest/scripts/verify-restored-backup.sql \
               > backup/restore-verification.txt
           cat backup/restore-verification.txt
