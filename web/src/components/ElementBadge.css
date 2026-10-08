@@ -25,7 +25,21 @@
   font-size: 15px;
 }
 
+.element-badge.element-badge,
+.element-badge.element-badge > span {
+  color: var(--element-on-primary);
+}
+
+.character-room-grid .element-badge {
+  font-size: 13px;
+}
+
+.character-room-grid .element-symbol {
+  font-size: 15px;
+}
+
 .character-card.element-themed,
+.result-card.element-themed,
 .unit-card.element-themed,
 .character-room-grid button.element-themed {
   border-color: var(--element-primary);
@@ -50,6 +64,11 @@
   color: var(--element-text);
   border-left: 4px solid var(--element-primary);
   padding-left: 8px;
+}
+
+.element-themed .skill-detail-card {
+  border-left: 4px solid var(--element-primary);
+  background: var(--element-background);
 }
 
 .element-themed .skill-slot-group select:focus {

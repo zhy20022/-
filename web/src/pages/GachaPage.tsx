@@ -7,6 +7,8 @@ import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, onlineApi } from '../services/onlineGameAdapter'
 import './GachaPage.css'
+import ElementBadge from '../components/ElementBadge'
+import { elementThemeStyle } from '../services/elementTheme'
 
 interface GachaResultItem {
   character: {
@@ -327,10 +329,10 @@ const GachaPage: React.FC = () => {
 
             <div className="result-grid">
               {results.map((item, index) => (
-                <div key={`${item.character.name}_${index}`} className={`result-card ${item.is_duplicate ? 'duplicate' : 'new'}`}>
+                <div key={`${item.character.name}_${index}`} className={`result-card element-themed ${item.is_duplicate ? 'duplicate' : 'new'}`} style={elementThemeStyle(item.character.attribute_type)}>
                   <div className="result-badge">{item.is_duplicate ? '重复' : '新'}</div>
                   <h4>{item.character.name}</h4>
-                  <p>{item.character.attribute_type} · {getProfessionLabel(item.character.profession_type)}</p>
+                  <p><ElementBadge attribute={item.character.attribute_type} /> · {getProfessionLabel(item.character.profession_type)}</p>
                   {item.is_duplicate && <small>转化精华 +{item.essence_gained}</small>}
                 </div>
               ))}

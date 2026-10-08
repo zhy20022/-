@@ -1305,7 +1305,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                   </div>
                   <div className="info-row">
                     <span className="info-label">属性：</span>
-                    <span>{character.attribute_type}</span>
+                    <ElementBadge attribute={character.attribute_type} />
                   </div>
                   <div className="info-row">
                     <span className="info-label">等级：</span>
@@ -1492,6 +1492,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                       <h4 className="skill-name">{skill.name}</h4>
                       <p className="skill-description">{skill.description}</p>
                       <div className="skill-meta">
+                        <ElementBadge attribute={character.attribute_type} />
                         <span className="skill-cooldown">{skill.skill_logic}</span>
                         <span className="skill-cost">{skill.target_type}</span>
                       </div>
