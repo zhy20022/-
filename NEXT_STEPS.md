@@ -4,7 +4,9 @@
 
 ## 当前阻塞：隔离 Docker Runner
 
-候选冻结正在完成；运行代码已在 `72d2ab2`，最终候选另包含 Docker 验收脚本的最小修正。精确 hash 和固定 Commit 本地重新验证结果见 `PROJECT_STATUS.md` 最新门禁及外部证据 manifest。
+候选已冻结为 **`137e9c9da330150127144de1dc6c1d690527056c`**；运行代码来自 `72d2ab2`，另包含Docker验收脚本最小修正。干净检出npm ci/构建/类型/lint、Python221/486、Worker、权限/恢复/H03-H05、真实双浏览器3+2两局及socket拒绝后的HTTP回退两局均重新通过；这些是本地直连WS，不是生产WSS。
+
+证据：`C:\Users\12107\Desktop\4\release-evidence\137e9c9\candidate-manifest.json`。Docker预检实际返回`spawnSync docker ENOENT`；两套Compose单独NOT VERIFIED、Runner BLOCKED。无需重复冻结；发现修复问题时创建新commit并重新验证受影响项目，禁止amend候选或混用历史十局。
 
 **唯一首要任务：提供获授权的隔离 Docker Runner，对最终候选完成两套生产 Compose 和真实 TLS/WSS 代理恢复验收。** 本机 Docker/Compose 缺失，现有 Actions 涉及生产数据或公网后置任务，不调用它们作为隔离替代。不要 push 触发生产工作流。
 

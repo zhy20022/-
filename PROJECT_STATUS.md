@@ -2,7 +2,33 @@
 
 ## 当前门禁：候选冻结与 Docker / WSS 验收（2026-10-09）
 
-本轮冻结范围：已提交的实时实现 `72d2ab2`、冻结文档 `594f48d`，以及随后对 `verify-docker-candidate.mjs` 的最小验收修正。最终候选 hash 以独立检出 `git rev-parse HEAD` 和外部证据 manifest 为准，验收结束后另追加精确 hash，不 amend 候选。
+**Candidate：`137e9c9da330150127144de1dc6c1d690527056c`；Branch：`main`；Schema：`MultiplayerRoomEvents1788514000000`。** 冻结范围包含实时实现 `72d2ab2`、文档 `594f48d` 和 Docker 验收脚本的最小修正。没有 amend、push 或部署公网；验收结果另作后续 docs-only commit，不取代这个不可变候选。
+
+### 固定 Commit 实际重新验证
+
+干净检出：`C:\Users\12107\AppData\Local\Temp\gamer-rc-realtime-137e9c9`，detached HEAD 与候选完全一致。两端 `npm ci --registry=https://registry.npmjs.org` 退出0；最终Git status干净，两端lock的JSON与commit一致。无原工作树未跟踪文件依赖。
+
+证据归档：**`C:\Users\12107\Desktop\4\release-evidence\137e9c9\candidate-manifest.json`**，记录候选hash、七个迁移、Compose/代理/Dockerfile/测试清单、源码hash、排除文件、环境预检、实际命令/时间/退出码及分层结果。同目录保留每项执行日志和backend/web/python JSON。
+
+| 本轮 Gate | 结果与实测边界 |
+|---|---|
+| 独立源码/本地构建 | **PASS**：干净clone、npm ci、前后端build/typecheck、Nest lint；不是Docker复现 |
+| Python / Worker | **PASS**：221tests/486subtests（8warnings）、真实Python子进程四类型与唯一5/20角色；`python.xml`、`backend-worker.log` |
+| 前端单测 | reducer、Mock transport、theme、battle replay均PASS；Mock不冒充真实集成 |
+| Room鉴权/序列/恢复 | **PASS（本地直连WS）**：真实PG/双Nest、权限/并发/事务失败/重启补发/缺口快照/成员离开/封禁/过期断连；`backend/room-realtime/result.json` |
+| Legacy migration / H03-H05 | **PASS（本地PG18.1）**：七迁移、重复启动、安全、真实备份/恢复/恢复后业务；`backend/gamer-p0-delivery/result.json`明确candidate及clean tracked commit |
+| 双账号3+2实时两局 | **PASS（本地直连WS）**：独立1280/390浏览器、准备推送、离线重连、同战斗/正确归属、4条独立结算/逐局SQL；`browser-realtime/gamer-multiplayer-delivery/result.json` |
+| socket拒绝后HTTP回退两局 | **PASS**：实际socket尝试拒绝、两局4条结算/逐局SQL；`browser-fallback/gamer-multiplayer-delivery/result.json` |
+| Docker Runner | **BLOCKED**：固定候选干净checkout实际运行Gate脚本，`spawnSync docker ENOENT`；`docker-preflight/result.json`、`1-docker.log` |
+| 两套Compose / WSS代理恢复 | **NOT VERIFIED**：没有镜像/容器/代理TLS证据，本地WS不能代替 |
+
+本轮没有改变房间状态机/恢复/结算，按要求重新执行最低两局；上一轮十局不归为本轮固定commit十局。本轮选角不足没有复现，根因仍 **UNRESOLVED**。Capacity **NOT VERIFIED**。现有身份校验覆盖签名/过期/封禁，但无独立单token撤销登记。
+
+本轮实际修改：`server-nest/scripts/verify-docker-candidate.mjs`及三份状态文档。上一轮27个实时交付文件已纳入实现提交并在manifest列出。Dockerfile/Compose/代理配置沿用已跟踪版本，未修改业务/依赖/lock；十份无关用户报告均未纳入、未删除。候选后的结果提交仅更新这三份文档。
+
+实际命令包括Git状态/分支/log/diff/staged检查、显式add/commit、独立clone/detached checkout；两端npm ci/build/typecheck及Nest lint；pytest；Node Worker、Room realtime、legacy、P0恢复、双浏览器两种模式，以及web reducer/Mock transport/theme/replay；固定候选`node scripts/verify-docker-candidate.mjs`。精确命令与退出码见证据JSON。Gate脚本exit1是环境缺失，不标项目业务FAIL。
+
+尚未完成：两套镜像构建/运行、容器Worker/content/migration、Redis readiness、PG16、TLS/WSS握手/代理空闲/心跳/关闭/成员安全、代理环境异常恢复（包括断线期间房间结束）、容器双浏览器/对账及容量压测。npm ci审计仍报告Nest35项、web18项，未风险分级/自动修复。**Release Decision：CONDITIONAL ALPHA，只允许隔离本地合成账号内部测试；不许可公网或生产。**
 
 实际环境检查：Docker CLI/Compose 不存在；标准 Docker/Podman 安装位置与服务未发现；没有 `DOCKER_HOST`/`DOCKER_CONTEXT`，WSL status 未能提供可用 Linux。三个现有 Actions 分别为 Pages、生产后置验收、生产备份，不是获授权的隔离双 Compose Runner；没有调用它们、push 或连接生产。
 

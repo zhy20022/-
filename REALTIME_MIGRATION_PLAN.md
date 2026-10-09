@@ -4,7 +4,7 @@
 
 ## 候选部署 Gate 跟踪
 
-实时实现已提交 `72d2ab2`；本轮进一步冻结 Docker 验收脚本修正，最终 hash 见最新 `PROJECT_STATUS.md` 及固定 Commit 证据 manifest。没有升级依赖/lock、改玩法、push 或调用生产任务。
+实时实现已提交 `72d2ab2`；最终候选 **`137e9c9da330150127144de1dc6c1d690527056c`** 包含Docker验收脚本最小修正。该Commit干净检出已完成两端npm ci/构建、Python221/486、Worker、权限/恢复/H03-H05及双浏览器实时两局/HTTP回退两局/SQL对账，均为本地PG18.1和直连WS，不是WSS/生产Compose。证据与精确命令见 `C:\Users\12107\Desktop\4\release-evidence\137e9c9\candidate-manifest.json`。没有升级依赖/lock、改玩法、push 或调用生产任务。结果文档另作docs-only提交，不改变候选。
 
 Docker CLI/Compose/获授权隔离 Runner 缺失，两套正式 Nest Compose（prod Nginx、public-api Caddy）的Build/Start/Migration/Readiness/Worker/Content均NOT VERIFIED，Runner BLOCKED。真实HTTPS/WSS反代、代理环境恢复/心跳/空闲行为尚未执行。旧Python playable Compose不是正式Gate目标。
 
