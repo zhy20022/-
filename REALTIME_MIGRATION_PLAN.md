@@ -2,6 +2,14 @@
 
 更新日期：2026-10-09，Asia/Singapore
 
+## 候选部署 Gate 跟踪
+
+实时实现已提交 `72d2ab2`；本轮进一步冻结 Docker 验收脚本修正，最终 hash 见最新 `PROJECT_STATUS.md` 及固定 Commit 证据 manifest。没有升级依赖/lock、改玩法、push 或调用生产任务。
+
+Docker CLI/Compose/获授权隔离 Runner 缺失，两套正式 Nest Compose（prod Nginx、public-api Caddy）的Build/Start/Migration/Readiness/Worker/Content均NOT VERIFIED，Runner BLOCKED。真实HTTPS/WSS反代、代理环境恢复/心跳/空闲行为尚未执行。旧Python playable Compose不是正式Gate目标。
+
+验收脚本补HTTPS测试Origin、当前事件migration和两套失败独立记录；它没有实现完整代理WSS验收，不把脚本存在、语法通过或本地直连WS当成发布PASS。当前只可隔离本地内部测试；下一步唯一任务是获得授权Runner并关闭这项生产门禁，容量与单token撤销边界继续保留。
+
 ## 实施状态更新：第一阶段可恢复实时房间
 
 以下第 1-12 节是实施前扫描及后续路线，不把其中“尚无 Gateway/版本”的历史描述当作当前实现。当前实时实现已冻结在候选提交 `72d2ab2`；旧 `afa8a00` 不包含本次模块。完整当前结果见 `PROJECT_STATUS.md` 首节。

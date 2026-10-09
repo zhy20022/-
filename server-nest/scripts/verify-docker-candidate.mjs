@@ -13,6 +13,12 @@ assert.equal(git(['status', '--porcelain']), '', 'use a clean candidate checkout
 assert(!process.env.E2E_CANDIDATE_COMMIT || process.env.E2E_CANDIDATE_COMMIT === commit, 'candidate commit mismatch');
 const artifacts = await mkdtemp(join(tmpdir(), 'gamer-docker-gate-'));
 const report = { commit, startedAt: new Date().toISOString(), verified: false, suites: [] };
+const targets = [['prod', 'docker-compose.prod.yml'], ['public-api', 'docker-compose.public-api.yml']];
+report.suites = targets.map(([label, filename]) => ({
+  label, filename, build: 'NOT VERIFIED', start: 'NOT VERIFIED', migration: 'NOT VERIFIED',
+  readiness: 'NOT VERIFIED', worker: 'NOT VERIFIED', content: 'NOT VERIFIED', smoke: 'NOT VERIFIED',
+  gateway: 'NOT VERIFIED (not started; TLS/WSS requires a separate proxy acceptance)',
+}));
 let logIndex = 0;
 function command(executable, args, env = process.env) {
   const result = spawnSync(executable, args, { cwd: root, env, windowsHide: true, encoding: 'utf8',
@@ -30,23 +36,21 @@ async function docker(args, env) {
 try {
   await docker(['version']);
   await docker(['compose', 'version']);
-  for (const [label, filename] of [['prod', 'docker-compose.prod.yml'], ['public-api', 'docker-compose.public-api.yml']]) {
-    const suite = { label, filename, build: 'NOT VERIFIED', start: 'NOT VERIFIED', migration: 'NOT VERIFIED',
-      readiness: 'NOT VERIFIED', worker: 'NOT VERIFIED', content: 'NOT VERIFIED', smoke: 'NOT VERIFIED',
-      gateway: 'NOT VERIFIED (not started; public TLS intentionally excluded)' };
-    report.suites.push(suite);
+  for (const suite of report.suites) {
+    const { label, filename } = suite;
     const project = `gamer-rc-${label}-${randomUUID().slice(0, 8)}`;
     const database = `gamer_rewards_e2e_docker_${label.replace('-', '_')}`;
     const password = randomUUID().replaceAll('-', '');
     const env = { ...process.env, COMPOSE_PROJECT_NAME: project, POSTGRES_DB: database, POSTGRES_USER: 'rc_test',
       POSTGRES_PASSWORD: password, AUTH_TOKEN_SECRET: randomUUID() + randomUUID(),
       ADMIN_TOKEN: randomUUID() + randomUUID(), BACKUP_TOKEN: randomUUID() + randomUUID(),
-      PUBLIC_WEB_ORIGINS: 'http://127.0.0.1', DOMAIN_NAME: 'localhost', API_DOMAIN_NAME: 'localhost',
+      PUBLIC_WEB_ORIGINS: 'https://localhost', DOMAIN_NAME: 'localhost', API_DOMAIN_NAME: 'localhost',
       ACME_EMAIL: 'rc@example.invalid' };
     const apiEnv = { NODE_ENV: 'production', PORT: '4100',
       DATABASE_URL: `postgres://rc_test:${password}@postgres:5432/${database}`, REDIS_URL: 'redis://redis:6379',
       AUTH_TOKEN_SECRET: env.AUTH_TOKEN_SECRET, ADMIN_TOKEN: env.ADMIN_TOKEN, BACKUP_TOKEN: env.BACKUP_TOKEN,
       CONTENT_DIR: '/workspace/data/content', TYPEORM_SYNCHRONIZE: 'false', DB_SSL: 'false',
+      CORS_ORIGIN: env.PUBLIC_WEB_ORIGINS,
       ALLOW_GUEST_LOGIN: 'false', RATE_LIMIT_MAX: '100000', RENDER_GIT_COMMIT: commit };
     const overlay = join(artifacts, `${label}.json`);
     await writeFile(overlay, JSON.stringify({ services: {
@@ -96,6 +100,8 @@ try {
       suite.migration = 'PASS';
       // Inspect the image without Compose's content bind mount.
       await docker(['run', '--rm', '--entrypoint', 'sh', suite.image, '-ec',
+        'test -f /app/dist/database/migrations/1788514000000-MultiplayerRoomEvents.js'], env);
+      await docker(['run', '--rm', '--entrypoint', 'sh', suite.image, '-ec',
         'test -f /workspace/scripts/nest_battle_worker.py; test -f /workspace/data/content/characters.json; test -f /app/dist/main.js; test -f /app/dist/database/migrations/1788513000000-MultiplayerRoomPresence.js; python3 -c "import sys; sys.path.insert(0, \\"/workspace\\"); import src.combat.battle"; node -e "JSON.parse(require(\\"fs\\").readFileSync(\\"/workspace/data/content/characters.json\\",\\"utf8\\"))"'], env);
       suite.content = 'PASS';
       const smoke = command(process.execPath, ['server-nest/scripts/e2e-public-release.mjs'],
@@ -106,20 +112,26 @@ try {
       suite.smoke = 'PASS';
     } catch (error) {
       suite.failure = String(error);
-      throw error;
+      process.exitCode = 1;
     } finally {
       if (started) {
         const logs = command('docker', [...args, 'logs', '--no-color', '--tail', '250'], env);
         await writeFile(join(artifacts, `${label}-containers.log`), logs.text);
-        await compose(['down', '--volumes', '--remove-orphans']);
+        try {
+          await compose(['down', '--volumes', '--remove-orphans']);
+        } catch (error) {
+          suite.cleanupFailure = String(error);
+          process.exitCode = 1;
+        }
       }
       if (createdEnv) await unlink(productionEnv);
       await unlink(overlay);
     }
   }
-  report.verified = true;
+  report.verified = report.suites.every(suite => suite.smoke === 'PASS' && !suite.failure && !suite.cleanupFailure);
 } catch (error) {
   report.failure = String(error);
+  report.runner = 'BLOCKED';
   process.exitCode = 1;
 } finally {
   report.finishedAt = new Date().toISOString();

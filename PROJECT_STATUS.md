@@ -1,5 +1,23 @@
 # Project Status
 
+## 当前门禁：候选冻结与 Docker / WSS 验收（2026-10-09）
+
+本轮冻结范围：已提交的实时实现 `72d2ab2`、冻结文档 `594f48d`，以及随后对 `verify-docker-candidate.mjs` 的最小验收修正。最终候选 hash 以独立检出 `git rev-parse HEAD` 和外部证据 manifest 为准，验收结束后另追加精确 hash，不 amend 候选。
+
+实际环境检查：Docker CLI/Compose 不存在；标准 Docker/Podman 安装位置与服务未发现；没有 `DOCKER_HOST`/`DOCKER_CONTEXT`，WSL status 未能提供可用 Linux。三个现有 Actions 分别为 Pages、生产后置验收、生产备份，不是获授权的隔离双 Compose Runner；没有调用它们、push 或连接生产。
+
+- Compose #1 实际为 `deploy/production/docker-compose.prod.yml`（Nest/PostgreSQL16/Redis7/Nginx）。Build/Start/Migration/Readiness/Worker/Content：**NOT VERIFIED，Runner BLOCKED**。
+- Compose #2 实际为 `deploy/production/docker-compose.public-api.yml`（Nest/PostgreSQL16/Redis7/Caddy）。上述六项：**NOT VERIFIED，Runner BLOCKED**。
+- `docker-compose.playable.yml` 是旧 Python 栈，不是本次正式 Nest Gate 目标。
+- WSS 反代、TLS/空闲超时/代理心跳、代理环境双浏览器断线恢复：**NOT VERIFIED**。Nest 直连 WS 不等于 WSS/代理验收。
+- 仓库 Nginx 默认模板仅 HTTP，TLS 示例需要显式配置；Caddy 配置包含 `/api/*` 和 `/socket.io/*`。本轮不声称这些静态配置已经启动。
+- 验收脚本最小修正：两套预建独立状态；任一套失败后继续另一套；测试 Origin 改 HTTPS；显式检查事件 migration；清理故障单独记录。脚本仍只验容器 API/Worker，**不覆盖完整 WSS/双浏览器 Gate**。
+- 既有 Nest lock/package 变更来自上一轮实时实现，本轮未升级依赖、未修改 lockfile。十份无关用户报告不纳入候选。
+
+受控 Alpha 当前判断：**CONDITIONAL ALPHA，仅隔离本地/合成账号内部测试；没有公网或生产验收许可**。缺 Runner 是环境阻塞，不伪记代码 FAIL。下一步是提供获授权隔离 Docker Runner 并补齐双 Compose + WSS/恢复实际证据。
+
+以下实时房间第一阶段及历史审计章节是前置结果，不代替本轮固定 Commit 的重新验证。
+
 ## 当前状态：可恢复实时房间第一阶段
 
 更新：2026-10-09，Asia/Singapore。阶段：**Alpha / Recoverable Room Implemented / Local Verification**。

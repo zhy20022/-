@@ -2,6 +2,18 @@
 
 更新：2026-10-09，Asia/Singapore。
 
+## 当前阻塞：隔离 Docker Runner
+
+候选冻结正在完成；运行代码已在 `72d2ab2`，最终候选另包含 Docker 验收脚本的最小修正。精确 hash 和固定 Commit 本地重新验证结果见 `PROJECT_STATUS.md` 最新门禁及外部证据 manifest。
+
+**唯一首要任务：提供获授权的隔离 Docker Runner，对最终候选完成两套生产 Compose 和真实 TLS/WSS 代理恢复验收。** 本机 Docker/Compose 缺失，现有 Actions 涉及生产数据或公网后置任务，不调用它们作为隔离替代。不要 push 触发生产工作流。
+
+验收脚本仅是部分 Gate：虽已补两套独立状态、失败继续、HTTPS Origin 和新migration检查，仍没有 WSS、容器双浏览器、代理空闲行为、容器备份恢复。Runner 到位后必须补真实执行证据，不把脚本 API `verified` 当成整个 Release Ready。
+
+H06/WSS目前NOT VERIFIED；容量NOT VERIFIED；历史选角不足UNRESOLVED；不存在独立单令牌撤销登记。仅本地监督内部测试，不开放公网/真实经济。
+
+以下为前置验收范围，若hash与最新门禁不同，使用最新门禁的候选hash。
+
 ## 唯一首要任务：新候选的 Docker / WSS 恢复验收
 
 **在隔离 Docker runner 中，从 `72d2ab2` 的干净 checkout 出发，验收两套生产 Compose 及 WSS 断线恢复。** 不能拿旧 `afa8a00` 验收后宣称本次 Gateway 已生产通过。本次未 push 或 amend。
