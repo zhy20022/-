@@ -4,7 +4,7 @@
 
 ## 唯一首要任务：新候选的 Docker / WSS 恢复验收
 
-**在隔离 Docker runner 中，从包含本次可恢复实时房间的明确新候选 commit 出发，验收两套生产 Compose 及 WSS 断线恢复。** 当前 `70df18c` 是文档 HEAD，实时代码仍在工作树；不能拿旧 `afa8a00` 验收后宣称本次 Gateway 已生产通过。本次未自动 commit/push/amend。
+**在隔离 Docker runner 中，从 `72d2ab2` 的干净 checkout 出发，验收两套生产 Compose 及 WSS 断线恢复。** 不能拿旧 `afa8a00` 验收后宣称本次 Gateway 已生产通过。本次未 push 或 amend。
 
 为什么优先：房间第一阶段已有实际本地 socket、数据库和双浏览器证据；公网部署仍缺 H06、生产反代/WSS、Redis readiness 和目标数据库版本验证。继续扩展战斗实时流之前应先验证现有通信能安全部署。
 
@@ -12,7 +12,7 @@
 
 完成标准：
 
-1. 审查并冻结本次源文件/依赖lock/七个迁移/测试/文档，保护十份无关用户报告；记录新commit和schema `MultiplayerRoomEvents1788514000000`，干净检出可独立构建。
+1. 已冻结本次源文件/依赖lock/七个迁移/测试/文档于 `72d2ab2`，保护十份无关用户报告；schema 为 `MultiplayerRoomEvents1788514000000`，干净检出可独立构建。
 2. 新临时PostgreSQL16/Redis7、测试秘密、新卷；逐套记录 Build/Start/Migration/Readiness/Worker/Content 的实际结果，不连真实玩家库。
 3. 真实TLS/WSS反代升级握手成功，正确Origin/token/成员权限；错Origin、过期/封禁令牌被拒绝；不把静态配置正确当作验收。
 4. 容器镜像无宿主源码/content掩盖，运行Python/content/迁移；完成注册登录、角色、Worker/结算和数据库对账。
