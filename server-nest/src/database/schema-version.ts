@@ -1,4 +1,4 @@
-export const CURRENT_SCHEMA_VERSION = 'MultiplayerRoomPresence1788513000000';
+export const CURRENT_SCHEMA_VERSION = 'MultiplayerRoomEvents1788514000000';
 export const INITIAL_SCHEMA_TIMESTAMP = 1788502608304;
 export const INITIAL_SCHEMA_VERSION = 'InitialOnlineSchema1788502608304';
 

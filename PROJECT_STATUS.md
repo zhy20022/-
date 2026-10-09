@@ -1,12 +1,72 @@
 # Project Status
 
-## Release Candidate Verification：当前有效状态
+## 当前状态：可恢复实时房间第一阶段
+
+更新：2026-10-09，Asia/Singapore。阶段：**Alpha / Recoverable Room Implemented / Local Verification**。
+
+本节取代下面的历史候选状态；本次代码是 `main`、HEAD `70df18cf451f31bf86c44e4f6d2eb88d322f4579` 上的**未提交工作树**，没有新建 candidate commit、push 或 amend。`afa8a00` 仍是历史冻结候选，不包含本次实时实现。
+
+### 实际实现
+
+- Nest `multiplayer-rooms.gateway.ts`：Socket.IO `/rooms` namespace、`/socket.io/` transport；握手复用 `AuthService.verifyActiveAuthorization`，校验签名/过期/账号状态/归属，限制 Origin、消息大小、连接及恢复请求数。订阅和持续发送前重新校验身份和房间成员资格；身份失效或退出成员后断连并清理订阅。
+- `room-events.service.ts`、事件实体及 `1788514000000-MultiplayerRoomEvents.ts`：房间 `stateVersion` BIGINT、事件 UUID、唯一 `(roomId, version)`。版本在线路上为十进制字符串；房间写锁下，同一事务保存业务变更、递增版本和完整房间快照事件。回滚不留下事件。
+- 实际事件：`room.created`、`member.joined`、`member.updated`、`member.presence`、`member.left`、`room.presence`、`battle.started`、`battle.finished`。无可见变化的心跳/重复提交不新增事件；没有新增重开状态规则，第二局仍创建新房间。事件不包含奖励发放命令或私人结算载荷。
+- Gateway 每 500ms 为本实例的订阅连接查询已提交记录，不依赖进程计数器、即时广播或 Redis Pub/Sub。数据库中提交但未发送的记录可在下次查询或重连时恢复；两个真实 Nest 进程共享 PostgreSQL 的顺序与通知已测试。这是低频房间第一阶段方案，**不代表大规模扩容已验证**。
+- `room.subscribe { roomId, version? }` ACK 返回 `events` 或 `snapshot`；`room.event` 为 `{ roomId, eventId, version, eventType, payload, createdAt }`；`room.sync` 返回快照，`room.revoked` 后断连。恢复使用成员校验和房间读锁，缺失历史、超过 100 条或没有 cursor 则完整快照；无效/未来 cursor 明确拒绝。HTTP `GET /api/multiplayer-rooms/:roomId/sync?version=...` 复用同一恢复逻辑。
+- 默认事件保留 24 小时，每分钟清理，可用 `ROOM_EVENT_RETENTION_HOURS` 调整（最少一小时）。恢复只读取数据，不重新开战、结算或发奖。
+- 前端 `realtimeSocket.ts`、`roomRealtimeState.ts`、`MultiplayerRoomPage.tsx`：正式 API origin 连接、版本去重/乱序保护/缺口恢复、恢复期间缓存 live 事件、重连、监听器和 ACK 清理、账号/房间隔离、本地选角草稿保护。现有 HTTP 命令、2.5 秒轮询及 5 秒 heartbeat 保留，不切到旧 Flask。
+- 回滚开关：服务端 `ROOM_REALTIME_ENABLED=false`，前端 runtime `roomRealtime:false` 或 `VITE_ROOM_REALTIME=false`。优先关闭传输并保留新增数据库结构，不带玩家数据执行 down migration。
+- Schema：**`MultiplayerRoomEvents1788514000000`**，共七个迁移；实体注册、schema 标识、legacy migration 测试及备份恢复检查同步更新。
+- 明确依赖变更：新增 `@nestjs/websockets@10.4.22`、`@nestjs/platform-socket.io@10.4.22`，含 Socket.IO 4.8.1 传递依赖，更新 Nest package/lock。比对原 lock，已有依赖版本没有升级；web 无依赖变更。安装使用官方 registry，旧 taobao registry 证书已过期。npm 报告 35 个审计问题，未运行自动修复，不能据此声称依赖安全门禁通过。
+- Python 战斗规则、奖励计算、结算语义和八属性主题均未改动。
+
+### 实际验证和证据
+
+环境：Windows、本地 PostgreSQL 18.1 `127.0.0.1:55439`、隔离 `gamer_rewards_e2e_*` 数据库、两个 Nest 进程、Chrome headless/Playwright 独立浏览器上下文（1280 与 390 宽）。Redis 不可用，测试未将其替代为真实生产 readiness。
+
+证据根目录：`C:\Users\12107\Desktop\4\release-evidence\realtime-20261009`。
+
+| 本次执行 | 结果及范围 |
+|---|---|
+| Nest build / typecheck / lint；web build / `tsc --noEmit` | PASS；前端既有 chunk-size/CJS 警告保留 |
+| `python -B -m pytest tests -q -p no:cacheprovider --junitxml=...` | **221 tests、486 subtests PASS**，5 个警告；`python.xml` |
+| `python -m unittest discover -s tests -v` | 192 tests PASS，不拿它替代 pytest 全量 |
+| `test-battle-worker.mjs` | 真实 Python 子进程、四种副本、唯一 5/20 角色及 authored healer PASS |
+| `web/scripts/test-room-realtime.mjs` | reducer 重复/过期/乱序/缺口/快照/BIGINT/房间隔离 PASS |
+| `web/scripts/test-room-transport.mjs` | **Mock transport 单测**：恢复/live ACK 竞态、重连、快照、HTTP fallback 回调、卸载、旧 ACK、切账号/房间及关闭开关 PASS；不冒充真实浏览器 |
+| `e2e-room-realtime.mjs` | **真实 PostgreSQL + 双 Nest + Socket.IO**：未登录/伪造/过期/封禁/Origin 拒绝、成员权限、并发顺序、重复命令无事件、延迟约束提交失败完整回滚、进程重启补发、历史缺口快照、成员移除/在线封禁/过期断连 PASS；`room-realtime/result.json` |
+| `test-legacy-migration.mjs` | 旧 schema adoption -> 七个迁移 -> 重复启动、pool-size-one PASS |
+| `e2e-p0-delivery.mjs` | **H03/H04/H05 当前 schema 回归 PASS**：榜写安全、真实 Boss Worker 可信分数、双实例封禁、真实备份/恢复/重复迁移/恢复后登录和结算重放；`gamer-p0-delivery/result.json` |
+| `e2e-multiplayer-delivery.mjs` 实时开启 | **真实双浏览器 3+2 连续十局 PASS**，20 条独立结算、逐局 SQL 对账。包含阻断 HTTP current 后 peer ready/unready 的 socket 推送及浏览器离线重连；`browser-enabled/gamer-multiplayer-delivery/result.json` |
+| 同脚本前后端实时关闭 | **真实 HTTP-only 两局 PASS**，SQL 对账；`browser-http/gamer-multiplayer-delivery/result.json` |
+| 同脚本仅服务端拒绝实时连接 | **真实 socket 尝试失败、HTTP 回退两局 PASS**，SQL 对账；`browser-rejected/gamer-multiplayer-delivery/result.json` |
+| `test-element-theme.cjs` | 八主题/符号/名称/对比度 Contract PASS，视觉规范未改 |
+
+十局运行期间及之后补强了请求/卸载隔离与已有房间读取锁；最终工作树另以 `final/room-realtime/result.json` 和 `browser-final/gamer-multiplayer-delivery/result.json` 的服务端及双浏览器两局重跑为准。十局证据不伪称来自新冻结 commit。
+
+最终重跑均已结束且退出码为0：服务端鉴权/事务/恢复PASS，真实双浏览器3+2两局PASS（4条独立结算、逐局SQL对账、实时准备状态及重连证据）。最终 `git diff --check`、前后端构建、类型检查、Nest lint 和 reducer/Mock transport 单测通过。没有遗留测试服务进程；另留下用于试用的隔离本地预览（API4108、web3028），不属于Docker生产验收。
+
+测试脚本首轮结束清理曾等待已退出的旧进程，已修正 `signalCode` 判断并真实重跑成功；不把被终止的首轮当作完整退出成功证据。
+
+### 当前门禁与限制
+
+- H01/H02：双浏览器实际核心闭环通过；H03/H04/H05：当前 schema 实际回归通过。
+- **H06 两套生产 Compose：仍 NOT VERIFIED**。本次 `Get-Command docker` 无可用结果，没有执行 Docker build/start，未测试生产 Redis/TLS/WSS/反代/PostgreSQL 16。不能以本地 socket 或构建结果代替部署验收。
+- 已完成：可恢复实时房间；未完成：实时战斗事件流、Python 流式 Worker、实时操作型战斗、四账号/20 角色在线闭环、压测/延迟指标/生产多实例扩容。
+- 当前鉴权体系没有独立 session/token 撤销登记；WebSocket 与 HTTP 保持一致。封禁、签名失效、过期均校验，不能宣称实现了原系统不存在的单令牌撤销能力。
+- 历史选角不足根因仍未完全定位。本次增加草稿和迟到请求保护且回归通过，不等于证明旧问题已修复。
+- DB tail 每连接重复鉴权及快照查询，500ms 是调度间隔而非延迟保证；数据库负载/长业务锁可能导致通知延迟，HTTP fallback 保留。连接数限制不是容量验收结论。
+- 本次新源文件和规划文档仍有未跟踪项，尚未冻结新候选；十份无关用户报告保持原样。完整源码可见于当前工作树，不用历史 candidate 宣称新代码可独立 checkout。
+
+**发布仍受 H06 限制，只可隔离本地内部验证，不能宣布公网 Ready。下一步唯一首要任务：将本次实现冻结为新候选后，在隔离 Docker runner 验收双生产 Compose 和 WSS/重连/HTTP 回退。**
+
+## 历史：Release Candidate Verification（2026-10-08）
 
 验收日期：2026-10-08，Asia/Singapore。阶段：**Frozen Candidate / Docker Gate Pending**。
 
 发布判断：**CONDITIONAL ALPHA**，仅开发者监督下、隔离本地、合成账号的内部测试。**不是 READY FOR CONTROLLED ALPHA，不许可公网或生产部署。** H06 缺少实际 Docker 证据，是环境未满足，不伪记项目 FAIL，也不以静态检查代替 PASS。
 
-本节是当前唯一有效状态。下面两个审计阶段均为历史记录；其中未提交文件、dirty candidate、旧 HEAD 和旧测试结果不能替代本节的不可变候选。
+本节是 2026-10-08 历史候选记录；不能代替上方 2026-10-09 工作树实时实现与实际验证结果。
 
 ### Candidate Manifest
 

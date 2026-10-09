@@ -1,9 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, In, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import { BattleSettlementService } from '../battle-settlement/battle-settlement.service';
 import { DungeonsService } from '../dungeons/dungeons.service';
+import { RoomEventsService } from './room-events.service';
 import {
   FriendshipEntity,
   MultiplayerRoomEntity,
@@ -30,6 +31,7 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
     @InjectRepository(FriendshipEntity) private readonly friendships: Repository<FriendshipEntity>,
     private readonly dungeons: DungeonsService,
     private readonly settlement: BattleSettlementService,
+    private readonly events: RoomEventsService,
   ) {}
 
   onModuleInit() {
@@ -64,17 +66,21 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
   async heartbeat(playerId: string, roomId: string) {
     const room = await this.getRoom(roomId);
     await this.members.manager.transaction(async (manager) => {
+      const locked = await manager.findOne(MultiplayerRoomEntity, { where: { id: roomId }, lock: { mode: 'pessimistic_write' } });
+      if (!locked) throw new NotFoundException('room not found');
       const member = await manager.findOne(MultiplayerRoomMemberEntity, {
         where: { roomId, playerId },
         lock: { mode: 'pessimistic_write' },
       });
       if (!member) throw new NotFoundException('room member not found');
-      if (room.status === 'finished' || room.status === 'cancelled') return;
+      if (locked.status === 'finished' || locked.status === 'cancelled') return;
+      const changed = member.connectionStatus !== 'online';
       const now = new Date();
       member.connectionStatus = 'online';
       member.lastSeenAt = now;
       member.disconnectedAt = null;
       await manager.save(member);
+      if (changed) await this.record(manager, locked, 'member.presence');
     });
     const refreshed = await this.refreshPresence(room);
     return this.serializeRoom(refreshed);
@@ -86,7 +92,10 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
     return this.members.manager.transaction(async (manager) => {
       await this.lockPlayer(manager, playerId);
       const existing = await this.activeRoom(playerId, manager);
-      if (existing) return this.serializeRoom(existing, manager);
+      if (existing) {
+        const locked = await manager.findOneOrFail(MultiplayerRoomEntity, { where: { id: existing.id }, lock: { mode: 'pessimistic_read' } });
+        return this.serializeRoom(locked, manager);
+      }
       await this.assertNoActiveBattle(manager, playerId);
       const capacity = dungeon.dungeonType === 'SQUAD' ? 5 : 4;
       const room = await manager.save(manager.create(MultiplayerRoomEntity, {
@@ -98,7 +107,7 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
         characterIds: [],
       }));
       await manager.save(manager.create(MultiplayerRoomMemberEntity, { roomId: room.id, playerId, characterIds: [], isReady: false, connectionStatus: 'online', lastSeenAt: new Date() }));
-      return this.serializeRoom(room, manager);
+      return this.record(manager, room, 'room.created');
     });
   }
 
@@ -150,7 +159,7 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
       }
       invitation.status = 'accepted';
       await manager.save(invitation);
-      return this.serializeRoom(room, manager);
+      return existing ? this.serializeRoom(room, manager) : this.record(manager, room, 'member.joined');
     });
   }
 
@@ -165,13 +174,15 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
       const allOther = await manager.find(MultiplayerRoomMemberEntity, { where: { roomId } });
       const duplicates = allOther.filter((row) => row.playerId !== playerId).flatMap((row) => row.characterIds || []).filter((id) => characterIds.includes(id));
       if (duplicates.length > 0) throw new BadRequestException('a character cannot be selected by two room members');
+      const changed = JSON.stringify(member.characterIds) !== JSON.stringify(characterIds) ||
+        member.isReady !== Boolean(isReady && characterIds.length > 0) || member.connectionStatus !== 'online';
       member.characterIds = characterIds;
       member.isReady = Boolean(isReady && characterIds.length > 0);
       member.connectionStatus = 'online';
       member.lastSeenAt = new Date();
       member.disconnectedAt = null;
       await manager.save(member);
-      return this.serializeRoom(room, manager);
+      return changed ? this.record(manager, room, 'member.updated') : this.serializeRoom(room, manager);
     });
   }
 
@@ -201,7 +212,7 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
       locked.battleSeed = await this.dungeons.startRoom(manager, locked.dungeonId, members, key, locked.id);
       locked.status = 'in_battle';
       await manager.save(locked);
-      return this.serializeRoom(locked, manager);
+      return this.record(manager, locked, 'battle.started');
     });
   }
 
@@ -235,6 +246,7 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
         room.status = 'finished';
         room.battleRecordId = result.record.id;
         await manager.save(room);
+        await this.record(manager, room, 'battle.finished');
       }
       return result;
     });
@@ -256,7 +268,8 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
         room.leaderPlayerId = remaining[0].playerId;
       }
       await manager.save(room);
-      return remaining.length === 0 ? null : this.serializeRoom(room, manager);
+      const snapshot = await this.record(manager, room, 'member.left');
+      return remaining.length === 0 ? null : snapshot;
     });
   }
 
@@ -299,16 +312,18 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
       if (['finished', 'cancelled'].includes(lockedRoom.status)) return lockedRoom;
       const members = await manager.find(MultiplayerRoomMemberEntity, { where: { roomId: lockedRoom.id }, order: { joinedAt: 'ASC' }, lock: { mode: 'pessimistic_write' } });
       const now = Date.now();
+      let changed = false;
       for (const member of members) {
         const lastSeen = member.lastSeenAt ? member.lastSeenAt.getTime() : member.updatedAt.getTime();
         if (member.connectionStatus === 'online' && now - lastSeen > this.disconnectTimeoutMs) {
           member.connectionStatus = 'offline';
           member.disconnectedAt = new Date(now);
+          changed = true;
         }
       }
       const expired = members.filter((member) => member.connectionStatus === 'offline' && member.disconnectedAt && now - member.disconnectedAt.getTime() > this.reconnectGraceMs);
       if (lockedRoom.status === 'waiting') {
-        for (const member of expired) await manager.remove(member);
+        for (const member of expired) { await manager.remove(member); changed = true; }
       }
       const activeMembers = lockedRoom.status === 'waiting'
         ? members.filter((member) => !expired.some((item) => item.id === member.id))
@@ -317,12 +332,15 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
       const currentLeader = activeMembers.find((member) => member.playerId === lockedRoom.leaderPlayerId && member.connectionStatus === 'online');
       if (!currentLeader && onlineMembers[0] && lockedRoom.status === 'waiting') {
         lockedRoom.leaderPlayerId = onlineMembers[0].playerId;
+        changed = true;
       }
       if (activeMembers.length === 0 && lockedRoom.status === 'waiting') {
         lockedRoom.status = 'cancelled';
+        changed = true;
       }
       await manager.save(activeMembers);
-      return manager.save(lockedRoom);
+      if (changed) await this.record(manager, lockedRoom, 'room.presence');
+      return lockedRoom;
     });
   }
 
@@ -367,13 +385,21 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
     if (owned.length !== characterIds.length) throw new BadRequestException('all selected characters must belong to the room member');
   }
 
-  private async serializeRoom(room: MultiplayerRoomEntity, manager: EntityManager = this.rooms.manager) {
+  private async serializeRoom(room: MultiplayerRoomEntity, manager: EntityManager = this.rooms.manager): Promise<Record<string, unknown>> {
+    if (manager === this.rooms.manager) {
+      return manager.transaction(async tx => {
+        const locked = await tx.findOne(MultiplayerRoomEntity, { where: { id: room.id }, lock: { mode: 'pessimistic_read' } });
+        if (!locked) throw new NotFoundException('room not found');
+        return this.serializeRoom(locked, tx);
+      });
+    }
     const members = await manager.find(MultiplayerRoomMemberEntity, { where: { roomId: room.id }, order: { joinedAt: 'ASC' } });
     const playerIds = members.map((member) => member.playerId);
     const players = playerIds.length ? await manager.find(PlayerEntity, { where: { id: In(playerIds) } }) : [];
     const dungeon = this.dungeons.get(room.dungeonId);
     return {
       room_id: room.id,
+      version: room.stateVersion || '0',
       dungeon_id: room.dungeonId,
       dungeon_type: dungeon.dungeonType,
       leader_id: room.leaderPlayerId,
@@ -394,6 +420,25 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
           : null,
       })),
     };
+  }
+
+  private async record(manager: EntityManager, room: MultiplayerRoomEntity, type: string) {
+    return this.events.append(manager, room, type, await this.serializeRoom(room, manager));
+  }
+
+  async recover(playerId: string, roomId: string, cursor?: unknown) {
+    if (typeof roomId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(roomId)) {
+      throw new BadRequestException('invalid roomId');
+    }
+    // Membership, snapshot and history share a room lock; no join/live race.
+    return this.rooms.manager.transaction(async manager => {
+      const room = await manager.findOne(MultiplayerRoomEntity, { where: { id: roomId }, lock: { mode: 'pessimistic_read' } });
+      if (!room) throw new NotFoundException('room not found');
+      if (!await manager.findOne(MultiplayerRoomMemberEntity, { where: { roomId, playerId } })) {
+        throw new ForbiddenException('player is not a member of this room');
+      }
+      return this.events.recover(manager, room, cursor, await this.serializeRoom(room, manager));
+    });
   }
 
   private async serializeInvitation(row: MultiplayerRoomInvitationEntity) {

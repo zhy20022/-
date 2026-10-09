@@ -74,6 +74,12 @@ export class MultiplayerRoomsController {
     return this.rooms.battle(session.playerId, roomId);
   }
 
+  @Get(':roomId/sync')
+  sync(@Headers('authorization') authorization: string | undefined, @Param('roomId') roomId: string, @Query('version') version?: string) {
+    const session = this.auth.verifyAuthorization(authorization);
+    return this.rooms.recover(session.playerId, roomId, version);
+  }
+
   @Post(':roomId/settle')
   settle(@Headers('authorization') authorization: string | undefined, @Param('roomId') roomId: string) {
     const session = this.auth.verifyAuthorization(authorization);

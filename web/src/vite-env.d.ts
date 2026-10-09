@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_SOCKET_URL?: string
+  readonly VITE_ROOM_REALTIME?: string
   readonly VITE_ONLINE_API_URL?: string
   readonly VITE_FORMAL_ONLINE?: string
   readonly VITE_STATIC_DEMO?: string
@@ -14,5 +15,6 @@ interface Window {
     staticDemo?: boolean
     apiBase?: string
     socketUrl?: string
+    roomRealtime?: boolean
   }
 }

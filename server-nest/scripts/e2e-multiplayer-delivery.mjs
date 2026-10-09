@@ -23,6 +23,10 @@ const db = new pg.Client({ connectionString: databaseUrl });
 let browser;
 const pages = [];
 const memberRequests = [];
+const realtimeFrames = [];
+const frontendRealtimeDisabled = process.env.E2E_ROOM_REALTIME === 'false';
+const realtimeDisabled = frontendRealtimeDisabled || process.env.E2E_SERVER_REALTIME === 'false';
+let openedSockets = 0;
 let output = '';
 function run(args, cwd, env) {
   const child = spawn(process.execPath, args, { cwd, env, windowsHide: true, stdio: 'pipe' });
@@ -76,11 +80,18 @@ async function prepareAccount(label, definitions) {
 }
 async function makePage(account, width) {
   const context = await browser.newContext({ viewport: { width, height: 900 } });
-  await context.addInitScript(apiBase => {
-    window.__GAMER_RUNTIME_CONFIG__ = { formalOnline: true, staticDemo: false, apiBase };
-  }, api);
+  await context.addInitScript(({ apiBase, roomRealtime }) => {
+    window.__GAMER_RUNTIME_CONFIG__ = { formalOnline: true, staticDemo: false, apiBase, roomRealtime };
+  }, { apiBase: api, roomRealtime: !frontendRealtimeDisabled });
   const page = await context.newPage();
   pages.push(page);
+  page.on('websocket', socket => {
+    if (!socket.url().includes('/socket.io/')) return;
+    openedSockets++;
+    socket.on('framereceived', frame => {
+      if (typeof frame.payload === 'string') realtimeFrames.push({ playerId: account.player.id, payload: frame.payload });
+    });
+  });
   page.on('request', request => {
     if (request.method() === 'POST' && /\/(member|heartbeat)$/.test(request.url())) {
       memberRequests.push({ at: new Date().toISOString(), url: request.url(), body: request.postData() });
@@ -116,6 +127,7 @@ try {
     TYPEORM_SYNCHRONIZE: 'false', CONTENT_DIR: '../data/content', BACKUP_ENABLED: 'false',
     AUTH_TOKEN_SECRET: randomUUID() + randomUUID(), REDIS_URL: 'redis://127.0.0.1:6399',
     RATE_LIMIT_MAX: '100000', MULTIPLAYER_HEARTBEAT_INTERVAL_MS: '500',
+    ROOM_REALTIME_ENABLED: realtimeDisabled ? 'false' : 'true',
     MULTIPLAYER_DISCONNECT_TIMEOUT_MS: '9000', MULTIPLAYER_RECONNECT_GRACE_MS: '30000' };
   const migration = run(['dist/database/run-migrations.js'], new URL('..', import.meta.url), env);
   const [migrationCode] = await once(migration, 'exit');
@@ -152,6 +164,24 @@ try {
     await postClick(a.page, '/invite', () => a.page.getByRole('button', { name: '邀请', exact: true }).click());
     await b.page.getByRole('button', { name: '接受邀请', exact: true }).waitFor();
     await postClick(b.page, '/accept', () => b.page.getByRole('button', { name: '接受邀请', exact: true }).click());
+    if (!realtimeDisabled && round === 1) {
+      await waitFor('both authenticated room subscriptions', () =>
+        [leader, teammate].every(account => realtimeFrames.some(frame =>
+          frame.playerId === account.player.id && frame.payload.includes(room.room_id) &&
+          /"mode":"(snapshot|events)"/.test(frame.payload))));
+      // Disable room HTTP reads briefly: peer state MUST now arrive via the socket.
+      await a.page.route('**/api/multiplayer-rooms/current', route => route.abort());
+      await b.page.route('**/api/multiplayer-rooms/current', route => route.abort());
+      await request(`/multiplayer-rooms/${room.room_id}/member`, { characterIds: teammate.ids, isReady: true }, teammate);
+      await waitFor('peer ready via real socket without HTTP current', async () =>
+        (await a.page.locator(`[data-player-id="${teammate.player.id}"] em`).innerText()).includes('已准备'));
+      await request(`/multiplayer-rooms/${room.room_id}/member`, { characterIds: teammate.ids, isReady: false }, teammate);
+      await waitFor('peer unready via real socket', async () =>
+        (await a.page.locator(`[data-player-id="${teammate.player.id}"] em`).innerText()).includes('未准备'));
+      await a.page.unroute('**/api/multiplayer-rooms/current');
+      await b.page.unroute('**/api/multiplayer-rooms/current');
+      report.checks.push('two independent browser socket subscriptions and peer ready/unready with HTTP current blocked');
+    }
     for (const [page, count] of [[a.page, 3], [b.page, 2]]) {
       await page.getByRole('button', { name: '准备', exact: true }).waitFor();
       await page.locator('.character-room-grid button').first().waitFor();
@@ -177,9 +207,18 @@ try {
         (await b.page.getByRole('button', { name: '准备', exact: true }).count()) === 1);
     }
     if (round === 2) {
+      const frameCount = realtimeFrames.length;
       await a.context.setOffline(true);
+      await request(`/multiplayer-rooms/${room.room_id}/member`, { characterIds: teammate.ids, isReady: true }, teammate);
       await delay(2500);
       await a.context.setOffline(false);
+      if (!realtimeDisabled) {
+        await waitFor('browser socket replay after offline gap', () => realtimeFrames.slice(frameCount).some(frame =>
+          frame.playerId === leader.player.id && frame.payload.includes(room.room_id) &&
+          /"mode":"(events|snapshot)"/.test(frame.payload)));
+        report.checks.push('real browser offline/reconnect authorized event replay or snapshot');
+      }
+      await request(`/multiplayer-rooms/${room.room_id}/member`, { characterIds: teammate.ids, isReady: false }, teammate);
       await a.page.reload();
       await a.page.getByRole('button', { name: '准备', exact: true }).waitFor();
       for (let i = 0; i < 3; i++) await a.page.locator('.character-room-grid button').nth(i).click();
@@ -296,6 +335,16 @@ try {
   report.checks.push('finished reload/recreate/rejoin', 'concurrent duplicate settlement once per player',
     'SQL rewards/gold/progress/experience/ownership reconciled', 'outsider unchanged and no orphan rooms');
   report.verified = true;
+  report.realtimeDisabled = realtimeDisabled;
+  report.frontendRealtimeDisabled = frontendRealtimeDisabled;
+  report.openedSockets = openedSockets;
+  report.realtimeFrameCount = realtimeFrames.length;
+  if (!realtimeDisabled) {
+    assert(realtimeFrames.some(frame => frame.payload.includes('"battle.started"')), 'real browser battle-start event required');
+  } else {
+    assert(!realtimeFrames.some(frame => /"room\.(event|sync)"/.test(frame.payload)), 'no authorized realtime state when disabled');
+    if (!frontendRealtimeDisabled) assert(openedSockets > 0, 'fallback must exercise attempted but rejected socket connections');
+  }
   console.log(`PASS: ${rounds} continuous real UI rounds with PostgreSQL reconciliation`);
 } catch (error) {
   report.failure = error.stack || String(error);

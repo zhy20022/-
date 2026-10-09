@@ -43,6 +43,8 @@ import { OnlineFeaturesController } from './online-features/online-features.cont
 import { OnlineFeaturesService } from './online-features/online-features.service';
 import { MultiplayerRoomsController } from './multiplayer-rooms/multiplayer-rooms.controller';
 import { MultiplayerRoomsService } from './multiplayer-rooms/multiplayer-rooms.service';
+import { MultiplayerRoomsGateway } from './multiplayer-rooms/multiplayer-rooms.gateway';
+import { RoomEventsService } from './multiplayer-rooms/room-events.service';
 
 @Module({
   imports: [
@@ -111,6 +113,8 @@ import { MultiplayerRoomsService } from './multiplayer-rooms/multiplayer-rooms.s
     OnlineFeaturesService,
     WorkshopService,
     MultiplayerRoomsService,
+    MultiplayerRoomsGateway,
+    RoomEventsService,
   ],
 })
 export class AppModule {}

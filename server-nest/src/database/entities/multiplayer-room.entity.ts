@@ -9,6 +9,9 @@ export class MultiplayerRoomEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'bigint', default: '0' })
+  stateVersion: string;
+
   @Column({ length: 80 })
   dungeonId: string;
 

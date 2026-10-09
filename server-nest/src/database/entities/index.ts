@@ -14,6 +14,7 @@ export * from './idle-session.entity';
 export * from './inventory-item.entity';
 export * from './mail.entity';
 export * from './multiplayer-room.entity';
+export * from './multiplayer-room-event.entity';
 export * from './multiplayer-room-invitation.entity';
 export * from './multiplayer-room-member.entity';
 export * from './operation-request.entity';

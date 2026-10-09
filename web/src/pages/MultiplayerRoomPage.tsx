@@ -10,6 +10,8 @@ import type { OnlineLegacyCharacter, OnlineLegacyDungeon } from '../services/onl
 import './MultiplayerRoomPage.css'
 import ElementBadge from '../components/ElementBadge'
 import { elementThemeStyle } from '../services/elementTheme'
+import { connectRoom } from '../services/realtimeSocket'
+import { reduceRoomSnapshot } from '../services/roomRealtimeState'
 
 interface Dungeon {
   dungeon_id: string
@@ -862,6 +864,7 @@ interface FormalRoomMember {
 }
 
 interface FormalRoom {
+  version: string
   room_id: string
   dungeon_id: string
   dungeon_type: string
@@ -888,13 +891,25 @@ interface FormalInvitation {
 const FormalOnlineMultiplayerPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { player } = useAuthStore()
+  const { player, token } = useAuthStore()
   const initialDungeonId = (location.state as { dungeon_id?: string } | null)?.dungeon_id
   const [dungeons, setDungeons] = useState<OnlineLegacyDungeon[]>([])
   const [characters, setCharacters] = useState<OnlineLegacyCharacter[]>([])
   const [friends, setFriends] = useState<FormalFriend[]>([])
   const [invitations, setInvitations] = useState<FormalInvitation[]>([])
-  const [room, setRoom] = useState<FormalRoom | null>(null)
+  const [room, commitRoom] = useState<FormalRoom | null>(null)
+  const roomRef = useRef<FormalRoom | null>(null)
+  const draftRevision = useRef(0)
+  const loadRevision = useRef(0)
+  const mounted = useRef(true)
+  const isCurrentSession = () => mounted.current && useAuthStore.getState().player?.player_id === player?.player_id &&
+    useAuthStore.getState().token === token
+  const setRoom = (next: FormalRoom | null) => {
+    if (!isCurrentSession()) return
+    const accepted = next ? reduceRoomSnapshot(roomRef.current, next) : null
+    roomRef.current = accepted
+    commitRoom(accepted)
+  }
   const [selectedDungeonId, setSelectedDungeonId] = useState(initialDungeonId || '')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectedInviteeId, setSelectedInviteeId] = useState('')
@@ -926,8 +941,25 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   const navigationRoomRef = useRef<string | null>(null)
 
   useEffect(() => {
+    mounted.current = true
+    roomRef.current = null
+    commitRoom(null)
+    setSelectedIds([])
+    draftRevision.current++
     void loadFormalData()
-  }, [player?.player_id])
+    return () => { mounted.current = false; loadRevision.current++ }
+  }, [player?.player_id, token])
+
+  useEffect(() => {
+    if (!room || !token) return
+    return connectRoom({
+      initial: room, token,
+      onRoom: next => {
+        if (roomRef.current?.room_id === next.room_id) setRoom(next)
+      },
+      onFallback: () => void refreshFormalState(),
+    })
+  }, [room?.room_id, player?.player_id, token])
 
   useEffect(() => {
     if (!selectedDungeonId && multiplayerDungeons.length > 0) {
@@ -937,6 +969,9 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
 
   const loadFormalData = async () => {
     if (!player) return
+    const requestRevision = ++loadRevision.current
+    const startingDraft = draftRevision.current
+    const startingRoom = roomRef.current
     setLoading(true)
     try {
       const profile = await loadOnlineProfile(player)
@@ -949,37 +984,45 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
       const mappedDungeons = (dungeonResponse.data?.dungeons || [])
         .map((dungeon: unknown) => mapOnlineDungeon(dungeon, [], profile.characters))
         .filter((dungeon: OnlineLegacyDungeon) => dungeon.dungeon_type !== 'SINGLE')
+      if (!isCurrentSession() || requestRevision !== loadRevision.current) return
       setDungeons(mappedDungeons)
       setCharacters(profile.characters)
       setFriends((friendsResponse.data || []) as FormalFriend[])
       setInvitations((invitationResponse.data || []) as FormalInvitation[])
       const currentRoom = (currentResponse.data || null) as FormalRoom | null
-      setRoom(currentRoom)
+      if (roomRef.current === startingRoom || currentRoom?.room_id === roomRef.current?.room_id) setRoom(currentRoom)
       if (currentRoom) {
         setSelectedDungeonId(currentRoom.dungeon_id)
-        setSelectedIds(currentRoom.members.find((member) => member.player_id === profile.session.player.id)?.character_ids || [])
+        if (draftRevision.current === startingDraft && roomRef.current?.room_id === currentRoom.room_id &&
+          roomRef.current.version === currentRoom.version) {
+          setSelectedIds(currentRoom.members.find((member) => member.player_id === profile.session.player.id)?.character_ids || [])
+        }
       }
       if (!selectedDungeonId && mappedDungeons.length > 0) {
         setSelectedDungeonId(mappedDungeons[0].dungeon_id)
       }
       setConnectionState('online')
     } catch (error) {
+      if (!isCurrentSession() || requestRevision !== loadRevision.current) return
       setConnectionState(typeof navigator !== 'undefined' && navigator.onLine ? 'reconnecting' : 'offline')
       setMessage(getOnlineModeError(error, '正式线上多人副本加载失败'))
     } finally {
-      setLoading(false)
+      if (isCurrentSession() && requestRevision === loadRevision.current) setLoading(false)
     }
   }
 
   const refreshFormalState = async () => {
     if (!player || refreshInFlightRef.current || (typeof navigator !== 'undefined' && !navigator.onLine)) return
     refreshInFlightRef.current = true
+    const before = roomRef.current
     try {
       const [roomResponse, invitationResponse] = await Promise.all([
         onlineApi.get('/multiplayer-rooms/current'),
         onlineApi.get('/multiplayer-rooms/invitations?status=pending'),
       ])
-      setRoom((roomResponse.data || null) as FormalRoom | null)
+      if (!isCurrentSession()) return
+      const next = (roomResponse.data || null) as FormalRoom | null
+      if (roomRef.current === before || (next && next.room_id === roomRef.current?.room_id)) setRoom(next)
       setInvitations((invitationResponse.data || []) as FormalInvitation[])
       setConnectionState('online')
     } catch {
@@ -993,7 +1036,7 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     if (!player || (typeof navigator !== 'undefined' && !navigator.onLine)) return
     try {
       const response = await onlineApi.post(`/multiplayer-rooms/${roomId}/heartbeat`)
-      setRoom(response.data as FormalRoom)
+      if (roomRef.current?.room_id === roomId) setRoom(response.data as FormalRoom)
       setConnectionState('online')
     } catch {
       setConnectionState(typeof navigator !== 'undefined' && navigator.onLine ? 'reconnecting' : 'offline')
@@ -1001,6 +1044,7 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   }
 
   const toggleCharacter = (characterId: string) => {
+    draftRevision.current++
     if (selectedIds.includes(characterId)) {
       setSelectedIds((current) => current.filter((id) => id !== characterId))
       return
@@ -1018,6 +1062,8 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     setStarting(true)
     try {
       const response = await onlineApi.post('/multiplayer-rooms', { dungeonId: selectedDungeon.dungeon_id })
+      if (!isCurrentSession()) return
+      draftRevision.current++
       setRoom(response.data as FormalRoom)
       setSelectedIds([])
       setMessage('房间已创建，请选择角色并邀请好友。')
@@ -1032,6 +1078,7 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     if (!room) return
     try {
       const response = await onlineApi.post(`/multiplayer-rooms/${room.room_id}/member`, { characterIds: selectedIds, isReady: ready })
+      if (!isCurrentSession() || roomRef.current?.room_id !== room.room_id) return
       setRoom(response.data as FormalRoom)
       setMessage(ready ? '已准备，等待其他成员。' : '已取消准备。')
     } catch (error) {
@@ -1053,6 +1100,8 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   const acceptInvitation = async (invitation: FormalInvitation) => {
     try {
       const response = await onlineApi.post(`/multiplayer-rooms/invitations/${invitation.invitation_id}/accept`, { characterIds: selectedIds })
+      if (!isCurrentSession()) return
+      draftRevision.current++
       setRoom(response.data as FormalRoom)
       setSelectedDungeonId((response.data as FormalRoom).dungeon_id)
       setInvitations((current) => current.filter((item) => item.invitation_id !== invitation.invitation_id))
@@ -1066,6 +1115,8 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     if (!room) return
     try {
       await onlineApi.post(`/multiplayer-rooms/${room.room_id}/leave`)
+      if (!isCurrentSession()) return
+      draftRevision.current++
       setRoom(null)
       setSelectedIds([])
       setMessage('已离开房间。')
@@ -1084,6 +1135,7 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
     try {
       const key = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : createIdempotencyKey('room-start').split(':').pop()!
       const response = await onlineApi.post(`/multiplayer-rooms/${room.room_id}/start`, {}, { headers: { 'Idempotency-Key': key } })
+      if (!isCurrentSession() || roomRef.current?.room_id !== room.room_id) return
       await enterRoomBattle(response.data as FormalRoom)
     } catch (error) {
       setMessage(getOnlineModeError(error, '房间开战失败'))
@@ -1093,9 +1145,10 @@ const FormalOnlineMultiplayerPage: React.FC = () => {
   }
 
   const enterRoomBattle = async (nextRoom: FormalRoom) => {
-    if (!player || !nextRoom.battle_seed || navigationRoomRef.current === nextRoom.room_id) return
+    if (!isCurrentSession() || !player || !nextRoom.battle_seed || navigationRoomRef.current === nextRoom.room_id) return
     navigationRoomRef.current = nextRoom.room_id
     const profile = await loadOnlineProfile(player)
+    if (!isCurrentSession()) return
     navigate('/battle', {
       state: {
         online_mode: true,

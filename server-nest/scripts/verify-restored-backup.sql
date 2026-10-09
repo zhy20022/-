@@ -32,6 +32,7 @@ DECLARE
     'world_boss_states',
     'world_boss_chests',
     'multiplayer_rooms',
+    'multiplayer_room_events',
     'multiplayer_room_members',
     'multiplayer_room_invitations',
     'player_characters',
@@ -60,6 +61,16 @@ BEGIN
 
   IF current_version IS DISTINCT FROM current_setting('gamer.expected_schema_version') THEN
     RAISE EXCEPTION 'restore verification failed; unexpected schema version: %', current_version;
+  END IF;
+
+  IF (SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public'
+      AND table_name = 'multiplayer_rooms' AND column_name = 'stateVersion') <> 1 THEN
+    RAISE EXCEPTION 'restore verification failed; room version missing';
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM multiplayer_room_events e JOIN multiplayer_rooms r ON r.id=e."roomId"
+      WHERE e.version > r."stateVersion" OR e.payload->>'version' IS DISTINCT FROM e.version::text) THEN
+    RAISE EXCEPTION 'restore verification failed; inconsistent room event version';
   END IF;
 
   IF (SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public'
