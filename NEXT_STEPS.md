@@ -12,6 +12,8 @@
 
 验收脚本仅是部分 Gate：虽已补两套独立状态、失败继续、HTTPS Origin 和新migration检查，仍没有 WSS、容器双浏览器、代理空闲行为、容器备份恢复。Runner 到位后必须补真实执行证据，不把脚本 API `verified` 当成整个 Release Ready。
 
+复核证据：`C:\Users\12107\Desktop\4\release-evidence\137e9c9\deployment-recheck-20261009\result.json`；Runner 交接手册：`deploy/production/ISOLATED_DOCKER_WSS_ACCEPTANCE.md`。静态检查通过不改变 H06 状态。
+
 H06/WSS目前NOT VERIFIED；容量NOT VERIFIED；历史选角不足UNRESOLVED；不存在独立单令牌撤销登记。仅本地监督内部测试，不开放公网/真实经济。
 
 以下为前置验收范围，若hash与最新门禁不同，使用最新门禁的候选hash。
@@ -22,7 +24,7 @@ H06/WSS目前NOT VERIFIED；容量NOT VERIFIED；历史选角不足UNRESOLVED；
 
 为什么优先：房间第一阶段已有实际本地 socket、数据库和双浏览器证据；公网部署仍缺 H06、生产反代/WSS、Redis readiness 和目标数据库版本验证。继续扩展战斗实时流之前应先验证现有通信能安全部署。
 
-涉及入口：`server-nest/scripts/verify-docker-candidate.mjs`、`server-nest/scripts/e2e-room-realtime.mjs`、`server-nest/scripts/e2e-multiplayer-delivery.mjs`、`server-nest/Dockerfile`、两套 `deploy/production/docker-compose.*.yml`、Nginx/Caddy配置、新schema迁移及本次实时源文件。只有发现真实部署问题时才作必要最小修复。
+涉及入口：`server-nest/scripts/verify-docker-candidate.mjs`、`server-nest/scripts/e2e-room-realtime.mjs`、`server-nest/scripts/e2e-multiplayer-delivery.mjs`、`server-nest/Dockerfile`、两套 `deploy/production/docker-compose.*.yml`、Nginx/Caddy配置、新schema迁移及本次实时源文件；执行条件和代理 overlay 约束见 `deploy/production/ISOLATED_DOCKER_WSS_ACCEPTANCE.md`。只有发现真实部署问题时才作必要最小修复。
 
 完成标准：
 

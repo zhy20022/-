@@ -4,6 +4,12 @@
 
 **Candidate：`137e9c9da330150127144de1dc6c1d690527056c`；Branch：`main`；Schema：`MultiplayerRoomEvents1788514000000`。** 冻结范围包含实时实现 `72d2ab2`、文档 `594f48d` 和 Docker 验收脚本的最小修正。没有 amend、push 或部署公网；验收结果另作后续 docs-only commit，不取代这个不可变候选。
 
+### 2026-10-09 部署复核补充
+
+固定候选的第二次 Docker 预检与静态部署复核证据位于 `C:\Users\12107\Desktop\4\release-evidence\137e9c9\deployment-recheck-20261009\result.json`。37 项 Compose、Dockerfile、migration、代理路由和候选完整性静态检查通过；`docker version` / Compose 预检仍因本机没有 Docker CLI 返回 `spawnSync docker ENOENT`。没有执行镜像构建、容器启动、PostgreSQL 16/Redis 7、TLS/WSS 或容器业务流程，因此 H06、WSS、容器数据库对账仍为 `NOT VERIFIED`，Runner 为 `BLOCKED`。本次新增的执行手册是 [`deploy/production/ISOLATED_DOCKER_WSS_ACCEPTANCE.md`](deploy/production/ISOLATED_DOCKER_WSS_ACCEPTANCE.md)。
+
+本次轻量前端 reducer/Mock transport 单测通过；没有把它们当作容器或浏览器反代证据。历史选角不足复核仍显示 8 局完成、第 9 局 `3+2 ready UI start enabled` 超时，归档缺少完整 `selectedIds` 和请求时序，根因继续为 `UNRESOLVED`。容量测试继续 `NOT VERIFIED`。
+
 ### 固定 Commit 实际重新验证
 
 干净检出：`C:\Users\12107\AppData\Local\Temp\gamer-rc-realtime-137e9c9`，detached HEAD 与候选完全一致。两端 `npm ci --registry=https://registry.npmjs.org` 退出0；最终Git status干净，两端lock的JSON与commit一致。无原工作树未跟踪文件依赖。

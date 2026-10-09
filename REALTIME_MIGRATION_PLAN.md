@@ -8,6 +8,8 @@
 
 Docker CLI/Compose/获授权隔离 Runner 缺失，两套正式 Nest Compose（prod Nginx、public-api Caddy）的Build/Start/Migration/Readiness/Worker/Content均NOT VERIFIED，Runner BLOCKED。真实HTTPS/WSS反代、代理环境恢复/心跳/空闲行为尚未执行。旧Python playable Compose不是正式Gate目标。
 
+2026-10-09 固定候选复核新增 37 项静态检查和一次独立 Docker 预检，证据在 `C:\Users\12107\Desktop\4\release-evidence\137e9c9\deployment-recheck-20261009\result.json`。复核确认 Nginx 默认模板仍为 HTTP-only，TLS 示例和 Caddy 路由只能作为配置输入，不能代替真实网关启动。隔离 Runner、证书信任、容器双浏览器和 WSS 断线恢复的具体执行边界见 `deploy/production/ISOLATED_DOCKER_WSS_ACCEPTANCE.md`；这些项目仍未验证。
+
 验收脚本补HTTPS测试Origin、当前事件migration和两套失败独立记录；它没有实现完整代理WSS验收，不把脚本存在、语法通过或本地直连WS当成发布PASS。当前只可隔离本地内部测试；下一步唯一任务是获得授权Runner并关闭这项生产门禁，容量与单token撤销边界继续保留。
 
 ## 实施状态更新：第一阶段可恢复实时房间
