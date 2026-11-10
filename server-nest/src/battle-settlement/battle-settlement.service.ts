@@ -11,6 +11,7 @@ import { InventoryGrantItem, InventoryService } from '../inventory/inventory.ser
 import { ServerBattle } from './battle-simulation.service';
 import { OnlineFeaturesService } from '../online-features/online-features.service';
 import { FriendsAssistService } from '../friends-assist/friends-assist.service';
+import { bossMaterialCount, playbackTime } from '../dungeons/dungeon-rules';
 
 export interface BattleSettlementInput {
   playerId: string;
@@ -75,7 +76,7 @@ export class BattleSettlementService {
       if (!authoritative || authoritative.engineVersion !== 'authored-python-v1') {
         throw new BadRequestException('legacy battle entry; start a new server-computed battle');
       }
-      if (authoritative.duration > elapsed * 4 + 1) {
+      if (authoritative.duration > playbackTime(ticket) + 1) {
         throw new BadRequestException('battle duration exceeds elapsed server time at maximum 4x speed');
       }
       player.flags = { ...player.flags, activeBattleSeed: null };
@@ -125,7 +126,18 @@ export class BattleSettlementService {
         damageScore: authoritative.damageScore,
         rewards: undefined,
       };
-      const normalizedRewards = experienceResult
+      const isMaterialDungeon = onlineDungeon && ['SQUAD', 'TEAM'].includes(onlineDungeon.dungeonType);
+      const materialCount = isMaterialDungeon
+        ? bossMaterialCount(Number(authoritative.bossesKilled || 0), Number(authoritative.bossesSpawned || 0), authoritative.success) : 0;
+      const normalizedRewards = isMaterialDungeon
+        ? materialCount > 0 ? [{
+          itemConfigId: onlineDungeon.dungeonType === 'SQUAD' ? 'exclusive_material' : 'equipment_material',
+          itemType: 'material', quantity: materialCount,
+          payload: { materialType: onlineDungeon.dungeonType === 'SQUAD' ? 'EXCLUSIVE_ITEM' : 'EQUIPMENT_SET',
+            name: onlineDungeon.dungeonType === 'SQUAD' ? '角色专属道具制作材料' : '套装制作材料',
+            attributeType: onlineDungeon.attributeType },
+        }] : []
+        : experienceResult
         ? this.buildExperienceRewards(experienceResult.expCrystals)
         : await this.normalizeRewards(effectiveInput, manager);
       const granted = normalizedRewards.length > 0
@@ -159,7 +171,8 @@ export class BattleSettlementService {
           assistRewards.push({ helperPlayerId: helper.playerId, helperCharacterId: helper.id, recordId: assist.id });
         }
       }
-      const progress = await this.updateProgress(manager, effectiveInput);
+      const progress = await this.updateProgress(manager, effectiveInput, authoritative.noDeaths === true,
+        !ticket.roomId && assistIds.length === 0, Number(authoritative.bossesKilled || 0));
       const record = await manager.save(manager.create(BattleRecordEntity, {
         playerId: input.playerId,
         dungeonId: input.dungeonId,
@@ -234,7 +247,7 @@ export class BattleSettlementService {
     }];
   }
 
-  private async updateProgress(manager: EntityManager, input: BattleSettlementInput) {
+  private async updateProgress(manager: EntityManager, input: BattleSettlementInput, noDeaths = false, solo = false, bossesKilled = 0) {
     const progress = manager.getRepository(DungeonProgressEntity);
     let row = await progress.findOne({
       where: { playerId: input.playerId, dungeonId: input.dungeonId },
@@ -252,6 +265,9 @@ export class BattleSettlementService {
       });
     }
     row.totalAttempts += 1;
+    const flawlessCount = Number(row.bestRecord?.flawlessCount || 0) + (input.success && noDeaths ? 1 : 0);
+    const soloClears = Number(row.bestRecord?.soloClears || 0) + (input.success && solo ? 1 : 0);
+    const maxBossesKilled = Math.max(Number(row.bestRecord?.maxBossesKilled || 0), input.success ? bossesKilled : 0);
     if (input.success) row.successfulAttempts += 1;
     else row.failedAttempts += 1;
     if (input.success && (row.bestDuration == null || input.duration < row.bestDuration)) {
@@ -263,6 +279,7 @@ export class BattleSettlementService {
         settledAt: new Date().toISOString(),
       };
     }
+    row.bestRecord = { ...row.bestRecord, flawlessCount, soloClears, maxBossesKilled };
     return progress.save(row);
   }
 

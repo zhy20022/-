@@ -11,6 +11,9 @@ import './DungeonPage.css'
 import ElementBadge from '../components/ElementBadge'
 import { getAttributeColor } from '../services/elementTheme'
 import { safeErrorLog } from '../services/safeErrorLog'
+import { compareCharactersByNumber, getCharacterNumber, CharacterNumberSource } from '../services/characterCatalog'
+import { SeasonTabs } from '../components/SeasonTabs'
+import { getSeasonNumber } from '../services/seasons'
 
 interface DungeonProgress {
   completion_count: number
@@ -24,6 +27,7 @@ interface DungeonProgress {
 }
 
 interface Dungeon {
+  season?: number
   dungeon_id: string
   name: string
   dungeon_type: string
@@ -48,7 +52,7 @@ interface Dungeon {
   progress?: DungeonProgress
 }
 
-interface Character {
+interface Character extends CharacterNumberSource {
   character_id: string
   name: string
   profession_type: string
@@ -209,6 +213,10 @@ const normalizeDifficulty = (difficulty?: string) => {
   }
   return difficultyMap[difficulty || ''] || 'normal'
 }
+const getAttributeName = (attribute: string) => ({
+  WATER: '水', EARTH: '土', THUNDER: '雷', WIND: '风',
+  FIRE: '火', WOOD: '木', LIGHT: '光', DARK: '暗',
+}[normalizeAttribute(attribute)] || attribute)
 
 const DungeonPage: React.FC = () => {
   const navigate = useNavigate()
@@ -237,6 +245,7 @@ const DungeonPage: React.FC = () => {
   const [filterAttribute, setFilterAttribute] = useState<FilterAttribute>('ALL')
   const [filterDifficulty, setFilterDifficulty] = useState<FilterDifficulty>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
+  const [difficultyOptions, setDifficultyOptions] = useState<Dungeon[] | null>(null)
 
   useEffect(() => {
     mountedRef.current = true
@@ -306,8 +315,20 @@ const DungeonPage: React.FC = () => {
   }
 
   const handleStartDungeon = (dungeon: Dungeon) => {
+    const variants = dungeons.filter((entry) => normalizeDungeonType(entry.dungeon_type) === 'SINGLE'
+      && normalizeAttribute(entry.attribute_type) === normalizeAttribute(dungeon.attribute_type))
+      .sort((a, b) => (a.difficulty_order || 1) - (b.difficulty_order || 1))
+    if (normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE' && variants.length > 1) {
+      setDifficultyOptions(variants)
+      return
+    }
+    enterDungeon(dungeon)
+  }
+
+  const enterDungeon = (dungeon: Dungeon) => {
     detailRequestRef.current++
     setDetailLoadingId(null)
+    setSelectedCharacters([])
     if (isFormalOnlineMode() || normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE') {
       // 单人副本，直接选择角色
       setSelectedDungeon(dungeon)
@@ -344,13 +365,16 @@ const DungeonPage: React.FC = () => {
     startingBattle.current = true
     try {
       if (isFormalOnlineMode()) {
-        const payload = await loadOnlineDungeons(player)
-        const character = payload.characters.find((item: Character) => selectedCharacters.includes(item.character_id))
+        const character = characters.find((item: Character) => selectedCharacters.includes(item.character_id))
         if (!character) {
           alert('请选择当前在线账号拥有的角色')
           return
         }
-        const startResponse = await onlineApi.post(`/dungeons/${payload.session.player.id}/${selectedDungeon.dungeon_id}/start`, { characterIds: selectedCharacters })
+        const playerId = player?.player_id
+        if (!playerId) throw new Error('请重新登录')
+        const startResponse = await onlineApi.post(`/dungeons/${playerId}/${selectedDungeon.dungeon_id}/start`, { characterIds: selectedCharacters }, {
+          headers: { 'Idempotency-Key': crypto.randomUUID() },
+        })
         completeNewPlayerGuideStep('learn_dungeons')
         if (normalizeDungeonType(selectedDungeon.dungeon_type) === 'SINGLE') {
           completeNewPlayerGuideStep('run_exp_dungeon')
@@ -358,11 +382,11 @@ const DungeonPage: React.FC = () => {
         navigate('/battle', {
           state: {
             online_mode: true,
-            player_id: payload.session.player.id,
+            player_id: playerId,
             dungeon_id: selectedDungeon.dungeon_id,
             dungeon: selectedDungeon,
             character_ids: selectedCharacters,
-            characters: selectedCharacters.map(id => payload.characters.find((item: Character) => item.character_id === id)).filter(Boolean),
+            characters: selectedCharacters.map(id => characters.find((item: Character) => item.character_id === id)).filter(Boolean),
             settlement_key: startResponse.data.battleSeed,
           }
         })
@@ -414,7 +438,7 @@ const DungeonPage: React.FC = () => {
 
   // 筛选和排序后的副本列表
   const filteredAndSortedDungeons = useMemo(() => {
-    let filtered = [...dungeons]
+    let filtered = dungeons.filter(dungeon => getSeasonNumber(dungeon) === 1)
     
     // 标签页筛选
     if (activeTab !== 'ALL') {
@@ -473,7 +497,14 @@ const DungeonPage: React.FC = () => {
       return (a.difficulty_order || 1) - (b.difficulty_order || 1)
     })
     
-    return filtered
+    const seenExperienceAttributes = new Set<string>()
+    return filtered.filter((dungeon) => {
+      if (normalizeDungeonType(dungeon.dungeon_type) !== 'SINGLE') return true
+      const key = normalizeAttribute(dungeon.attribute_type)
+      if (seenExperienceAttributes.has(key)) return false
+      seenExperienceAttributes.add(key)
+      return true
+    })
   }, [dungeons, activeTab, filterAttribute, filterDifficulty, searchQuery])
 
   const getDifficultyClass = (dungeon: Dungeon) => {
@@ -500,7 +531,8 @@ const DungeonPage: React.FC = () => {
     e.stopPropagation()
     
     if (!dungeon.progress?.sweep_unlocked) {
-      alert(`扫荡功能未解锁，需要通关${dungeon.progress?.sweep_unlock_count || 50}次`)
+      alert(normalizeDungeonType(dungeon.dungeon_type) === 'SQUAD' ? '单人通关5次解锁扫荡'
+        : normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE' ? '通关10次解锁扫荡' : '无角色阵亡通关10次解锁扫荡')
       return
     }
     
@@ -513,7 +545,9 @@ const DungeonPage: React.FC = () => {
     try {
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineDungeons(player)
-        const character = payload.characters.find((item: Character) => normalizeAttribute(item.attribute_type) === normalizeAttribute(dungeon.attribute_type))
+        const character = normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE'
+          ? payload.characters.find((item: Character) => normalizeAttribute(item.attribute_type) === normalizeAttribute(dungeon.attribute_type))
+          : payload.characters[0]
         if (!character) {
           alert('没有可用于该属性经验副本的角色')
           return
@@ -523,7 +557,9 @@ const DungeonPage: React.FC = () => {
           count,
         }, { headers: { 'Idempotency-Key': createIdempotencyKey('dungeon-sweep') } })
         completeNewPlayerGuideStep('run_exp_dungeon')
-        alert(`扫荡成功：经验结晶 ${response.data?.rewards?.expCrystals || 0}，金币 ${response.data?.rewards?.gold || 0}`)
+        const awarded = response.data?.materialsAwarded || []
+        alert(`扫荡成功：${awarded.length ? awarded.map((item: any) => `${item.name} x${item.count}`).join('，')
+          : `经验结晶 ${response.data?.rewards?.expCrystals || 0}，金币 ${response.data?.rewards?.gold || 0}`}`)
         window.dispatchEvent(new Event('gamer:resources-changed'))
         await loadDungeons()
         return
@@ -715,7 +751,8 @@ const DungeonPage: React.FC = () => {
                   className={`dungeon-card ${!dungeon.is_unlocked ? 'locked' : ''}`}
                 >
                   <div className="dungeon-header">
-                    <h3>{dungeon.name}</h3>
+                    <h3>{normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE'
+                      ? `${getAttributeName(dungeon.attribute_type)}属性经验本` : dungeon.name}</h3>
                     <div className="dungeon-badges">
                       <span
                         className="dungeon-type-badge"
@@ -825,6 +862,27 @@ const DungeonPage: React.FC = () => {
             onDecision={handleRoleWarningDecision}
           />
         )}
+        {difficultyOptions && (
+          <div className="modal-overlay" onClick={() => setDifficultyOptions(null)}>
+            <div className="modal-content difficulty-picker" role="dialog" aria-modal="true" aria-label="选择副本难度"
+              onClick={(event) => event.stopPropagation()}>
+              <div className="modal-header">
+                <h2>选择副本难度</h2>
+                <button className="close-btn" aria-label="关闭难度选择" onClick={() => setDifficultyOptions(null)}>×</button>
+              </div>
+              <div className="modal-body">
+                {difficultyOptions.map((entry) => (
+                  <button type="button" className="difficulty-option" key={entry.dungeon_id} disabled={!entry.is_unlocked}
+                    onClick={() => { setDifficultyOptions(null); enterDungeon(entry) }}>
+                    <strong>{entry.difficulty || '普通'}</strong>
+                    <span>推荐等级 {getRecommendedLevelText(entry)}</span>
+                    <small>{entry.is_unlocked ? (entry.progress?.sweep_unlocked ? '已解锁扫荡' : '通关10次解锁扫荡') : entry.difficulty_unlock || '未解锁'}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {showCharacterSelect && selectedDungeon && !showRoleWarning && (
           <CharacterSelectModal
@@ -917,6 +975,22 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
   onClose,
   maxSelect
 }) => {
+  const [season, setSeason] = useState(1)
+  const [attribute, setAttribute] = useState('ALL')
+  const [profession, setProfession] = useState('ALL')
+  const [type, setType] = useState('ALL')
+  const [order, setOrder] = useState('number')
+  const filteredCharacters = useMemo(() => characters.filter((character) => (
+    getSeasonNumber(character) === season
+    && (attribute === 'ALL' || normalizeAttribute(character.attribute_type) === attribute)
+    && (profession === 'ALL' || character.profession_type.includes(profession))
+    && (type === 'ALL' || character.profession_type.includes(type)
+      || type === 'MAGIC' && ['HEALER', 'SUPPORT'].includes(character.profession_type))
+  )).sort((a, b) => (
+    order === 'level-desc' ? b.level - a.level || compareCharactersByNumber(a, b)
+      : order === 'level-asc' ? a.level - b.level || compareCharactersByNumber(a, b)
+        : compareCharactersByNumber(a, b)
+  )), [characters, season, attribute, profession, type, order])
   const isExperienceDungeon = normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE' && dungeon.reward_config?.type === 'experience'
   const requiredAttribute = normalizeAttribute(dungeon.attribute_type)
   const canSelectCharacter = (character: Character) => (
@@ -931,13 +1005,39 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
         <div className="modal-body">
+          <SeasonTabs value={season} onChange={setSeason} />
+          <div className="roster-filters">
+            <select aria-label="角色属性筛选" value={attribute} onChange={(event) => setAttribute(event.target.value)}>
+              <option value="ALL">全部属性</option>
+              {['WATER', 'EARTH', 'THUNDER', 'WIND', 'FIRE', 'WOOD', 'LIGHT', 'DARK'].map((value) => (
+                <option key={value} value={value}>{getAttributeName(value)}</option>
+              ))}
+            </select>
+            <select aria-label="角色职业筛选" value={profession} onChange={(event) => setProfession(event.target.value)}>
+              <option value="ALL">全部职业</option>
+              <option value="TANK">坦克</option><option value="DPS">输出</option>
+              <option value="HEALER">治疗</option><option value="SUPPORT">辅助</option>
+            </select>
+            <select aria-label="角色类型筛选" value={type} onChange={(event) => setType(event.target.value)}>
+              <option value="ALL">全部类型</option>
+              <option value="PHYSICAL">物理</option><option value="MAGIC">法术</option>
+            </select>
+            <select aria-label="角色等级排序" value={order} onChange={(event) => setOrder(event.target.value)}>
+              <option value="number">角色编号</option>
+              <option value="level-desc">等级从高到低</option><option value="level-asc">等级从低到高</option>
+            </select>
+          </div>
+          {filteredCharacters.length === 0 && <p role="status">暂无符合条件的角色</p>}
           <div className="characters-select-grid">
-            {characters.map((char) => (
-              <div
+            {filteredCharacters.map((char) => (
+              <button type="button"
                 key={char.character_id}
+                aria-pressed={selectedCharacters.includes(char.character_id)}
+                disabled={(selectedCharacters.length >= maxSelect && !selectedCharacters.includes(char.character_id)
+                  && normalizeDungeonType(dungeon.dungeon_type) !== 'SINGLE') || !canSelectCharacter(char)}
                 className={`character-select-card ${selectedCharacters.includes(char.character_id) ? 'selected' : ''} ${(selectedCharacters.length >= maxSelect && !selectedCharacters.includes(char.character_id)) || !canSelectCharacter(char) ? 'disabled' : ''}`}
                 onClick={() => {
-                  if (canSelectCharacter(char) && (selectedCharacters.length < maxSelect || selectedCharacters.includes(char.character_id))) {
+                  if (canSelectCharacter(char) && (maxSelect === 1 || selectedCharacters.length < maxSelect || selectedCharacters.includes(char.character_id))) {
                     onToggle(char.character_id)
                   }
                 }}
@@ -946,7 +1046,9 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
                   <div className="character-level">Lv.{char.level}</div>
                 </div>
                 <div className="character-select-info">
+                  <small>#{getCharacterNumber(char) ?? '?'}</small>
                   <h4>{char.name}</h4>
+                  <ElementBadge attribute={char.attribute_type} />
                   <p>{getProfessionLabel(char.profession_type)}</p>
                   {isExperienceDungeon && !canSelectCharacter(char) && (
                     <small>只能进入同属性经验本</small>
@@ -955,7 +1057,7 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
                 {selectedCharacters.includes(char.character_id) && (
                   <div className="select-checkmark">✓</div>
                 )}
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -1364,7 +1466,8 @@ const DungeonDetailModal: React.FC<DungeonDetailModalProps> = ({
                   <span className="progress-value">
                     {dungeon.progress_summary?.sweep_unlocked || dungeon.progress.sweep_unlocked
                       ? '✓ 已解锁'
-                      : `✗ 未解锁（${dungeon.progress_summary?.sweep_text || `需通关${dungeon.progress.sweep_unlock_count || 50}次`}）`}
+                      : normalizeDungeonType(dungeon.dungeon_type) === 'SQUAD' ? '未解锁（需单人通关5次）'
+                        : normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE' ? '未解锁（需通关10次）' : '未解锁（需无阵亡通关10次）'}
                   </span>
                 </div>
               </div>

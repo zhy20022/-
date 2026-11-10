@@ -1,6 +1,7 @@
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { CHARACTER_POOL, CharacterPoolEntry } from '../data/characterPool'
 import { isStaticDemoMode } from '../config'
+import { SWEEP_UNLOCK_COUNT } from './seasons'
 
 interface DemoCharacter {
   character_id: string
@@ -44,6 +45,7 @@ interface DemoDungeon {
   }
   progress: {
     completion_count: number
+    flawless_count?: number
     total_attempts: number
     sweep_unlocked: boolean
     sweep_unlock_count: number
@@ -87,6 +89,14 @@ interface DemoState {
 }
 
 const demoKey = 'gamer_static_demo_state'
+let memoryState: DemoState | undefined
+let lastPersisted: string | null = null
+window.addEventListener('storage', (event) => {
+  if (event.key === demoKey || event.key === null) {
+    memoryState = undefined
+    lastPersisted = null
+  }
+})
 
 export const installStaticDemoApi = () => {
   if (!isStaticDemoMode()) return
@@ -99,6 +109,8 @@ export const installStaticDemoApi = () => {
     try {
       return response(config, 200, handleDemoRequest(config, url))
     } catch (error) {
+      memoryState = undefined
+      lastPersisted = null
       return response(config, 500, {
         success: false,
         message: error instanceof Error ? error.message : 'Static demo request failed',
@@ -205,7 +217,7 @@ const handleDemoRequest = (config: InternalAxiosRequestConfig, url: string) => {
   if (dungeonSweep && method === 'post') {
     const dungeon = state.dungeons.find((item) => item.dungeon_id === dungeonSweep[1])
     if (!dungeon || !dungeon.progress.sweep_unlocked) {
-      return { success: false, message: `扫荡功能未解锁，需要通关${dungeon?.progress.sweep_unlock_count || 50}次` }
+      return { success: false, message: '扫荡功能未解锁，需要无角色阵亡通关10次' }
     }
     const count = Math.min(Math.max(Number(body.count || 1), 1), 10)
     const expCrystals = getDungeonExpReward(dungeon) * count
@@ -334,6 +346,7 @@ const parseBody = (data: unknown) => {
 }
 
 const loadState = (): DemoState => {
+  if (memoryState) return memoryState
   const cached = localStorage.getItem(demoKey)
   if (cached) {
     let parsed: unknown
@@ -346,20 +359,23 @@ const loadState = (): DemoState => {
     if (parsed !== undefined) {
       const state = normalizeState(parsed as DemoState)
       saveState(state, cached)
+      memoryState = state
       return state
     }
   }
   const state = createDefaultState()
   saveState(state)
+  memoryState = state
   return state
 }
 
 const saveState = (state: DemoState, previous?: string) => {
   const serialized = JSON.stringify(state)
   // Reuse the serialization needed for migration checks; do not rewrite unchanged saves.
-  if (serialized !== previous) {
+  if (serialized !== (previous ?? lastPersisted)) {
     localStorage.setItem(demoKey, serialized)
   }
+  lastPersisted = serialized
 }
 
 const attributeNames: Record<string, string> = {
@@ -420,19 +436,21 @@ const mergeDungeons = (current: DemoDungeon[], required: DemoDungeon[]) => {
   const byId = new Map(current.map((dungeon) => [dungeon.dungeon_id, dungeon]))
   return required.map((dungeon) => ({
     ...dungeon,
-    progress: normalizeDungeonProgress(byId.get(dungeon.dungeon_id)?.progress || dungeon.progress)
+    progress: normalizeDungeonProgress(byId.get(dungeon.dungeon_id)?.progress || dungeon.progress, dungeon.dungeon_type)
   }))
 }
 
-const normalizeDungeonProgress = (progress: DemoDungeon['progress']) => {
+const normalizeDungeonProgress = (progress: DemoDungeon['progress'], dungeonType: string) => {
   const completionCount = Number(progress.completion_count || 0)
-  const sweepUnlockCount = 50
+  const sweepUnlockCount = dungeonType === 'SQUAD' ? 5 : SWEEP_UNLOCK_COUNT
+  const flawlessCount = Math.max(0, Number(progress.flawless_count || 0))
   return {
     ...progress,
     completion_count: completionCount,
+    flawless_count: flawlessCount,
     total_attempts: Number(progress.total_attempts || 0),
     sweep_unlock_count: sweepUnlockCount,
-    sweep_unlocked: completionCount >= sweepUnlockCount || Boolean(progress.sweep_unlocked && completionCount >= sweepUnlockCount)
+    sweep_unlocked: (dungeonType === 'SINGLE' || dungeonType === 'SQUAD' ? completionCount : flawlessCount) >= sweepUnlockCount
   }
 }
 
@@ -691,7 +709,10 @@ const settleBattle = (state: DemoState, battle?: DemoBattle) => {
   if (dungeon) {
     dungeon.progress.total_attempts += 1
     dungeon.progress.completion_count += 1
-    dungeon.progress.sweep_unlocked = dungeon.progress.completion_count >= 50
+    // Demo battles have no casualty simulation; a completed battle survives.
+    dungeon.progress.flawless_count = Number(dungeon.progress.flawless_count || 0) + 1
+    dungeon.progress.sweep_unlock_count = dungeon.dungeon_type === 'SQUAD' ? 5 : SWEEP_UNLOCK_COUNT
+    dungeon.progress.sweep_unlocked = dungeon.progress.completion_count >= dungeon.progress.sweep_unlock_count
     dungeon.progress.best_record = {
       duration: battle.duration,
       rewards: { exp_crystal: expCrystals, gold: goldAwarded }
@@ -805,7 +826,8 @@ const createDungeon = (
       completion_count: 0,
       total_attempts: 0,
       sweep_unlocked: false,
-      sweep_unlock_count: 50,
+      flawless_count: 0,
+      sweep_unlock_count: dungeonType === 'SQUAD' ? 5 : SWEEP_UNLOCK_COUNT,
       best_record: {},
     },
   }
@@ -950,10 +972,10 @@ const buildResult = (state: DemoState, battle?: DemoBattle) => ({
     successful_attempts: state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.completion_count || 0,
     failed_attempts: 0,
     sweep_unlocked: Boolean(state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.sweep_unlocked),
-    sweep_unlock_count: 50,
+    sweep_unlock_count: state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.sweep_unlock_count || SWEEP_UNLOCK_COUNT,
     sweep_text: Boolean(state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.sweep_unlocked)
       ? '已解锁扫荡'
-      : '需通关50次',
+      : `通关 ${state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.completion_count || 0}/${state.dungeons.find((item) => item.dungeon_id === battle?.dungeon_id)?.progress.sweep_unlock_count || SWEEP_UNLOCK_COUNT}`,
   },
   drops: {
     events: [],

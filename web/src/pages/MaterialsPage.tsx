@@ -9,6 +9,8 @@ import CraftingPanel from '../components/materials/CraftingPanel'
 import EnhancementPanel from '../components/materials/EnhancementPanel'
 import ElementBadge from '../components/ElementBadge'
 import './MaterialsPage.css'
+import { compareCharactersByNumber } from '../services/characterCatalog'
+import { getSeasonNumber } from '../services/seasons'
 
 const tabs = [
   { key: 'overview', label: '材料总览' },
@@ -39,7 +41,7 @@ function AvatarPanel({ illustration = false }: { illustration?: boolean }) {
             if (response.status >= 400 || !response.data?.success) throw new Error('角色加载失败')
             return response.data.characters
           })
-        if (active) setCharacters(rows)
+        if (active) setCharacters(rows.filter((row: any) => getSeasonNumber(row) === 1).sort(compareCharactersByNumber))
       } catch {
         if (active) setError('角色加载失败，请重新进入此分类')
       } finally {
@@ -81,7 +83,7 @@ export default function MaterialsPage() {
       <div className="materials-container">
         <header className="materials-header">
           <button type="button" className="back-btn" onClick={() => navigate('/')}>返回主界面</button>
-          <h1>材料</h1>
+          <h1>背包</h1>
         </header>
         <nav className="materials-tabs" role="tablist" aria-label="材料分类">
           {tabs.map((tab) => (

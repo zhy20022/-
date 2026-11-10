@@ -55,8 +55,8 @@ class CraftingSystem:
     """制作系统"""
     
     # 制作消耗
-    EXCLUSIVE_ITEM_MATERIAL_COST = 20  # 专属道具：20个专属道具材料
-    EQUIPMENT_SET_MATERIAL_COST = 1    # 套装：1份套装材料
+    EXCLUSIVE_ITEM_MATERIAL_COST = 8
+    EQUIPMENT_SET_MATERIAL_COST = 10
     
     def __init__(self, player_id: str, material_bag: MaterialBag):
         """
@@ -96,7 +96,7 @@ class CraftingSystem:
                 CraftingType.EXCLUSIVE_ITEM,
                 None,
                 False,
-                "材料不足！需要20个专属道具材料"
+                "材料不足！需要8个专属道具材料"
             )
         
         # 检查是否有足够的材料

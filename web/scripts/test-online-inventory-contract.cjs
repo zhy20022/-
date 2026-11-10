@@ -27,7 +27,11 @@ function runtime() {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
   }).outputText, {
     module, exports: module.exports,
-    require(name) { assert.equal(name, './onlineApi'); return api },
+    require(name) {
+      if (name === './seasons') return { getSeasonNumber: item => Number(item.season || 1) }
+      assert.equal(name, './onlineApi')
+      return api
+    },
   })
   return {
     ...module.exports, calls, player: { player_id: session.player.id },

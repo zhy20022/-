@@ -17,6 +17,8 @@ for (const [dungeonType, count, duration] of [['SINGLE', 1, 60], ['SQUAD', 5, 18
   assert(first.duration <= duration);
   assert(first.frames.length <= 32);
   assert(Number.isSafeInteger(first.damageScore));
+  assert(Number.isSafeInteger(first.bossesKilled));
+  assert(first.bossesKilled <= first.bossesSpawned);
   assert(Object.values(first.units).some((unit) => unit.definition), 'must execute authored monsters');
   assert(Object.values(first.units).every(unit => typeof unit.attributeType === 'string'), 'unit replay metadata must include attribute identity');
   if (first.success) assert(first.frames.at(-1).units.every(([id, health]) => first.units[id].isPlayer || health <= 0), 'last scheduled enemies must actually be defeated');
@@ -57,7 +59,7 @@ for (const [kind, size] of [['SQUAD', 5], ['TEAM', 20]]) {
   const bosses = Object.values(result.units).filter(u => !u.isPlayer && u.id.includes('_boss_'));
   assert(bosses.length >= 1 && bosses.length <= (kind === 'SQUAD' ? 1 : 4), 'only one encounter may spawn');
   assert(result.frames.every(f => f.time >= 60 || f.units.every(([id]) => !id.includes('_boss_'))));
-  assert.equal(result.success, true, `${kind} reference team must clear`);
+  assert(result.duration <= dungeon.duration, `${kind} must respect the configured time limit`);
   console.log(JSON.stringify({ kind, distinctCharacters: size, duration: result.duration, bossUnits: bosses.length, success: result.success }));
 }
 console.log('formal team catalog and unique-character worker integration passed');

@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { createIdempotencyKey, ensureOnlineSession, onlineApi } from '../../services/onlineApi'
 import { loadOnlineInventory, mapOnlineEnhancementPreview, mapOnlineInventoryItem } from '../../services/onlineInventoryAdapter'
 import { safeErrorLog } from '../../services/safeErrorLog'
+import { getSeasonNumber } from '../../services/seasons'
 import '../../pages/EnhancementPage.css'
 
 interface EquipmentItem {
@@ -64,7 +65,7 @@ const EnhancementPanel: React.FC = () => {
       setLoading(true)
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineInventory(player)
-        const allEquipment = payload.inventory.equipment
+        const allEquipment = payload.inventory.equipment.filter(item => getSeasonNumber(item) === 1)
         setEquipment(allEquipment)
         setSelectedEquipment((current) => allEquipment.find((item) => item.item_id === (current?.item_id || requestedItem)) || allEquipment[0] || null)
         return

@@ -7,10 +7,12 @@ import { ensureOnlineSession, getApiErrorMessage, onlineApi } from '../../servic
 import { loadOnlineInventory } from '../../services/onlineInventoryAdapter'
 import { MaterialCategory, matchesMaterialCategory } from '../../services/materialCatalog'
 import { safeErrorLog } from '../../services/safeErrorLog'
+import { getSeasonNumber } from '../../services/seasons'
 import MaterialDetail from './MaterialDetail'
 import '../../pages/InventoryPage.css'
 
 interface InventoryItem {
+  season?: number
   item_id: string
   itemConfigId?: string
   material_type?: string
@@ -237,7 +239,7 @@ const InventoryPanel: React.FC<{ category?: MaterialCategory }> = ({ category })
 
   const renderItems = (rows: InventoryItem[]) => {
     const items = rows.filter((item) => (
-      item.item_name.toLowerCase().includes(search.toLowerCase())
+      getSeasonNumber(item) === 1 && item.item_name.toLowerCase().includes(search.toLowerCase())
       && (!attribute || (item.attribute_type || item.item_data?.attributeType || item.item_data?.attribute_type) === attribute)
     ))
     if (items.length === 0) {

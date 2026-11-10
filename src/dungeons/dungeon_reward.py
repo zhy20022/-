@@ -2,7 +2,6 @@
 
 from typing import Any, Dict
 from .dungeon import Dungeon, DungeonType
-import random
 
 
 class DungeonReward:
@@ -44,7 +43,7 @@ class RewardCalculator:
             )
         elif dungeon.dungeon_type == DungeonType.SQUAD:
             reward = RewardCalculator._calculate_exclusive_material_reward(
-                duration, bosses_killed, reward_config
+                duration, bosses_killed, reward_config, is_completed
             )
         elif dungeon.dungeon_type == DungeonType.TEAM:
             reward = RewardCalculator._calculate_equipment_material_reward(
@@ -55,6 +54,8 @@ class RewardCalculator:
         else:
             return DungeonReward("unknown", {})
 
+        if dungeon.dungeon_type in (DungeonType.SQUAD, DungeonType.TEAM):
+            return reward
         return RewardCalculator._apply_reward_multiplier(reward, dungeon.get_reward_multiplier())
 
     @staticmethod
@@ -139,29 +140,18 @@ class RewardCalculator:
     def _calculate_exclusive_material_reward(
         duration: float,
         bosses_killed: int,
-        reward_config: Dict[str, Any]
+        reward_config: Dict[str, Any],
+        is_completed: bool = False
     ) -> DungeonReward:
-        base_material = reward_config.get("base_material", 20)
-        rewards = reward_config.get("rewards", {})
-        boss_reward_ratio = reward_config.get("boss_reward", 0.25)
-
-        material_count = 0
-        if duration >= 120.0:
-            material_count += int(base_material * rewards.get(120, 1.0))
-        elif duration >= 90.0:
-            material_count += int(base_material * rewards.get(90, 0.5))
-        elif duration >= 60.0:
-            material_count += int(base_material * rewards.get(60, 0.2))
-        elif duration >= 30.0:
-            material_count += int(base_material * rewards.get(30, 0.1))
-
-        boss_material = int(base_material * boss_reward_ratio)
-        material_count += bosses_killed * boss_material
+        boss_material = max(0, int(bosses_killed))
+        clear_bonus = 2 if is_completed and boss_material else 0
+        material_count = boss_material + clear_bonus
 
         return DungeonReward("exclusive_material", {
             "material_count": material_count,
-            "time_reward": material_count - (bosses_killed * boss_material),
-            "boss_reward": bosses_killed * boss_material
+            "time_reward": 0,
+            "boss_reward": boss_material,
+            "clear_bonus": clear_bonus,
         })
 
     @staticmethod
@@ -172,40 +162,13 @@ class RewardCalculator:
         is_completed: bool = False,
         team_performance: Dict[str, Any] = None
     ) -> DungeonReward:
-        base_material = reward_config.get("base_material", 1)
-        boss_drop_rate = reward_config.get("boss_drop_rate", 0.05)
-        team_performance = team_performance or {}
-
-        material_count = 0
-        if duration >= 180.0:
-            material_count += base_material
-
-        for _ in range(bosses_killed):
-            if random.random() < boss_drop_rate:
-                material_count += 1
-
-        phase_reached = int(team_performance.get("phase_reached", 0) or 0)
-        role_score = int(team_performance.get("role_profile", {}).get("score", 0) or 0)
-        pressure_peak = int(team_performance.get("pressure_peak", 0) or 0)
-        reward_tier = str(team_performance.get("reward_tier") or "C")
-        clear_bonus = base_material * 2 if is_completed else 0
-        phase_bonus = max(0, phase_reached - 1) * base_material
-        role_bonus = base_material if role_score >= 85 else 0
-        pressure_bonus = base_material if is_completed and pressure_peak and pressure_peak <= 75 else 0
-        tier_bonus = {"S": 3, "A": 2, "B": 1}.get(reward_tier, 0) * base_material
-        material_count += clear_bonus + phase_bonus + role_bonus + pressure_bonus + tier_bonus
-
+        boss_material = max(0, int(bosses_killed))
+        clear_bonus = 2 if is_completed and boss_material else 0
         return DungeonReward("equipment_material", {
-            "material_count": material_count,
-            "time_reward": base_material if duration >= 180.0 else 0,
-            "boss_drops": material_count - (base_material if duration >= 180.0 else 0) - clear_bonus - phase_bonus - role_bonus - pressure_bonus - tier_bonus,
+            "material_count": boss_material + clear_bonus,
+            "time_reward": 0,
+            "boss_drops": boss_material,
             "clear_bonus": clear_bonus,
-            "phase_bonus": phase_bonus,
-            "role_bonus": role_bonus,
-            "pressure_bonus": pressure_bonus,
-            "tier_bonus": tier_bonus,
-            "reward_tier": reward_tier,
-            "team_performance": team_performance
         })
 
     @staticmethod

@@ -9,6 +9,8 @@ import { loadOnlineProfile } from '../../services/onlineGameAdapter'
 import { equipmentSlotForMode } from '../../services/materialCatalog'
 import { safeErrorLog } from '../../services/safeErrorLog'
 import '../../pages/CraftingPage.css'
+import { compareCharactersByNumber } from '../../services/characterCatalog'
+import { getSeasonNumber } from '../../services/seasons'
 
 interface Material {
   material_type: string
@@ -85,12 +87,12 @@ const CraftingPanel: React.FC = () => {
     try {
       if (isFormalOnlineMode()) {
         const profile = await loadOnlineProfile(player)
-        setCharacters(profile.characters)
+        setCharacters(profile.characters.filter((character: any) => getSeasonNumber(character) === 1).sort(compareCharactersByNumber))
         return
       }
       const response = await axios.get('/api/characters')
       if (response.data.success) {
-        setCharacters(response.data.characters)
+        setCharacters(response.data.characters.filter((character: any) => getSeasonNumber(character) === 1).sort(compareCharactersByNumber))
       } else {
         setFeedback({ type: 'error', message: response.data.message || '加载角色失败' })
       }

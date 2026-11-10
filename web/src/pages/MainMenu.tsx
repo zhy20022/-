@@ -44,7 +44,7 @@ const MainMenu: React.FC = () => {
           <button onClick={() => openMainRoute('/characters')}>角色管理</button>
           <button onClick={() => openMainRoute('/dungeons')}>副本选择</button>
           <button onClick={() => openMainRoute('/gacha')}>角色抽取</button>
-          <button onClick={() => openMainRoute('/materials')}>材料</button>
+          <button onClick={() => openMainRoute('/materials')}>背包</button>
           <button onClick={() => openMainRoute('/shop')}>活动商店</button>
           <button onClick={() => openMainRoute('/world-boss')}>全服 Boss</button>
           <button onClick={() => openMainRoute('/achievements')}>成就</button>

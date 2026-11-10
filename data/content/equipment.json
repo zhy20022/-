@@ -3,16 +3,16 @@
   "crafting": {
     "exclusive": {
       "materialType": "EXCLUSIVE_ITEM",
-      "acceptedItemConfigIds": ["exclusive_material", "generic_battle_material"],
-      "materialCost": 20,
+      "acceptedItemConfigIds": ["exclusive_material"],
+      "materialCost": 8,
       "goldCost": 0,
       "quality": "epic",
       "baseStats": { "attack_bonus": 100, "magic_attack_bonus": 100 }
     },
     "equipmentSet": {
       "materialType": "EQUIPMENT_SET",
-      "acceptedItemConfigIds": ["equipment_material", "generic_battle_material"],
-      "materialCost": 1,
+      "acceptedItemConfigIds": ["equipment_material"],
+      "materialCost": 10,
       "goldCost": 0,
       "quality": "rare",
       "slots": ["HEAD", "CHEST", "LEGS", "BOOTS", "GLOVES", "ACCESSORY"],

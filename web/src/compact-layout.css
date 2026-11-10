@@ -1,0 +1,78 @@
+.app .characters-grid,
+.app .dungeons-grid,
+.app.mobile-shell-active .dungeons-grid,
+.app .characters-select-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.app .character-card {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  padding: 40px 12px 12px;
+  gap: 10px;
+  border-radius: 8px;
+  align-items: center;
+}
+.app .character-card .character-avatar {
+  width: 64px;
+  height: 64px;
+  aspect-ratio: 1;
+}
+.app .character-card .character-meta {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.app .character-card .character-name { font-size: 15px; overflow-wrap: anywhere; }
+.app .character-card .character-stats-preview { display: none; }
+.app .character-card .exp-text { font-size: 10px; white-space: nowrap; }
+.app .character-card .lock-btn { width: 28px; height: 28px; min-height: 28px; top: 6px; }
+.app .character-card .star-rating { top: 6px; }
+.app .character-card .character-number { top: 10px; left: 48px; }
+.app .dungeon-card {
+  min-width: 0;
+  padding: 14px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+.app .dungeon-card .dungeon-header { flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.app .dungeon-card h3 { font-size: 16px; margin: 0; overflow-wrap: anywhere; }
+.app .dungeon-card .dungeon-description,
+.app .dungeon-card .dungeon-card-summary,
+.app .dungeon-card .dungeon-info > .info-item,
+.app .dungeon-card .dungeon-progress .progress-item:nth-child(2) { display: none; }
+.app .dungeon-card .dungeon-info { flex: 1; }
+.app .dungeon-card .dungeon-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.app .dungeon-card .dungeon-actions button { flex: 1 1 65px; min-width: 0; padding: 8px; white-space: normal; }
+.app .dungeon-quick-summary { display: flex; flex-wrap: wrap; gap: 6px; }
+.app .character-select-card {
+  min-width: 0;
+  text-align: left;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  color: #263b34;
+}
+.app .character-select-avatar { height: 44px; }
+.app .character-select-info h4 { margin: 6px 0; overflow-wrap: anywhere; }
+.roster-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.roster-filters select { min-width: 0; min-height: 44px; padding: 6px; }
+.difficulty-option { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; padding: 16px; margin-bottom: 10px; text-align: left; border: 1px solid #a7b5b0; border-radius: 6px; background: white; color: #263b34; cursor: pointer; }
+.difficulty-option small { flex-basis: 100%; }
+.app .player-units { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-content: start; padding: 10px; }
+.app .player-units > h2 { grid-column: 1 / -1; font-size: 18px; }
+.app .player-units .unit-card { min-width: 0; margin: 0; padding: 10px; border-radius: 8px; overflow-wrap: anywhere; }
+.app .unit-card h3 { font-size: 14px; margin-bottom: 8px; }
+.app .unit-card .health-text { font-size: 11px; }
+@media (max-width: 600px) {
+  .app .characters-grid, .app .dungeons-grid, .app.mobile-shell-active .dungeons-grid { gap: 8px; }
+  .app .character-card { grid-template-columns: minmax(0, 1fr); padding: 40px 8px 8px; }
+  .app .character-card .character-avatar { width: 44px; height: 44px; justify-self: center; }
+  .app .character-card .character-name { font-size: 14px; }
+  .app .dungeon-card { padding: 10px; }
+  .app .dungeon-card h3 { font-size: 14px; }
+  .app .dungeon-card .dungeon-progress { font-size: 11px; padding: 6px 0; }
+  .app .battle-units { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}

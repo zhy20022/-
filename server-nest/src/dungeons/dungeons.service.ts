@@ -8,6 +8,9 @@ import { IdempotencyService } from '../common/idempotency.service';
 import { BattleRecordEntity, DungeonProgressEntity, InventoryItemEntity, MultiplayerRoomEntity, PlayerCharacterEntity, PlayerEntity, OperationRequestEntity } from '../database/entities';
 import { BattleSimulationService, ServerBattle } from '../battle-settlement/battle-simulation.service';
 import { FriendsAssistService } from '../friends-assist/friends-assist.service';
+import { InventoryService, InventoryGrantItem } from '../inventory/inventory.service';
+import { GameConfigsService } from '../configs/configs.service';
+import { bossMaterialCount, playbackTime, sweepClearCount, sweepRequirement } from './dungeon-rules';
 
 export interface OnlineDungeon {
   dungeonId: string;
@@ -56,6 +59,8 @@ export class DungeonsService {
     private readonly idempotency: IdempotencyService,
     private readonly simulation: BattleSimulationService,
     private readonly friends: FriendsAssistService,
+    private readonly inventory: InventoryService,
+    private readonly configs: GameConfigsService,
     @InjectRepository(PlayerEntity) private readonly players: Repository<PlayerEntity>,
     @InjectRepository(PlayerCharacterEntity) private readonly characters: Repository<PlayerCharacterEntity>,
   ) {}
@@ -184,12 +189,15 @@ export class DungeonsService {
     const ticket = started?.response;
     const result = ticket?.serverBattle as ServerBattle | undefined;
     if (!result) throw new NotFoundException('server battle not found');
-    const elapsed = Math.max(0, (Date.now() - Date.parse(String(ticket!.serverTime))) / 1000 * 4);
+    const elapsed = playbackTime(ticket!);
     const visible = Math.min(elapsed, result.duration);
     const frame = result.frames.filter((item) => item.time <= visible).at(-1) || result.frames[0];
     const ids = new Set(frame.units.map((row) => (row as unknown[])[0]));
     const rows = new Map(frame.units.map((row) => [(row as unknown[])[0], row as unknown[]]));
-    return { battleSeed, engineVersion: result.engineVersion, speed: 4, ready: elapsed >= result.duration,
+    const playback = ticket!.playback as { speed: number; agreedPlayerIds: string[]; totalPlayers: number } | undefined;
+    return { battleSeed, engineVersion: result.engineVersion, speed: playback?.speed || 4,
+      speedConsensus: playback ? { agreed: playback.agreedPlayerIds.length, total: playback.totalPlayers } : undefined,
+      ready: elapsed >= result.duration,
       frame, units: Object.fromEntries(Object.entries(result.units).filter(([id]) => ids.has(id)).map(([id, metadata]) =>
         [id, { ...(metadata as Record<string, unknown>), name: rows.get(id)?.[5], maxHealth: rows.get(id)?.[6], currentSkillCycle: rows.get(id)?.[7] }])),
       events: result.events.filter((event) => event.time <= visible),
@@ -233,6 +241,7 @@ export class DungeonsService {
           battleSeed, roomId, playerId: player.id, characterIds, characterOwners,
           assistCharacterIds: roster.filter((character) => character.playerId !== player.id).map((character) => character.id),
           dungeon, serverBattle, engineVersion: serverBattle.engineVersion, serverTime,
+          playback: { elapsed: 0, updatedAt: serverTime, speed: 1, agreedPlayerIds: [], totalPlayers: members.length },
         },
       }));
     }
@@ -241,7 +250,6 @@ export class DungeonsService {
 
   async sweep(playerId: string, dungeonId: string, characterId: string, count: number, idempotencyKey?: string) {
     const dungeon = this.get(dungeonId);
-    if (dungeon.dungeonType !== 'SINGLE') throw new BadRequestException('boss sweep is not enabled');
     const sweepCount = Math.max(1, Math.min(10, Math.floor(count || 1)));
     return this.idempotency.execute(playerId, 'dungeon-sweep', idempotencyKey, { dungeonId, characterId, count: sweepCount }, async ({ manager, player }) => {
       const character = await manager.findOne(PlayerCharacterEntity, {
@@ -249,10 +257,46 @@ export class DungeonsService {
         lock: { mode: 'pessimistic_write' },
       });
       if (!character) throw new NotFoundException('character not found');
-      this.assertCanEnter(dungeonId, [character]);
+      if (dungeon.dungeonType === 'SINGLE') this.assertCanEnter(dungeonId, [character]);
       let progress = await manager.findOne(DungeonProgressEntity, { where: { playerId, dungeonId }, lock: { mode: 'pessimistic_write' } });
-      if (!progress || progress.successfulAttempts < dungeon.sweepUnlockCount) {
-        throw new BadRequestException({ message: 'sweep is not unlocked', requiredClears: dungeon.sweepUnlockCount, currentClears: progress?.successfulAttempts || 0 });
+      if (!progress || sweepClearCount(dungeon.dungeonType, progress) < dungeon.sweepUnlockCount) {
+        throw new BadRequestException({ message: dungeon.dungeonType === 'SQUAD' ? 'requires 5 solo clears' : 'sweep is not unlocked',
+          requiredClears: dungeon.sweepUnlockCount, currentClears: sweepClearCount(dungeon.dungeonType, progress) });
+      }
+      if (dungeon.dungeonType !== 'SINGLE') {
+        const config = await this.configs.getContentConfig('reward_rules', manager);
+        const rules = (config.payload as {
+          battleSettlement?: {
+            defaultSuccessRewards?: InventoryGrantItem[];
+            dungeons?: Array<{ dungeonId: string; successRewards?: InventoryGrantItem[] }>;
+          };
+        } | null)?.battleSettlement;
+        const configured = rules?.dungeons?.find((entry) => entry.dungeonId === dungeonId)?.successRewards;
+        const bestBossCount = Number(progress.bestRecord?.maxBossesKilled || 0);
+        const materialRewards: InventoryGrantItem[] | null = dungeon.dungeonType === 'SQUAD' || dungeon.dungeonType === 'TEAM'
+          ? [{ itemConfigId: dungeon.dungeonType === 'SQUAD' ? 'exclusive_material' : 'equipment_material',
+            itemType: 'material', quantity: bossMaterialCount(bestBossCount, bestBossCount, true),
+            payload: { materialType: dungeon.dungeonType === 'SQUAD' ? 'EXCLUSIVE_ITEM' : 'EQUIPMENT_SET',
+              name: dungeon.dungeonType === 'SQUAD' ? '角色专属道具制作材料' : '套装制作材料', attributeType: dungeon.attributeType } }]
+          : null;
+        if (materialRewards && bestBossCount < 1) throw new BadRequestException('complete a boss clear under the current reward rules first');
+        const baseRewards = materialRewards || (configured?.length ? configured
+          : rules?.defaultSuccessRewards?.length ? rules.defaultSuccessRewards
+            : [{ itemConfigId: 'generic_battle_material', itemType: 'material', quantity: 1 }]);
+        const rewards = await this.inventory.grant(playerId, baseRewards
+          .filter((entry) => entry.quantity > 0)
+          .map((entry) => ({ ...entry, quantity: entry.quantity * sweepCount })), 'dungeon_sweep', manager);
+        progress.totalAttempts += sweepCount;
+        progress.successfulAttempts += sweepCount;
+        progress.bestRecord = { ...progress.bestRecord, lastSweepAt: new Date().toISOString(), lastSweepCount: sweepCount };
+        await manager.save(progress);
+        const record = await manager.save(manager.create(BattleRecordEntity, {
+          playerId, dungeonId, success: true, duration: 0, damageScore: 0, characterIds: [characterId],
+          rewards: { granted: rewards }, resultPayload: { mode: 'sweep', count: sweepCount },
+        }));
+        return { success: true, sweepCount, rewards: { items: rewards },
+          materialsAwarded: rewards.map((entry) => ({ name: entry.payload?.name || entry.itemConfigId, count: entry.quantity })),
+          player, progress, record };
       }
       const expCrystals = dungeon.rewardConfig.fullExp * sweepCount;
       const gold = dungeon.rewardConfig.gold * sweepCount;
@@ -335,7 +379,7 @@ export class DungeonsService {
         attributeType,
         difficulty,
         duration: 60,
-        sweepUnlockCount: 50,
+        sweepUnlockCount: 10,
         rewardConfig: {
           type: 'experience' as const,
           fullExp,
@@ -354,7 +398,7 @@ export class DungeonsService {
         dungeonId: `${prefix}_type_${dungeonType.toLowerCase()}_001`,
         name: `${name.replace('经验本', '')}-${{ SQUAD: '五人本', TEAM: '二十人本', SERVER_BOSS: '全服Boss挑战' }[dungeonType]}`,
         attributeType, dungeonType, difficulty: 'normal' as const,
-        duration: dungeonType === 'SERVER_BOSS' ? 180 : teamBalance[dungeonType].duration, sweepUnlockCount: 50,
+        duration: dungeonType === 'SERVER_BOSS' ? 180 : teamBalance[dungeonType].duration, sweepUnlockCount: sweepRequirement(dungeonType),
         ...(dungeonType === 'SERVER_BOSS' ? {} : { timeline: {
           bossSpawnTime: teamBalance[dungeonType].bossSpawnTime,
           trashWaveCount: teamBalance[dungeonType].trashWaveCount,

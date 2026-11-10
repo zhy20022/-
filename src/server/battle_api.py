@@ -121,7 +121,7 @@ def _get_or_create_progress(db_session, player_id: str, dungeon_id: str) -> Dung
 
 
 def _get_sweep_unlock_count(dungeon) -> int:
-    return 50
+    return 5 if dungeon.dungeon_type == DungeonType.SQUAD else 10
 
 
 def _get_attribute_value(value: Any) -> str:
@@ -434,7 +434,7 @@ def _build_result_progress_summary(progress: Optional[Dict[str, Any]], dungeon) 
         "failed_attempts": int((progress or {}).get("failed_attempts", 0) or 0),
         "sweep_unlocked": bool((progress or {}).get("sweep_unlocked", False)),
         "sweep_unlock_count": sweep_unlock_count,
-        "sweep_text": "unlocked" if bool((progress or {}).get("sweep_unlocked", False)) else f"{completion_count}/{sweep_unlock_count}",
+        "sweep_text": "unlocked" if bool((progress or {}).get("sweep_unlocked", False)) else f"no deaths {int(((progress or {}).get('best_record') or {}).get('flawless_count', 0))}/{sweep_unlock_count}",
     }
 
 
@@ -560,13 +560,21 @@ def _persist_player_battle_rewards(
         progress.successful_attempts += 1
         progress.is_completed = True
         progress.completion_count += 1
-        if progress.completion_count >= _get_sweep_unlock_count(battle_flow.dungeon):
-            progress.sweep_unlocked = True
         progress.last_completion_time = datetime.utcnow()
         best_record = progress.best_record or {}
+        units = battle_flow.battle.player_units if battle_flow.battle else []
+        no_deaths = bool(units) and all(
+            unit.is_alive() and not getattr(unit, "death_serial", 0) for unit in units
+        )
+        flawless_count = int(best_record.get("flawless_count", 0)) + int(no_deaths)
+        solo_clears = int(best_record.get("solo_clears", 0)) + int(not battle_flow.is_multiplayer)
         best_duration = best_record.get("duration")
         if best_duration is None or battle_flow.duration < best_duration:
-            progress.best_record = _build_best_record_payload(battle_flow, rewards_dict)
+            best_record = _build_best_record_payload(battle_flow, rewards_dict)
+        progress.best_record = {**best_record, "flawless_count": flawless_count, "solo_clears": solo_clears}
+        dungeon_type = battle_flow.dungeon.dungeon_type
+        count = progress.successful_attempts if dungeon_type == DungeonType.SINGLE else solo_clears if dungeon_type == DungeonType.SQUAD else flawless_count
+        progress.sweep_unlocked = count >= _get_sweep_unlock_count(battle_flow.dungeon)
     else:
         progress.failed_attempts += 1
 

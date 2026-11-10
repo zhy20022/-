@@ -26,7 +26,7 @@ const currentSessionKey = 'gamer_online_current_session'
 
 export const onlineApi = axios.create({
   baseURL: base.endsWith('/api') ? base : `${base}/api`,
-  timeout: 60000,
+  timeout: 15000,
 })
 
 export const createIdempotencyKey = (scope: string) => {
@@ -37,6 +37,10 @@ export const createIdempotencyKey = (scope: string) => {
 }
 
 onlineApi.interceptors.request.use((config) => {
+  // Starting a battle runs a bounded server simulation; ordinary reads fail sooner.
+  if (/\/(?:start|settle)$/.test(config.url || '') || config.url === '/battle-settlement') {
+    config.timeout = 30000
+  }
   // Public authentication must also work when an old token is expired or revoked.
   if (/(?:^|\/)auth\/(?:login|register|guest)(?:\?|$)/.test(config.url || '')) {
     config.headers.delete('Authorization')

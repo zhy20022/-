@@ -1,7 +1,9 @@
 import { isFormalOnlineMode } from '../config'
+import { getSeasonNumber } from './seasons'
 import { LegacyPlayerRef, createIdempotencyKey, ensureOnlineSession, getApiErrorMessage, onlineApi } from './onlineApi'
 
 export interface OnlineLegacyCharacter {
+  season: number
   character_id: string
   config_id?: string
   number?: number
@@ -28,6 +30,7 @@ export interface OnlineLegacyCharacter {
 }
 
 export interface OnlineLegacyDungeon {
+  season: number
   dungeon_id: string
   name: string
   dungeon_type: string
@@ -159,6 +162,7 @@ export const mapOnlineCharacter = (character: any): OnlineLegacyCharacter => {
     character.equipment?.characterName ||
     characterNameFromConfigId(character.characterConfigId || character.character_config_id)
   return {
+    season: getSeasonNumber(character),
     character_id: character.id || character.character_id,
     config_id: character.characterConfigId || character.character_config_id,
     number: character.number ?? character.characterNumber ?? character.character_number,
@@ -179,14 +183,19 @@ export const mapOnlineCharacter = (character: any): OnlineLegacyCharacter => {
   }
 }
 
-const mapProgress = (progressRows: any[], dungeonId: string, sweepUnlockCount: number) => {
+const mapProgress = (progressRows: any[], dungeonId: string, sweepUnlockCount: number, dungeonType: string) => {
   const row = progressRows.find((item) => item.dungeonId === dungeonId || item.dungeon_id === dungeonId)
   const successfulAttempts = Number(row?.successfulAttempts ?? row?.successful_attempts ?? 0)
   const totalAttempts = Number(row?.totalAttempts ?? row?.total_attempts ?? 0)
   const bestDuration = Number(row?.bestDuration ?? row?.best_duration ?? row?.bestRecord?.duration ?? row?.best_record?.duration ?? 0)
-  const sweepUnlocked = successfulAttempts >= sweepUnlockCount
+  const flawlessCount = Number(row?.bestRecord?.flawlessCount ?? row?.best_record?.flawless_count ?? 0)
+  const qualifyingCount = dungeonType === 'SINGLE' ? successfulAttempts
+    : dungeonType === 'SQUAD' ? Number(row?.bestRecord?.soloClears || 0) : flawlessCount
+  const sweepUnlocked = qualifyingCount >= sweepUnlockCount
   return {
     completion_count: successfulAttempts,
+    flawless_count: flawlessCount,
+    qualifying_count: qualifyingCount,
     total_attempts: totalAttempts,
     sweep_unlocked: sweepUnlocked,
     sweep_unlock_count: sweepUnlockCount,
@@ -200,11 +209,13 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
   const rewardConfig = dungeon.rewardConfig || dungeon.reward_config || {}
   const fullExp = Number(rewardConfig.fullExp || rewardConfig.base_exp || 0)
   const gold = Number(rewardConfig.gold || rewardConfig.base_gold || 0)
-  const sweepUnlockCount = Number(dungeon.sweepUnlockCount || dungeon.sweep_unlock_count || 50)
-  const progress = mapProgress(progressRows, dungeon.dungeonId || dungeon.dungeon_id, sweepUnlockCount)
+  const dungeonType = dungeon.dungeonType || dungeon.dungeon_type || 'SINGLE'
+  const sweepUnlockCount = dungeonType === 'SQUAD' ? 5 : 10
+  const progress = mapProgress(progressRows, dungeon.dungeonId || dungeon.dungeon_id, sweepUnlockCount, dungeonType)
   const matchingCount = characters.filter((character) => normalizeAttribute(character.attribute_type) === attribute).length
   const readyCount = characters.filter((character) => normalizeAttribute(character.attribute_type) === attribute && character.level >= 1).length
   const mapped: OnlineLegacyDungeon = {
+    season: getSeasonNumber(dungeon),
     dungeon_id: dungeon.dungeonId || dungeon.dungeon_id,
     name: dungeon.name,
     dungeon_type: dungeon.dungeonType || dungeon.dungeon_type || 'SINGLE',
@@ -242,7 +253,7 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
       ],
     },
     recommendation: {
-      recommended_level: difficulty === 'normal' ? 1 : difficulty === 'hard' ? 25 : 55,
+      recommended_level: Number(dungeon.recommendedLevel ?? dungeon.recommended_level ?? (difficulty === 'normal' ? 1 : difficulty === 'hard' ? 25 : 55)),
       recommended_attribute: attribute,
       enemy_attribute: attribute,
       attribute_hint: `经验本要求同属性角色进入：${attributeNameMap[attribute] || attribute}系角色优先。`,
@@ -265,7 +276,7 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
       best_time_text: progress.best_record.duration ? `${progress.best_record.duration.toFixed(1)}秒` : '暂无',
       best_reward_text: progress.completion_count > 0 ? `满额经验结晶 ${fullExp}` : '暂无记录',
       sweep_unlocked: progress.sweep_unlocked,
-      sweep_text: progress.sweep_unlocked ? '已解锁' : `${progress.completion_count}/${sweepUnlockCount}`,
+      sweep_text: progress.sweep_unlocked ? '已解锁' : `${dungeonType === 'SQUAD' ? '单人通关' : dungeonType === 'SINGLE' ? '通关' : '无阵亡通关'} ${progress.qualifying_count}/${sweepUnlockCount}`,
       sweep_unlock_count: sweepUnlockCount,
     },
     online_raw: dungeon,
@@ -284,7 +295,9 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
       spawn_wave_count: Number(dungeon.timeline?.trashWaveCount ?? 0),
       character_exp_per_single_kill: 0, character_exp_per_five_group_kills: 0 }
     mapped.reward_preview = { reward_type: 'boss', title: '副本奖励',
-      main: '奖励按服务器结算结果发放', details: [mapped.description], thresholds: [] }
+      main: world ? '奖励按服务器结算结果发放'
+        : `每击杀Boss获得1份${team ? '套装' : '专属道具'}制作材料，全灭Boss额外2份`,
+      details: [mapped.description], thresholds: [] }
     mapped.recommended_level_bonus = 0
     mapped.recommendation = { recommended_level: 100, recommended_attribute: attribute,
       enemy_attribute: enemies[attribute] || attribute,
@@ -295,34 +308,51 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
         { role: '输出', count: team || world ? 9 : 2 }],
       summary: world ? '挑战全服Boss并积累伤害。' : '合理配置坦克、治疗、辅助与输出，在时限内击败Boss组合。',
     }
-    mapped.progress = { ...mapped.progress, sweep_unlocked: false }
-    mapped.progress_summary = { ...mapped.progress_summary, sweep_unlocked: false,
-      sweep_text: '暂未开放', best_reward_text: progress.completion_count ? '已有通关记录' : '暂无记录' }
+    mapped.progress_summary = { ...mapped.progress_summary,
+      best_reward_text: progress.completion_count ? '已有通关记录' : '暂无记录' }
   }
   return mapped
 }
 
+const pendingProfiles = new Map<string, Promise<any>>()
+let profileRevision = 0
+window.addEventListener('gamer:resources-changed', () => {
+  profileRevision++
+  pendingProfiles.clear()
+})
+
 export const loadOnlineProfile = async (legacyPlayer: LegacyPlayerRef | null | undefined) => {
   const session = await ensureOnlineSession(legacyPlayer)
-  const response = await onlineApi.get(`/players/${session.player.id}/profile`)
-  if (response.data?.success === false) {
-    throw new Error(response.data?.message || '角色数据加载失败')
+  const key = `${session.player.id}:${session.accessToken}:${profileRevision}`
+  let pending = pendingProfiles.get(key)
+  if (!pending) {
+    pending = onlineApi.get(`/players/${session.player.id}/profile`).then(response => {
+      if (response.data?.success === false) {
+        throw new Error(response.data?.message || '角色数据加载失败')
+      }
+      return {
+        session,
+        player: response.data?.player || session.player,
+        characters: (response.data?.characters || []).map(mapOnlineCharacter),
+        inventory: response.data?.inventory || [],
+        mails: response.data?.mails || [],
+      }
+    })
+    pendingProfiles.set(key, pending)
   }
-  const characters = (response.data?.characters || []).map(mapOnlineCharacter)
-  return {
-    session,
-    player: response.data?.player || session.player,
-    characters,
-    inventory: response.data?.inventory || [],
-    mails: response.data?.mails || [],
+  try {
+    return await pending
+  } finally {
+    if (pendingProfiles.get(key) === pending) pendingProfiles.delete(key)
   }
 }
 
 export const loadOnlineDungeons = async (legacyPlayer: LegacyPlayerRef | null | undefined) => {
-  const profile = await loadOnlineProfile(legacyPlayer)
-  const [dungeonResponse, progressResponse] = await Promise.all([
+  const session = await ensureOnlineSession(legacyPlayer)
+  const [profile, dungeonResponse, progressResponse] = await Promise.all([
+    loadOnlineProfile(legacyPlayer),
     onlineApi.get('/dungeons'),
-    onlineApi.get(`/battle-settlement/${profile.session.player.id}/progress`),
+    onlineApi.get(`/battle-settlement/${session.player.id}/progress`),
   ])
   if (dungeonResponse.data?.success === false) {
     throw new Error(dungeonResponse.data?.message || '副本数据加载失败')

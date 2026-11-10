@@ -209,7 +209,12 @@ export class WorkshopService {
 
   private async rules(): Promise<EquipmentRules> {
     const config = await this.configs.getContentConfig('equipment');
-    return (config.payload as EquipmentRules | null) || DEFAULT_RULES;
+    const rules = (config.payload as EquipmentRules | null) || DEFAULT_RULES;
+    return { ...rules, crafting: {
+      ...rules.crafting,
+      exclusive: { ...rules.crafting.exclusive, materialCost: 8, acceptedItemConfigIds: ['exclusive_material'] },
+      equipmentSet: { ...rules.crafting.equipmentSet, materialCost: 10, acceptedItemConfigIds: ['equipment_material'] },
+    } };
   }
 
   private async charge(manager: EntityManager, player: PlayerEntity, rule: MaterialRule, attributeType?: string) {

@@ -18,8 +18,10 @@ const source = compile(path.join(root, 'src/services/staticDemoApi.ts'))
 
 function createStorage() {
   const values = new Map()
+  const listeners = []
   return {
-    values, gets: 0, sets: 0, removes: 0, writeAttempts: 0, removeAttempts: 0,
+    values, listeners, invalidate() { listeners.forEach(listener => listener({ key })) },
+    gets: 0, sets: 0, removes: 0, writeAttempts: 0, removeAttempts: 0,
     failReads: false, failWrites: false, failRemoves: false,
     getItem(k) {
       this.gets++
@@ -47,11 +49,13 @@ function runtime(storage = createStorage(), staticMode = true, { characterPool =
   const module = { exports: {} }
   vm.runInNewContext(source, {
     module, exports: module.exports, localStorage: storage, Error,
+    window: { addEventListener(name, listener) { if (name === 'storage') storage.listeners.push(listener) } },
     ...(json ? { JSON: json } : {}),
     require(name) {
       if (name === 'axios') return { default: axios }
       if (name === '../data/characterPool') return characterPool
       if (name === '../config') return { isStaticDemoMode: () => staticMode }
+      if (name === './seasons') return { SWEEP_UNLOCK_COUNT: 10 }
       throw new Error(`Unexpected import: ${name}`)
     }
   })
@@ -121,6 +125,7 @@ test('missing legacy fields and character fields are repaired once', async () =>
   delete old.characters[0].exp_to_next_level
   old.customExtension = { preserve: true }
   app.storage.values.set(key, JSON.stringify(old))
+  app.storage.invalidate()
   const before = app.storage.sets
   assert.equal((await app.request('/api/characters')).data.success, true)
   assert.equal(app.storage.sets, before + 1)
@@ -147,6 +152,7 @@ test('inventory and dungeon configuration migration remains durable', async () =
   delete old.dungeons[0].progress.total_attempts
   old.dungeons.pop()
   app.storage.values.set(key, JSON.stringify(old))
+  app.storage.invalidate()
   const before = app.storage.sets
   assert.equal((await app.request('/api/inventory')).data.success, true)
   assert.equal(app.storage.sets, before + 1)
@@ -178,6 +184,7 @@ test('a failed migration write reports failure without deleting valid JSON', asy
   delete old.battles
   const raw = JSON.stringify(old)
   app.storage.values.set(key, raw)
+  app.storage.invalidate()
   app.storage.failWrites = true
   const result = await app.request('/api/player/info')
   assert.equal(result.status, 500)
@@ -272,6 +279,7 @@ test('storage read failure reports failure without creating or removing a save',
   const raw = app.storage.values.get(key)
   const beforeWrites = app.storage.writeAttempts
   app.storage.failReads = true
+  app.storage.invalidate()
   const result = await app.request('/api/player/info')
   assert.equal(result.status, 500)
   assert.equal(result.data.success, false)
@@ -386,10 +394,9 @@ test('failed settlement writes are failures, and a retry persists rewards exactl
 
   app.storage.failWrites = true
   const failedRepeat = await restored.request(`/api/battle/${battleId}/result`)
-  assert.equal(failedRepeat.status, 500)
-  assert.equal(failedRepeat.data.success, false)
-  assert.equal(failedRepeat.data.message, 'QuotaExceededError')
-  assert.equal(failedRepeat.data.result, undefined)
+  assert.equal(failedRepeat.status, 200)
+  assert.equal(failedRepeat.data.success, true)
+  assert.equal(failedRepeat.data.result.battle_id, battleId)
   assert.deepEqual(read(restored), settled)
 
   app.storage.failWrites = false
@@ -420,9 +427,11 @@ test('gacha, battle speed/stop and sweep still save on their existing paths', as
   assert.equal(read(app).battles[battleId].stopped, true)
   const unlocked = read(app)
   const dungeon = unlocked.dungeons.find(d => d.dungeon_id === 'water_type_single_001')
-  dungeon.progress.completion_count = 50
+  dungeon.progress.completion_count = 10
+  dungeon.progress.flawless_count = 10
   dungeon.progress.sweep_unlocked = true
   app.storage.values.set(key, JSON.stringify(unlocked))
+  app.storage.invalidate()
   const swept = await app.request('/api/dungeons/water_type_single_001/sweep', 'post', { count: 2 })
   assert.equal(swept.data.success, true)
   assert.equal(read(app).inventory[0].count, unlocked.inventory[0].count + 1062)
@@ -435,11 +444,12 @@ test('formal mode does not install the adapter or touch storage', () => {
   assert.equal(app.storage.sets, 0)
 })
 
-test('separate modules observe each others saved changes without a memory cache', async () => {
+test('separate tabs invalidate cached state through storage events', async () => {
   const first = await canonical()
   const second = runtime(first.storage)
   await first.request('/api/auth/login', 'post', { username: 'first-tab' })
   assert.equal((await second.request('/api/player/info')).data.player.username, 'first-tab')
   await second.request('/api/auth/login', 'post', { username: 'second-tab' })
+  first.storage.invalidate()
   assert.equal((await first.request('/api/player/info')).data.player.username, 'second-tab')
 })

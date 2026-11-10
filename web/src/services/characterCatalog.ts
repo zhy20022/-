@@ -1,4 +1,5 @@
 import { CHARACTER_POOL } from '../data/characterPool'
+import { getSeasonNumber, SeasonSource } from './seasons'
 
 export interface CharacterCatalogEntry {
   configId: string
@@ -6,7 +7,7 @@ export interface CharacterCatalogEntry {
   name: string
 }
 
-export interface CharacterNumberSource {
+export interface CharacterNumberSource extends SeasonSource {
   character_id?: string
   config_id?: string
   characterConfigId?: string
@@ -25,6 +26,7 @@ export const localCharacterCatalog: CharacterCatalogEntry[] = CHARACTER_POOL.map
   number: entry.number,
   name: entry.name,
 }))
+const defaultNumberMap = new Map(localCharacterCatalog.map((entry) => [entry.configId, entry.number]))
 
 export const createCharacterNumberMap = (entries: CharacterCatalogEntry[] = localCharacterCatalog) => {
   const map = new Map<string, number>()
@@ -43,11 +45,12 @@ export const createCharacterNumberMap = (entries: CharacterCatalogEntry[] = loca
 
 export const getCharacterNumber = (
   character: CharacterNumberSource,
-  numberMap: Map<string, number> = createCharacterNumberMap(),
+  numberMap: Map<string, number> = defaultNumberMap,
 ) => {
   const configId = character.config_id
     || character.characterConfigId
     || character.character_config_id
+    || (character.character_id && defaultNumberMap.has(character.character_id) ? character.character_id : undefined)
   if (configId && numberMap.has(configId)) return numberMap.get(configId)
 
   // Explicit response numbers are usable only when no configuration mapping exists.
@@ -59,8 +62,10 @@ export const getCharacterNumber = (
 export const compareCharactersByNumber = (
   left: CharacterNumberSource,
   right: CharacterNumberSource,
-  numberMap: Map<string, number> = createCharacterNumberMap(),
+  numberMap: Map<string, number> = defaultNumberMap,
 ) => {
+  const seasonOrder = getSeasonNumber(left) - getSeasonNumber(right)
+  if (seasonOrder) return seasonOrder
   const leftNumber = getCharacterNumber(left, numberMap)
   const rightNumber = getCharacterNumber(right, numberMap)
 

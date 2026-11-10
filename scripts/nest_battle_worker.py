@@ -125,7 +125,11 @@ def simulate(request):
     alive = any(u.is_alive() for u in battle.player_units)
     success = flow.is_successful and alive
     return {'engineVersion': 'authored-python-v1', 'duration': round(battle.current_time, 2),
-        'success': success, 'survived': alive, 'singleMonstersKilled': flow.single_monsters_killed,
+        'success': success, 'survived': alive,
+        'noDeaths': all(u.is_alive() and not getattr(u, 'death_serial', 0) for u in battle.player_units),
+        'bossesKilled': flow.bosses_killed,
+        'bossesSpawned': sum(1 for unit in battle.enemy_units if getattr(unit, 'spawn_category', None) == 'boss'),
+        'singleMonstersKilled': flow.single_monsters_killed,
         'groupMonstersKilled': flow.group_monsters_killed,
         'damageScore': int(sum(row['total_damage'] for row in battle.damage_stats.values())),
         'units': metadata, 'frames': frames, 'events': events}

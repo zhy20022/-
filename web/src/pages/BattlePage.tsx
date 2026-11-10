@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { io, Socket } from 'socket.io-client'
 import axios from 'axios'
-import { getSocketUrl, isFormalOnlineMode } from '../config'
+import { getSocketUrl, isFormalOnlineMode, isStaticDemoMode } from '../config'
 import { getOnlineModeError, onlineApi } from '../services/onlineGameAdapter'
 import './BattlePage.css'
 import { serverBattleSnapshot, type ServerBattleStatus } from '../services/serverBattleReplay'
@@ -365,12 +365,12 @@ const BattlePage: React.FC = () => {
   ))
   const socketRef = useRef<Socket | null>(null)
   const pollRef = useRef<number | null>(null)
-  const endTimeoutRef = useRef<number | null>(null)
-  const redirectIntervalRef = useRef<number | null>(null)
+  const resultRetryRef = useRef<number | null>(null)
+  const battleGenerationRef = useRef(0)
   const onlineBattleTimerRef = useRef<number | null>(null)
   const battleSpeedRef = useRef(1)
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null)
-  const [autoNavigate, setAutoNavigate] = useState(true)
+  const [retrying, setRetrying] = useState(false)
+  const retryPending = useRef(false)
   const [assistEnabled, setAssistEnabled] = useState(false)
   const [dropFeed, setDropFeed] = useState<DropEventEntry[]>([])
   const [dropFilters, setDropFilters] = useState<{ type: string; rarity: string; owner: string }>({
@@ -459,14 +459,7 @@ const BattlePage: React.FC = () => {
   }
 
   const clearRedirectTimers = () => {
-    if (endTimeoutRef.current !== null) {
-      window.clearTimeout(endTimeoutRef.current)
-      endTimeoutRef.current = null
-    }
-    if (redirectIntervalRef.current !== null) {
-      window.clearInterval(redirectIntervalRef.current)
-      redirectIntervalRef.current = null
-    }
+    // Results remain open until the player chooses the next action.
   }
 
   const stopOnlineBattleTimer = () => {
@@ -476,32 +469,39 @@ const BattlePage: React.FC = () => {
     }
   }
 
-  const startRedirectTimer = (result: BattleResultPayload, seconds = 5) => {
-    clearRedirectTimers()
-    setAutoNavigate(true)
-    setRedirectCountdown(seconds)
-    endTimeoutRef.current = window.setTimeout(() => {
-      navigate('/dungeons', { state: { battleResult: result } })
-    }, seconds * 1000)
-    redirectIntervalRef.current = window.setInterval(() => {
-      setRedirectCountdown((prev) => {
-        if (prev === null) return prev
-        if (prev <= 1) {
-          if (redirectIntervalRef.current !== null) {
-            window.clearInterval(redirectIntervalRef.current)
-            redirectIntervalRef.current = null
-          }
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
-
   const cancelAutoNavigate = () => {
     clearRedirectTimers()
-    setAutoNavigate(false)
-    setRedirectCountdown(null)
+  }
+  const retryBattle = async () => {
+    if (retryPending.current) return
+    retryPending.current = true
+    setRetrying(true)
+    try {
+      const state = location.state || {}
+      if (state.multiplayer_room_id) {
+        navigate('/dungeons/multiplayer', { state: { dungeon_id: state.dungeon_id, rematch: true } })
+        return
+      }
+      const next = { ...state }
+      if (isOnlineMode) {
+        const response = await onlineApi.post(`/dungeons/${state.player_id}/${state.dungeon_id}/start`, {
+          characterIds: state.character_ids,
+        }, { headers: { 'Idempotency-Key': crypto.randomUUID() } })
+        next.settlement_key = response.data.battleSeed
+        delete next.battle_id
+      } else {
+        const response = await axios.post(`/api/dungeons/${state.dungeon_id}/start`, { character_ids: state.character_ids })
+        if (!response.data?.success) throw new Error(response.data?.message || '再次战斗失败')
+        next.battle_id = response.data.battle_id
+        next.battle_already_started = false
+      }
+      navigate('/battle', { replace: true, state: next })
+    } catch (error) {
+      setBattleNotice(getOnlineModeError(error, '再次战斗失败，请重试'))
+    } finally {
+      retryPending.current = false
+      setRetrying(false)
+    }
   }
   
   useEffect(() => {
@@ -554,14 +554,18 @@ const BattlePage: React.FC = () => {
     setSnapshot((prev) => (prev ? { ...prev, result } : prev))
     setBattleNotice(result.error ? '战斗结算遇到异常，请查看错误信息。' : '战斗已结算，奖励已同步。')
     stopPolling()
-    if (!result.error) {
-      startRedirectTimer(result)
-    } else {
-      cancelAutoNavigate()
-    }
+    if (resultRetryRef.current !== null) window.clearTimeout(resultRetryRef.current)
+    resultRetryRef.current = null
+    cancelAutoNavigate()
   }
 
   useEffect(() => {
+    const generation = ++battleGenerationRef.current
+    setBattleResult(null)
+    setSnapshot(null)
+    setDropFeed([])
+    setDropPage(1)
+    setLoading(true)
     const dungeonId = location.state?.dungeon_id
     const existingBattleId = location.state?.battle_id
     const characterIds = location.state?.character_ids
@@ -587,7 +591,7 @@ const BattlePage: React.FC = () => {
         startPolling(existingBattleId)
       } else {
         startBattle(existingBattleId).then((started) => {
-          if (started) {
+          if (started && generation === battleGenerationRef.current) {
             startPolling(existingBattleId)
           }
         })
@@ -597,6 +601,9 @@ const BattlePage: React.FC = () => {
     }
 
     return () => {
+      battleGenerationRef.current++
+      if (resultRetryRef.current !== null) window.clearTimeout(resultRetryRef.current)
+      resultRetryRef.current = null
       stopPolling()
       stopOnlineBattleTimer()
       clearRedirectTimers()
@@ -605,7 +612,7 @@ const BattlePage: React.FC = () => {
         socketRef.current.disconnect()
       }
     }
-  }, [])
+  }, [routerLocation.key])
 
   const startOnlineExperienceBattle = () => {
     const dungeon = location.state?.dungeon
@@ -648,6 +655,9 @@ const BattlePage: React.FC = () => {
         const status = response.data as ServerBattleStatus
         setConnectionState('online')
         applySnapshot(serverBattleSnapshot(status, Number(dungeon?.duration || 60)))
+        setSpeedSyncMessage(status.speedConsensus
+          ? `当前速度：${status.speed}x，4x同意：${status.speedConsensus.agreed}/${status.speedConsensus.total}`
+          : `当前速度：${status.speed}x`)
         setLoading(false)
         setBattleNotice(status.ready ? '战斗结束，正在确认奖励。' : '战斗已同步。')
         if (status.ready && status.outcome) {
@@ -709,6 +719,10 @@ const BattlePage: React.FC = () => {
       if (disposed()) return false
       const serverRewards = response.data?.serverRewards || {}
       const progress = response.data?.progress || {}
+      const dungeonType = location.state?.dungeon?.dungeon_type || 'SINGLE'
+      const sweepCount = dungeonType === 'SQUAD' ? 5 : 10
+      const qualifyingClears = Number(dungeonType === 'SINGLE' ? progress.successfulAttempts || 0
+        : dungeonType === 'SQUAD' ? progress.bestRecord?.soloClears || 0 : progress.bestRecord?.flawlessCount || 0)
       window.dispatchEvent(new Event('gamer:resources-changed'))
       handleBattleResult({
         battle_id: response.data?.record?.id || battleId || `online-${Date.now()}`,
@@ -734,9 +748,10 @@ const BattlePage: React.FC = () => {
           total_attempts: Number(progress.totalAttempts || 0),
           successful_attempts: Number(progress.successfulAttempts || 0),
           failed_attempts: Number(progress.failedAttempts || 0),
-          sweep_unlocked: Number(progress.successfulAttempts || 0) >= 50,
-          sweep_unlock_count: 50,
-          sweep_text: Number(progress.successfulAttempts || 0) >= 50 ? '已解锁' : `${Number(progress.successfulAttempts || 0)}/50`,
+          sweep_unlocked: qualifyingClears >= sweepCount,
+          sweep_unlock_count: sweepCount,
+          sweep_text: qualifyingClears >= sweepCount ? '已解锁'
+            : `${dungeonType === 'SQUAD' ? '单人通关' : dungeonType === 'SINGLE' ? '通关' : '无阵亡通关'} ${qualifyingClears}/${sweepCount}`,
         },
         finished_at: new Date().toISOString(),
       })
@@ -804,12 +819,18 @@ const BattlePage: React.FC = () => {
 
   const startPolling = (id: string) => {
     stopPolling()
+    const generation = battleGenerationRef.current
+    let pending = false
     pollRef.current = window.setInterval(async () => {
+      if (pending) return
+      pending = true
       try {
         const response = await axios.get(`/api/battle/${id}/snapshot`)
+        if (generation !== battleGenerationRef.current) return
         if (response.data.success) {
           const newSnapshot: BattleSnapshot = response.data.snapshot
           applySnapshot(newSnapshot)
+          setLoading(false)
 
           if (newSnapshot.result) {
             stopPolling()
@@ -824,23 +845,33 @@ const BattlePage: React.FC = () => {
           }
         }
       } catch (error) {
+        if (generation !== battleGenerationRef.current) return
         console.error('获取战斗快照失败', error)
         setBattleNotice('战斗同步暂时中断，正在继续尝试恢复。')
+      } finally {
+        pending = false
       }
     }, 1000)
   }
 
   const fetchBattleResult = async (id: string) => {
+    const generation = battleGenerationRef.current
     try {
       const response = await axios.get(`/api/battle/${id}/result`)
+      if (generation !== battleGenerationRef.current) return
+      if (response.status === 202) {
+        resultRetryRef.current = window.setTimeout(() => fetchBattleResult(id), 1200)
+        return
+      }
       if (response.data.success) {
         const result: BattleResultPayload = response.data.result
         handleBattleResult(result)
       }
     } catch (error: any) {
+      if (generation !== battleGenerationRef.current) return
       if (error.response?.status === 202) {
         setBattleNotice('战斗已结束，正在等待服务器写入结算。')
-        window.setTimeout(() => fetchBattleResult(id), 1200)
+        resultRetryRef.current = window.setTimeout(() => fetchBattleResult(id), 1200)
         return
       }
       setBattleNotice(error.response?.data?.message || '读取战斗结算失败，请稍后重试。')
@@ -848,6 +879,8 @@ const BattlePage: React.FC = () => {
   }
 
   const connectWebSocket = (battleId: string) => {
+    if (isStaticDemoMode()) return
+    socketRef.current?.disconnect()
     const socket = io(getSocketUrl(), {
       transports: ['websocket']
     })
@@ -910,9 +943,21 @@ const BattlePage: React.FC = () => {
     setSpeedUpdating(true)
     setSpeedSyncMessage(`正在请求 ${speed}x...`)
     if (isOnlineMode) {
-      setBattleSpeed(4)
-      setSpeedSyncMessage('服务器回放：4x')
-      setSpeedUpdating(false)
+      try {
+        const roomId = location.state?.multiplayer_room_id
+        if (roomId) {
+          const response = await onlineApi.post(`/multiplayer-rooms/${roomId}/speed/agree`)
+          setBattleSpeed(response.data.speed)
+          setSpeedSyncMessage(`4x同意：${response.data.agreed}/${response.data.total}，当前${response.data.speed}x`)
+        } else {
+          setBattleSpeed(4)
+          setSpeedSyncMessage('当前速度：4x')
+        }
+      } catch (error) {
+        setSpeedSyncMessage(getOnlineModeError(error, '速度申请失败，请重试'))
+      } finally {
+        setSpeedUpdating(false)
+      }
       return
     }
     if (battleId) {
@@ -1569,20 +1614,11 @@ const BattlePage: React.FC = () => {
                   </div>
                 )}
                 <div className="battle-result-actions">
-                  <button onClick={() => navigateToDungeons(battleResult)}>立即返回</button>
-                  {autoNavigate ? (
-                    <button onClick={cancelAutoNavigate}>留在此页</button>
-                  ) : (
-                    <button onClick={() => startRedirectTimer(battleResult)}>重新开始倒计时</button>
-                  )}
+                  <button onClick={() => navigateToDungeons(battleResult)}>返回副本选择界面</button>
+                  <button disabled={retrying || Boolean(battleResult.error)} onClick={() => void retryBattle()}>
+                    {retrying ? '准备中...' : '再次战斗'}
+                  </button>
                 </div>
-                {autoNavigate && redirectCountdown !== null && (
-                  <p className="battle-result-countdown">
-                    {redirectCountdown > 0
-                      ? `将在 ${redirectCountdown}s 后自动返回副本列表`
-                      : '即将返回副本列表...'}
-                  </p>
-                )}
               </div>
             )}
 

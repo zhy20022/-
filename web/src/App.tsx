@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './stores/authStore'
 import { useOrientation } from './hooks/useOrientation'
@@ -8,25 +8,28 @@ import { isFormalOnlineMode } from './config'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import MainMenu from './pages/MainMenu'
-import CharacterPage from './pages/CharacterPage'
-import DungeonPage from './pages/DungeonPage'
-import MultiplayerRoomPage from './pages/MultiplayerRoomPage'
-import GachaPage from './pages/GachaPage'
-import CraftingPage from './pages/CraftingPage'
-import InventoryPage from './pages/InventoryPage'
-import BattlePage from './pages/BattlePage'
-import ShopPage from './pages/ShopPage'
-import SocialPage from './pages/SocialPage'
-import QuestPage from './pages/QuestPage'
-import AchievementPage from './pages/AchievementPage'
-import EnhancementPage from './pages/EnhancementPage'
-import MaterialsPage from './pages/MaterialsPage'
-import AdminPage from './pages/AdminPage'
-import WorldBossPage from './pages/WorldBossPage'
-import TeamRecordsPage from './pages/TeamRecordsPage'
-import OnlineProgressPage from './pages/OnlineProgressPage'
-import OnlineAdminPage from './pages/OnlineAdminPage'
 import './App.css'
+import SeasonScope from './components/SeasonTabs'
+import './compact-layout.css'
+
+const CharacterPage = lazy(() => import('./pages/CharacterPage'))
+const DungeonPage = lazy(() => import('./pages/DungeonPage'))
+const MultiplayerRoomPage = lazy(() => import('./pages/MultiplayerRoomPage'))
+const GachaPage = lazy(() => import('./pages/GachaPage'))
+const CraftingPage = lazy(() => import('./pages/CraftingPage'))
+const InventoryPage = lazy(() => import('./pages/InventoryPage'))
+const BattlePage = lazy(() => import('./pages/BattlePage'))
+const ShopPage = lazy(() => import('./pages/ShopPage'))
+const SocialPage = lazy(() => import('./pages/SocialPage'))
+const QuestPage = lazy(() => import('./pages/QuestPage'))
+const AchievementPage = lazy(() => import('./pages/AchievementPage'))
+const EnhancementPage = lazy(() => import('./pages/EnhancementPage'))
+const MaterialsPage = lazy(() => import('./pages/MaterialsPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
+const WorldBossPage = lazy(() => import('./pages/WorldBossPage'))
+const TeamRecordsPage = lazy(() => import('./pages/TeamRecordsPage'))
+const OnlineProgressPage = lazy(() => import('./pages/OnlineProgressPage'))
+const OnlineAdminPage = lazy(() => import('./pages/OnlineAdminPage'))
 
 function App() {
   const { isAuthenticated, loadPlayer } = useAuthStore()
@@ -37,6 +40,9 @@ function App() {
 
   const shellHiddenRoutes = ['/login', '/register', '/battle', '/dungeons/multiplayer']
   const showMobileShell = isAuthenticated && !shellHiddenRoutes.some((path) => location.pathname.startsWith(path))
+  const seasonalRoute = ['/characters', '/dungeons', '/gacha', '/crafting', '/inventory', '/enhancement', '/materials', '/shop'].some(
+    (path) => location.pathname === path,
+  )
 
   useEffect(() => {
     if (isFormalOnlineMode() && !isAuthenticated) {
@@ -74,6 +80,16 @@ function App() {
       {isAuthenticated && <OrientationToggle position="top-right" />}
       {showMobileShell && <MobileGameShell />}
       
+      <Suspense fallback={<div role="status">加载中...</div>}>
+        {seasonalRoute && isAuthenticated ? <SeasonScope key={location.pathname}><GameRoutes isAuthenticated={isAuthenticated} /></SeasonScope>
+          : <GameRoutes isAuthenticated={isAuthenticated} />}
+      </Suspense>
+    </div>
+  )
+}
+
+function GameRoutes({ isAuthenticated }: { isAuthenticated: boolean }) {
+  return (
       <Routes>
         <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/login" />} />
@@ -97,7 +113,6 @@ function App() {
         <Route path="/online-progress" element={isAuthenticated ? <OnlineProgressPage /> : <Navigate to="/login" />} />
         <Route path="/online-admin" element={isAuthenticated ? <OnlineAdminPage /> : <Navigate to="/login" />} />
       </Routes>
-    </div>
   )
 }
 

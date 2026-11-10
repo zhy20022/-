@@ -1,6 +1,7 @@
 export interface ServerBattleStatus {
   ready: boolean
   speed: number
+  speedConsensus?: { agreed: number; total: number }
   frame: { time: number; units: unknown[][] }
   units: Record<string, { isPlayer: boolean; attributeType?: string; definition?: { phases?: unknown[]; shared_health?: boolean } }>
   events: Array<{ time: number; event_type: string; message: string; payload?: Record<string, unknown> }>

@@ -86,6 +86,12 @@ export class MultiplayerRoomsController {
     return this.rooms.settle(session.playerId, roomId);
   }
 
+  @Post(':roomId/speed/agree')
+  agreeSpeed(@Headers('authorization') authorization: string | undefined, @Param('roomId') roomId: string) {
+    const session = this.auth.verifyAuthorization(authorization);
+    return this.rooms.agreeSpeed(session.playerId, roomId);
+  }
+
   @Post(':roomId/leave')
   leave(@Headers('authorization') authorization: string | undefined, @Param('roomId') roomId: string) {
     const session = this.auth.verifyAuthorization(authorization);

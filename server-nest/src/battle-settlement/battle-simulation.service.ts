@@ -8,6 +8,9 @@ export interface ServerBattle extends Record<string, unknown> {
   duration: number;
   success: boolean;
   survived: boolean;
+  noDeaths?: boolean;
+  bossesKilled?: number;
+  bossesSpawned?: number;
   damageScore: number;
   singleMonstersKilled: number;
   groupMonstersKilled: number;

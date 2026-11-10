@@ -1,6 +1,8 @@
 import { LegacyPlayerRef, ensureOnlineSession, onlineApi } from './onlineApi'
+import { getSeasonNumber } from './seasons'
 
 export interface LegacyInventoryItem {
+  season?: number
   item_id: string
   itemConfigId?: string
   material_type?: string
@@ -21,6 +23,7 @@ export interface LegacyInventoryItem {
 export const mapOnlineInventoryItem = (item: any): LegacyInventoryItem => {
   const payload = item.payload || item.itemData || item.item_data || {}
   return {
+    season: getSeasonNumber({ ...payload, ...item }),
     item_id: item.id || item.itemId || item.item_id,
     itemConfigId: item.itemConfigId,
     material_type: item.materialType || item.material_type || payload.materialType || payload.material_type,

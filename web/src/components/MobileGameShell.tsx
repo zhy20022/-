@@ -13,7 +13,7 @@ const primaryNavigation = [
   { path: '/characters', label: '角色', icon: '◇' },
   { path: '/dungeons', label: '副本', icon: '⚔' },
   { path: '/gacha', label: '召唤', icon: '✦' },
-  { path: '/materials', label: '材料', icon: '▣' },
+  { path: '/materials', label: '背包', icon: '▣' },
 ]
 
 const compactNumber = new Intl.NumberFormat('zh-CN', { notation: 'compact', maximumFractionDigits: 1 })
@@ -35,7 +35,10 @@ const MobileGameShell = () => {
     if (!player) return
 
     let active = true
+    let pending = false
     const refreshResources = async () => {
+      if (!active || pending || document.visibilityState === 'hidden') return
+      pending = true
       try {
         if (formalOnline) {
           const profile = await loadOnlineProfile(player)
@@ -61,6 +64,8 @@ const MobileGameShell = () => {
         setConnection('local')
       } catch {
         if (active) setConnection(formalOnline ? 'offline' : 'local')
+      } finally {
+        pending = false
       }
     }
 
@@ -74,7 +79,7 @@ const MobileGameShell = () => {
       window.clearInterval(timer)
       window.removeEventListener('gamer:resources-changed', handleResourceRefresh)
     }
-  }, [formalOnline, location.pathname, player?.player_id, player?.gold])
+  }, [formalOnline, player?.player_id])
 
   const isActive = (path: string) => path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
   const connectionLabel = connection === 'online'

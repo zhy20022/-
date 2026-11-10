@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { BattleSettlementService } from '../battle-settlement/battle-settlement.service';
 import { DungeonsService } from '../dungeons/dungeons.service';
 import { RoomEventsService } from './room-events.service';
+import { playbackTime } from '../dungeons/dungeon-rules';
 import {
   FriendshipEntity,
   MultiplayerRoomEntity,
@@ -220,6 +221,34 @@ export class MultiplayerRoomsService implements OnModuleInit, OnModuleDestroy {
     const room = await this.assertMember(roomId, playerId);
     if (!room.battleSeed) throw new ConflictException('room battle has not started');
     return this.dungeons.battleStatus(playerId, room.battleSeed);
+  }
+
+  async agreeSpeed(playerId: string, roomId: string) {
+    return this.members.manager.transaction(async manager => {
+      const room = await manager.findOne(MultiplayerRoomEntity, { where: { id: roomId }, lock: { mode: 'pessimistic_write' } });
+      if (!room || room.status !== 'in_battle' || !room.battleSeed) throw new ConflictException('room battle is not active');
+      const members = await manager.find(MultiplayerRoomMemberEntity, { where: { roomId } });
+      if (!members.some(member => member.playerId === playerId)) throw new ForbiddenException('room membership required');
+      const tickets = await manager.find(OperationRequestEntity, {
+        where: { playerId: In(members.map(member => member.playerId)), operation: 'battle-start', idempotencyKey: room.battleSeed },
+        order: { playerId: 'ASC' }, lock: { mode: 'pessimistic_write' },
+      });
+      if (tickets.length !== members.length) throw new ConflictException('battle tickets are incomplete');
+      const clock = tickets[0].response?.playback as { speed: number; agreedPlayerIds: string[] } | undefined;
+      if (!clock) throw new ConflictException('start a new room battle to change speed');
+      const agreedPlayerIds = [...new Set([...clock.agreedPlayerIds, playerId])];
+      const now = Date.now();
+      const playback = {
+        elapsed: playbackTime(tickets[0].response!, now), updatedAt: new Date(now).toISOString(),
+        speed: agreedPlayerIds.length === members.length ? 4 : clock.speed,
+        agreedPlayerIds, totalPlayers: members.length,
+      };
+      for (const ticket of tickets) {
+        ticket.response = { ...ticket.response, playback };
+        await manager.save(ticket);
+      }
+      return { speed: playback.speed, agreed: agreedPlayerIds.length, total: members.length };
+    });
   }
 
   async settle(playerId: string, roomId: string) {

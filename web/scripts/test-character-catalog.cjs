@@ -20,7 +20,15 @@ function load(file, imports = {}) {
   return module.exports
 }
 const pool = load('src/data/characterPool.ts')
-const catalog = load('src/services/characterCatalog.ts', { '../data/characterPool': pool })
+const seasons = load('src/services/seasons.ts')
+const catalog = load('src/services/characterCatalog.ts', { '../data/characterPool': pool, './seasons': seasons })
+
+test('season precedes character number and legacy content belongs to season one', () => {
+  const rows = [{ number: 1, season: 2 }, { number: 10 }, { number: 2, season_id: '1' }]
+  assert.deepEqual(rows.sort(catalog.compareCharactersByNumber).map(row => row.number), [2, 10, 1])
+  assert.equal(seasons.getSeasonNumber({}), 1)
+  assert.equal(seasons.SWEEP_UNLOCK_COUNT, 10)
+})
 
 test('actual 64-entry catalog agrees with authored config, no changed game data', () => {
   const authored = JSON.parse(fs.readFileSync(path.resolve(root, '../data/content/characters.json'), 'utf8').replace(/^\uFEFF/, '')).characters

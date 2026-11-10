@@ -13,6 +13,7 @@ import ElementBadge from '../components/ElementBadge'
 import { elementThemeStyle } from '../services/elementTheme'
 import { compareCharactersByNumber, createCharacterNumberMap, getCharacterNumber } from '../services/characterCatalog'
 import { safeErrorLog } from '../services/safeErrorLog'
+import { getSeasonNumber } from '../services/seasons'
 
 interface CharacterStats {
   hp?: number
@@ -23,6 +24,7 @@ interface CharacterStats {
 }
 
 interface Character {
+  season?: number
   character_id: string
   number?: number
   config_id?: string
@@ -283,7 +285,7 @@ const CharacterPage: React.FC = () => {
   
   // 筛选和排序后的角色列表
   const filteredAndSortedCharacters = useMemo(() => {
-    let filtered = [...characters]
+    let filtered = characters.filter(character => getSeasonNumber(character) === 1)
     
     // 搜索筛选
     if (searchQuery.trim()) {

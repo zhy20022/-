@@ -2730,7 +2730,16 @@ def _calculate_sweep_reward(dungeon, progress: Optional[Any]) -> Dict[str, Any]:
 
 
 def _get_sweep_unlock_count(dungeon) -> int:
-    return 50
+    return 5 if dungeon.dungeon_type == DungeonType.SQUAD else 10
+
+
+def _get_sweep_clear_count(dungeon, progress) -> int:
+    if not progress:
+        return 0
+    if dungeon.dungeon_type == DungeonType.SINGLE:
+        return int(progress.successful_attempts or 0)
+    key = "solo_clears" if dungeon.dungeon_type == DungeonType.SQUAD else "flawless_count"
+    return int((progress.best_record or {}).get(key, 0))
 
 
 def _build_dungeon_boss_config_payload(dungeon) -> Dict[str, Any]:
@@ -2992,7 +3001,7 @@ def _build_progress_summary(progress: Optional[Any], dungeon) -> Dict[str, Any]:
     else:
         completion_count = progress.completion_count
         total_attempts = progress.total_attempts
-        sweep_unlocked = progress.sweep_unlocked
+        sweep_unlocked = _get_sweep_clear_count(dungeon, progress) >= _get_sweep_unlock_count(dungeon)
         best_record = progress.best_record or {}
     sweep_unlock_count = _get_sweep_unlock_count(dungeon)
     best_duration = best_record.get("duration")
@@ -3002,7 +3011,7 @@ def _build_progress_summary(progress: Optional[Any], dungeon) -> Dict[str, Any]:
         "best_time_text": f"{float(best_duration):.1f}s" if best_duration else "None",
         "best_reward_text": _format_best_reward_text(best_record),
         "sweep_unlocked": sweep_unlocked,
-        "sweep_text": "Unlocked" if sweep_unlocked else f"{completion_count}/{sweep_unlock_count}",
+        "sweep_text": "Unlocked" if sweep_unlocked else f"{_get_sweep_clear_count(dungeon, progress)}/{sweep_unlock_count}",
         "sweep_unlock_count": sweep_unlock_count,
     }
 
@@ -4030,7 +4039,6 @@ def sweep_dungeon(dungeon_id: str):
         return jsonify({'success': False, 'message': 'error'}), 404
     
     # 妫€鏌ユ槸鍚﹀彲浠ユ壂鑽★紙鍙湁1浜烘湰鍜?浜烘湰鍙互鎵崱锛?    if dungeon.dungeon_type.value not in ['1浜烘湰', '5浜烘湰']:
-        return jsonify({'success': False, 'message': '璇ュ壇鏈笉鏀寔鎵崱'}), 400
     
     db = get_database()
     db_session = db.get_session()
@@ -4040,11 +4048,11 @@ def sweep_dungeon(dungeon_id: str):
             DungeonProgressModel.dungeon_id == dungeon_id
         ).first()
         
-        if not progress or not progress.sweep_unlocked:
+        if _get_sweep_clear_count(dungeon, progress) < _get_sweep_unlock_count(dungeon):
             unlock_count = _get_sweep_unlock_count(dungeon)
             return jsonify({
                 'success': False,
-                'message': 'ok',
+                'message': 'Requires 10 clears without any character deaths',
             }), 400
         
         reward_payload = _calculate_sweep_reward(dungeon, progress)

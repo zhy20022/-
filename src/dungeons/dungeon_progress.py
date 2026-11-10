@@ -38,7 +38,10 @@ class DungeonProgress:
         
         # 扫荡模式解锁
         self.sweep_unlocked = False
-        self.sweep_unlock_count = 50
+        self.sweep_unlock_count = 10
+        self.flawless_count = 0
+        self.solo_clears = 0
+        self.dungeon_type = DungeonType.SINGLE
         
         # 连续战斗
         self.continuous_battle_count = 0
@@ -48,7 +51,7 @@ class DungeonProgress:
         self.best_time: Optional[float] = None
         self.best_reward: Dict[str, Any] = {}
     
-    def add_attempt(self, is_success: bool, duration: float, rewards: Dict[str, Any] = None):
+    def add_attempt(self, is_success: bool, duration: float, rewards: Dict[str, Any] = None, *, no_deaths: bool = False, is_solo: bool = True):
         """
         添加挑战记录
         
@@ -62,6 +65,10 @@ class DungeonProgress:
         if is_success:
             self.successful_attempts += 1
             self.completion_count += 1
+            if no_deaths:
+                self.flawless_count += 1
+            if is_solo:
+                self.solo_clears += 1
             self.is_completed = True
             self.last_completion_time = datetime.now()
             
@@ -76,14 +83,20 @@ class DungeonProgress:
                     self.best_reward = rewards
             
             # 检查扫荡解锁
-            if not self.sweep_unlocked and self.completion_count >= self.sweep_unlock_count:
-                self.sweep_unlocked = True
+            self.sweep_unlocked = self.qualifying_clears() >= self.sweep_unlock_count
         else:
             self.failed_attempts += 1
     
     def can_sweep(self) -> bool:
         """检查是否可以扫荡"""
-        return self.sweep_unlocked
+        return self.qualifying_clears() >= self.sweep_unlock_count
+
+    def qualifying_clears(self) -> int:
+        if self.dungeon_type == DungeonType.SINGLE:
+            return self.successful_attempts
+        if self.dungeon_type == DungeonType.SQUAD:
+            return self.solo_clears
+        return self.flawless_count
     
     def add_continuous_battle_result(self, result: Dict[str, Any]):
         """添加连续战斗结果"""
@@ -105,6 +118,9 @@ class DungeonProgress:
             "failed_attempts": self.failed_attempts,
             "is_completed": self.is_completed,
             "completion_count": self.completion_count,
+            "flawless_count": self.flawless_count,
+            "solo_clears": self.solo_clears,
+            "sweep_unlock_count": self.sweep_unlock_count,
             "last_completion_time": self.last_completion_time.isoformat() if self.last_completion_time else None,
             "sweep_unlocked": self.sweep_unlocked,
             "best_time": self.best_time,
@@ -129,6 +145,11 @@ class DungeonProgressManager:
         """获取副本进度"""
         if dungeon_id not in self.progresses:
             self.progresses[dungeon_id] = DungeonProgress(dungeon_id, self.player_id)
+            from .dungeon_database import get_dungeon_by_id
+            dungeon = get_dungeon_by_id(dungeon_id)
+            if dungeon:
+                self.progresses[dungeon_id].dungeon_type = dungeon.dungeon_type
+                self.progresses[dungeon_id].sweep_unlock_count = 5 if dungeon.dungeon_type == DungeonType.SQUAD else 10
         return self.progresses[dungeon_id]
     
     def can_enter_dungeon(self, dungeon: Dungeon, player_data: Dict[str, Any]) -> bool:
@@ -159,24 +180,7 @@ class DungeonProgressManager:
         Returns:
             如果可以扫荡返回True
         """
-        if dungeon.dungeon_type == DungeonType.SINGLE:
-            progress = self.get_progress(dungeon.dungeon_id)
-            return progress.can_sweep()
-        
-        elif dungeon.dungeon_type == DungeonType.SQUAD:
-            # 5人本：单人通关50次后解锁扫荡
-            progress = self.get_progress(dungeon.dungeon_id)
-            return progress.can_sweep()
-        
-        elif dungeon.dungeon_type == DungeonType.TEAM:
-            # 20人本：不能扫荡
-            return False
-        
-        elif dungeon.dungeon_type == DungeonType.SERVER_BOSS:
-            # 世界boss本：不能扫荡
-            return False
-        
-        return False
+        return self.get_progress(dungeon.dungeon_id).can_sweep()
     
     def can_use_4x_speed(self, dungeon: Dungeon, is_multiplayer: bool, all_players_agree: bool) -> bool:
         """
