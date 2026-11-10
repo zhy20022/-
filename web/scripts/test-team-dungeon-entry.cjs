@@ -53,7 +53,7 @@ async function main() {
         await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) })
       })
       await page.goto(origin + '/#/dungeons')
-      await page.getByRole('button', { name: kind === 'SQUAD' ? /5人本/ : /20人本/ }).click()
+      await page.getByRole('button', { name: kind === 'SQUAD' ? '5人材料本' : '20人装备本', exact: true }).click()
       await page.getByText(/第60秒随机登场一套Boss组合/).first().waitFor()
       await page.getByRole('button', { name: '开始挑战', exact: true }).click()
       const confirm = page.getByRole('button', { name: /^确认/ })
