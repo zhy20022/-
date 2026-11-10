@@ -20,6 +20,7 @@ import SocialPage from './pages/SocialPage'
 import QuestPage from './pages/QuestPage'
 import AchievementPage from './pages/AchievementPage'
 import EnhancementPage from './pages/EnhancementPage'
+import MaterialsPage from './pages/MaterialsPage'
 import AdminPage from './pages/AdminPage'
 import WorldBossPage from './pages/WorldBossPage'
 import TeamRecordsPage from './pages/TeamRecordsPage'
@@ -89,6 +90,7 @@ function App() {
         <Route path="/quests" element={isAuthenticated ? <QuestPage /> : <Navigate to="/login" />} />
         <Route path="/achievements" element={isAuthenticated ? <AchievementPage /> : <Navigate to="/login" />} />
         <Route path="/enhancement" element={isAuthenticated ? <EnhancementPage /> : <Navigate to="/login" />} />
+        <Route path="/materials" element={isAuthenticated ? <MaterialsPage /> : <Navigate to="/login" />} />
         <Route path="/admin" element={isAuthenticated ? <AdminPage /> : <Navigate to="/login" />} />
         <Route path="/world-boss" element={isAuthenticated ? <WorldBossPage /> : <Navigate to="/login" />} />
         <Route path="/team-records" element={isAuthenticated ? <TeamRecordsPage /> : <Navigate to="/login" />} />

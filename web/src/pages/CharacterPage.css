@@ -125,51 +125,21 @@
 
 .characters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-/* 横竖屏响应式布局 */
-.app-orientation-container.portrait .characters-grid {
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-}
-
-.app-orientation-container.landscape .characters-grid {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-/* 移动端横竖屏适配 */
-@media (max-width: 768px) {
-  .app-orientation-container.portrait .characters-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .app-orientation-container.landscape .characters-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* 桌面端横竖屏适配（Steam） */
-@media (min-width: 769px) {
-  .app-orientation-container.portrait .characters-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .app-orientation-container.landscape .characters-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .character-card {
+  min-width: 0;
   background: white;
   border: 2px solid #e0e0e0;
   border-radius: 12px;
-  padding: 20px;
+  padding: 8px;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
   position: relative;
 }
 
@@ -231,7 +201,8 @@
 .character-avatar {
   position: relative;
   width: 100%;
-  height: 180px;
+  aspect-ratio: 1;
+  height: auto;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 8px;
   display: flex;
@@ -257,7 +228,7 @@
 
 .character-name {
   margin: 0 0 8px 0;
-  font-size: 20px;
+  font-size: 14px;
   color: #333;
   font-weight: 600;
 }
@@ -330,6 +301,35 @@
   gap: 10px;
   padding-top: 10px;
   border-top: 1px solid #e0e0e0;
+}
+
+@media (max-width: 768px) {
+  .characters-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .character-card {
+    padding: 6px;
+  }
+
+  .character-name {
+    font-size: 12px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .character-meta {
+    display: block;
+  }
+
+  .meta-right {
+    margin-top: 4px;
+  }
+
+  .character-stats-preview {
+    display: none;
+  }
 }
 
 .stat-item {
@@ -668,6 +668,14 @@
   background: #ff9800;
   border-color: #f57c00;
   color: white;
+}
+
+.lock-btn:disabled,
+.lock-btn-large:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  border-color: #d1d5db;
 }
 
 /* 立绘展示区域 */

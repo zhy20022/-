@@ -1,15 +1,18 @@
 import { getProfessionLabel } from '../services/professionLabels'
-import React, { useEffect, useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, loadOnlineProfile, mapOnlineCharacter, onlineApi } from '../services/onlineGameAdapter'
+import { isStaticDemoMode } from '../config'
 import { mapOnlineInventoryItem } from '../services/onlineInventoryAdapter'
 import './CharacterPage.css'
 import ElementBadge from '../components/ElementBadge'
 import { elementThemeStyle } from '../services/elementTheme'
+import { compareCharactersByNumber, createCharacterNumberMap, getCharacterNumber } from '../services/characterCatalog'
+import { safeErrorLog } from '../services/safeErrorLog'
 
 interface CharacterStats {
   hp?: number
@@ -21,6 +24,9 @@ interface CharacterStats {
 
 interface Character {
   character_id: string
+  number?: number
+  config_id?: string
+  characterConfigId?: string
   name: string
   profession_type: string
   attribute_type: string
@@ -138,7 +144,6 @@ interface IllustrationStatus {
   }
 }
 
-type SortOption = 'level_asc' | 'level_desc' | 'star_asc' | 'star_desc' | 'name_asc' | 'name_desc'
 type FilterAttribute = 'FIRE' | 'WATER' | 'WIND' | 'EARTH' | 'LIGHT' | 'DARK' | 'THUNDER' | 'WOOD' | 'ALL'
 type FilterProfession = 'TANK' | 'DPS' | 'HEALER' | 'SUPPORT' | 'ALL'
 type FilterType = 'PHYSICAL' | 'MAGIC' | 'ALL'
@@ -154,11 +159,19 @@ interface BattleSoulInfo {
 
 const CharacterPage: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { player } = useAuthStore()
   const [characters, setCharacters] = useState<Character[]>([])
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
   const [showDetail, setShowDetail] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [catalogWarning, setCatalogWarning] = useState<string | null>(null)
+  const [numberMap, setNumberMap] = useState<Map<string, number>>(() => isFormalOnlineMode() ? new Map() : createCharacterNumberMap())
+  const lockPending = useRef(new Set<string>())
+  const loadSequence = useRef(0)
+  const [lockingIds, setLockingIds] = useState<string[]>([])
+  const [detailTab, setDetailTab] = useState<'info' | 'illustration'>('info')
   const [battleSoulData, setBattleSoulData] = useState<Record<string, BattleSoulInfo>>({})
   
   // 筛选和排序状态
@@ -166,12 +179,24 @@ const CharacterPage: React.FC = () => {
   const [filterAttribute, setFilterAttribute] = useState<FilterAttribute>('ALL')
   const [filterProfession, setFilterProfession] = useState<FilterProfession>('ALL')
   const [filterType, setFilterType] = useState<FilterType>('ALL')
-  const [sortOption, setSortOption] = useState<SortOption>('level_desc')
 
   useEffect(() => {
-    loadCharacters()
-    loadBattleSoulData()
+    void loadCharacters()
+    void loadBattleSoulData()
+    return () => { loadSequence.current++ }
   }, [])
+
+  useEffect(() => {
+    const intent = location.state as { characterId?: string; tab?: string } | null
+    if (!intent?.characterId || loading) return
+    const owned = characters.find((item) => item.character_id === intent.characterId)
+    if (owned) {
+      setDetailTab(intent.tab === 'illustration' && !isFormalOnlineMode() && !isStaticDemoMode() ? 'illustration' : 'info')
+      setSelectedCharacter(owned)
+      setShowDetail(true)
+    }
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null })
+  }, [characters, loading, location.state])
 
   const loadBattleSoulData = async () => {
     if (isFormalOnlineMode()) return
@@ -181,47 +206,78 @@ const CharacterPage: React.FC = () => {
         setBattleSoulData(response.data.battle_soul || {})
       }
     } catch (error) {
-      console.error('加载战魂数据失败', error)
+      safeErrorLog('character.battleSoul', error)
     }
   }
 
   const loadCharacters = async () => {
+    const sequence = ++loadSequence.current
+    setLoading(true)
+    setLoadError(null)
     try {
       if (isFormalOnlineMode()) {
         const profile = await loadOnlineProfile(player)
+        if (sequence !== loadSequence.current) return
         setCharacters(profile.characters)
+        try {
+          const response = await onlineApi.get('/configs/characters')
+          const rows = response.data?.payload?.characters
+          if (!Array.isArray(rows)) throw new Error('角色目录不可用')
+          const map = createCharacterNumberMap(rows.map((row: any) => ({
+            configId: row.id, number: row.number, name: row.name,
+          })))
+          if (sequence !== loadSequence.current) return
+          setNumberMap(map)
+          setCatalogWarning(profile.characters.some((item: Character) => getCharacterNumber(item, map) === undefined)
+            ? '部分角色缺少编号，将保留在列表末尾。' : null)
+        } catch {
+          if (sequence === loadSequence.current) {
+            setNumberMap(new Map())
+            setCatalogWarning('角色编号目录加载失败，角色仍保留，可重试加载。')
+          }
+        }
         return
       }
 
       const response = await axios.get('/api/characters')
-      if (response.data.success) {
+      if (sequence !== loadSequence.current) return
+      if (response.status < 400 && response.data.success && Array.isArray(response.data.characters)) {
         // 为角色添加默认星级（如果没有）
         const chars = response.data.characters.map((char: Character) => ({
           ...char,
+          number: getCharacterNumber(char),
           star: char.star || Math.min(5, Math.floor(char.level / 20) + 1), // 根据等级计算星级
           is_locked: char.is_locked || false
         }))
         setCharacters(chars)
+        setCatalogWarning(chars.some((item: Character) => getCharacterNumber(item, numberMap) === undefined)
+          ? '部分角色缺少编号，将保留在列表末尾。' : null)
+      } else {
+        throw new Error(response.data.message || '角色加载失败')
       }
     } catch (error) {
-      console.error('加载角色失败', error)
+      safeErrorLog('character.list', error)
+      if (sequence === loadSequence.current) setLoadError(getOnlineModeError(error, '角色加载失败，请重试'))
     } finally {
-      setLoading(false)
+      if (sequence === loadSequence.current) setLoading(false)
     }
   }
   
   // 获取职业分类（坦克、输出、辅疗）
   const getProfessionCategory = (professionType: string): FilterProfession => {
-    if (professionType.includes('坦克')) return 'TANK'
-    if (professionType.includes('输出')) return 'DPS'
-    if (professionType.includes('治疗') || professionType.includes('辅助')) return 'HEALER'
+    const normalized = professionType.toUpperCase()
+    if (normalized.includes('TANK') || professionType.includes('坦克')) return 'TANK'
+    if (normalized.includes('DPS') || professionType.includes('输出')) return 'DPS'
+    if (normalized.includes('HEALER') || professionType.includes('治疗')) return 'HEALER'
+    if (normalized.includes('SUPPORT') || professionType.includes('辅助')) return 'SUPPORT'
     return 'ALL'
   }
   
   // 获取职业类型（物理/法术）
   const getProfessionType = (professionType: string): FilterType => {
-    if (professionType.includes('物理')) return 'PHYSICAL'
-    if (professionType.includes('法系') || professionType.includes('魔法')) return 'MAGIC'
+    const normalized = professionType.toUpperCase()
+    if (normalized.includes('PHYSICAL') || professionType.includes('物理')) return 'PHYSICAL'
+    if (normalized.includes('MAGIC') || professionType.includes('法系') || professionType.includes('魔法')) return 'MAGIC'
     return 'ALL'
   }
   
@@ -246,6 +302,7 @@ const CharacterPage: React.FC = () => {
     if (filterProfession !== 'ALL') {
       filtered = filtered.filter(char => 
         getProfessionCategory(char.profession_type) === filterProfession
+        || filterProfession === 'HEALER' && getProfessionCategory(char.profession_type) === 'SUPPORT'
       )
     }
     
@@ -256,32 +313,18 @@ const CharacterPage: React.FC = () => {
       )
     }
     
-    // 排序
-    filtered.sort((a, b) => {
-      switch (sortOption) {
-        case 'level_asc':
-          return a.level - b.level
-        case 'level_desc':
-          return b.level - a.level
-        case 'star_asc':
-          return (a.star || 1) - (b.star || 1)
-        case 'star_desc':
-          return (b.star || 1) - (a.star || 1)
-        case 'name_asc':
-          return a.name.localeCompare(b.name)
-        case 'name_desc':
-          return b.name.localeCompare(a.name)
-        default:
-          return 0
-      }
-    })
+    filtered.sort((a, b) => compareCharactersByNumber(a, b, numberMap))
     
     return filtered
-  }, [characters, searchQuery, filterAttribute, filterProfession, filterType, sortOption])
+  }, [characters, searchQuery, filterAttribute, filterProfession, filterType, numberMap])
   
   // 切换锁定状态
   const toggleLock = async (characterId: string, isLocked: boolean, e: React.MouseEvent) => {
     e.stopPropagation() // 阻止触发卡片点击
+    if (isFormalOnlineMode()) return
+    if (lockPending.current.has(characterId)) return
+    lockPending.current.add(characterId)
+    setLockingIds([...lockPending.current])
     try {
       const endpoint = isLocked ? `/api/characters/${characterId}/unlock` : `/api/characters/${characterId}/lock`
       const response = await axios.post(endpoint)
@@ -295,13 +338,20 @@ const CharacterPage: React.FC = () => {
         if (selectedCharacter?.character_id === characterId) {
           setSelectedCharacter({ ...selectedCharacter, is_locked: !isLocked })
         }
+      } else {
+        setLoadError(response.data?.message || '锁定操作失败')
       }
     } catch (error) {
-      console.error('切换锁定状态失败', error)
+      safeErrorLog('character.lock', error)
+      setLoadError('锁定操作失败，请重试')
+    } finally {
+      lockPending.current.delete(characterId)
+      setLockingIds([...lockPending.current])
     }
   }
 
   const handleCharacterClick = (character: Character) => {
+    setDetailTab('info')
     setSelectedCharacter(character)
     setShowDetail(true)
   }
@@ -330,7 +380,8 @@ const CharacterPage: React.FC = () => {
             <h1>角色管理</h1>
           </div>
         </div>
-        
+        {isFormalOnlineMode() && <p className="capability-note">角色锁定暂未开放</p>}
+
         {/* 筛选和搜索栏 */}
         <NewPlayerGuide
           page="characters"
@@ -397,24 +448,16 @@ const CharacterPage: React.FC = () => {
               </select>
             </div>
             
-            <div className="filter-group">
-              <label>排序：</label>
-              <select 
-                value={sortOption} 
-                onChange={(e) => setSortOption(e.target.value as SortOption)}
-                className="filter-select"
-              >
-                <option value="level_desc">等级降序</option>
-                <option value="level_asc">等级升序</option>
-                <option value="star_desc">星级降序</option>
-                <option value="star_asc">星级升序</option>
-                <option value="name_asc">名称升序</option>
-                <option value="name_desc">名称降序</option>
-              </select>
-            </div>
           </div>
         </div>
         
+        {(loadError || catalogWarning) && (
+          <div role={loadError ? 'alert' : 'status'} className="character-feedback">
+            {loadError || catalogWarning}
+            <button type="button" onClick={() => void loadCharacters()}>重试</button>
+          </div>
+        )}
+        <p className="character-count">已拥有 {characters.length} · 编号升序</p>
         {loading ? (
           <div className="loading">加载中...</div>
         ) : (
@@ -433,13 +476,28 @@ const CharacterPage: React.FC = () => {
                     key={char.character_id}
                     className={`character-card element-themed ${char.is_locked ? 'locked' : ''}`}
                     style={elementThemeStyle(char.attribute_type)}
+                    data-character-number={getCharacterNumber(char, numberMap)}
+                    data-character-id={char.character_id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`查看${char.name}`}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleCharacterClick(char)
+                      }
+                    }}
                     onClick={() => handleCharacterClick(char)}
                   >
+                    <span className="character-number">#{getCharacterNumber(char, numberMap) ?? '?'}</span>
                     {/* 锁定图标 */}
                     <button
                       className={`lock-btn ${char.is_locked ? 'locked' : ''}`}
                       onClick={(e) => toggleLock(char.character_id, char.is_locked || false, e)}
-                      title={char.is_locked ? '解锁' : '锁定'}
+                      title={isFormalOnlineMode() ? '角色锁定暂未开放' : char.is_locked ? '解锁' : '锁定'}
+                      aria-label={isFormalOnlineMode() ? `${char.name}：角色锁定暂未开放` : `${char.is_locked ? '解锁' : '锁定'}${char.name}`}
+                      disabled={isFormalOnlineMode() || lockingIds.includes(char.character_id)}
                     >
                       {char.is_locked ? '🔒' : '🔓'}
                     </button>
@@ -447,7 +505,7 @@ const CharacterPage: React.FC = () => {
                     {/* 星级显示 */}
                     {char.star && (
                       <div className="star-rating">
-                        {'★'.repeat(char.star)}{'☆'.repeat(5 - char.star)}
+                        ★{char.star}
                       </div>
                     )}
                     
@@ -500,6 +558,7 @@ const CharacterPage: React.FC = () => {
 
         {showDetail && selectedCharacter && (
           <CharacterDetailModal
+            initialTab={detailTab}
             character={selectedCharacter}
             onClose={handleCloseDetail}
             onLockToggle={(characterId, isLocked) => toggleLock(characterId, isLocked, { stopPropagation: () => {} } as React.MouseEvent)}
@@ -515,6 +574,7 @@ const CharacterPage: React.FC = () => {
 }
 
 interface CharacterDetailModalProps {
+  initialTab?: 'info' | 'illustration'
   character: Character
   onClose: () => void
   onLockToggle: (characterId: string, isLocked: boolean) => void
@@ -525,6 +585,7 @@ interface CharacterDetailModalProps {
 }
 
 const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
+  initialTab = 'info',
   character,
   onClose,
   onLockToggle,
@@ -534,7 +595,10 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   onCharacterUpdated
 }) => {
   const { player } = useAuthStore()
-  const [activeTab, setActiveTab] = useState<'info' | 'skills' | 'equipment' | 'illustration' | 'battle-soul'>('info')
+  const illustrationExchangeAvailable = !isFormalOnlineMode() && !isStaticDemoMode()
+  const [activeTab, setActiveTab] = useState<'info' | 'skills' | 'equipment' | 'illustration' | 'battle-soul'>(
+    initialTab === 'illustration' && !illustrationExchangeAvailable ? 'info' : initialTab
+  )
   const [upgrading, setUpgrading] = useState(false)
   const [equipmentOptions, setEquipmentOptions] = useState<{ weapons: InventoryOption[]; equipment: InventoryOption[] }>({ weapons: [], equipment: [] })
   const [equipmentFeedback, setEquipmentFeedback] = useState<string | null>(null)
@@ -632,12 +696,12 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         })
       }
     } catch (error) {
-      console.error('加载可穿戴装备失败', error)
+      safeErrorLog('character.equipment', error)
     }
   }
 
   const loadIllustrationStatus = async () => {
-    if (isFormalOnlineMode()) return
+    if (!illustrationExchangeAvailable) return
     try {
       const response = await axios.get('/api/exchange/illustration/status', {
         params: { character_id: character.character_id }
@@ -650,11 +714,12 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         })
       }
     } catch (error) {
-      console.error('加载立绘兑换状态失败', error)
+      safeErrorLog('character.illustration', error)
     }
   }
 
   const exchangeIllustration = async (option: IllustrationOption) => {
+    if (!illustrationExchangeAvailable) return
     setExchangingIllustrationId(option.illustration_id)
     setIllustrationFeedback(null)
     try {
@@ -843,7 +908,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         setMaterials(response.data.materials || {})
       }
     } catch (error) {
-      console.error('加载材料失败', error)
+      safeErrorLog('character.materials', error)
     }
   }
 
@@ -863,7 +928,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         setExpDungeons(dungeons)
       }
     } catch (error) {
-      console.error('加载经验本失败', error)
+      safeErrorLog('character.dungeons', error)
     }
   }
 
@@ -915,7 +980,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         })
       }
     } catch (error) {
-      console.error('加载升级预览失败', error)
+      safeErrorLog('character.expPreview', error)
     }
   }
 
@@ -1229,7 +1294,9 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
             <button
               className={`lock-btn-large ${character.is_locked ? 'locked' : ''}`}
               onClick={() => onLockToggle(character.character_id, character.is_locked || false)}
-              title={character.is_locked ? '解锁' : '锁定'}
+              title={isFormalOnlineMode() ? '角色锁定暂未开放' : character.is_locked ? '解锁' : '锁定'}
+              aria-label={isFormalOnlineMode() ? '角色锁定暂未开放' : character.is_locked ? '解锁角色' : '锁定角色'}
+              disabled={isFormalOnlineMode()}
             >
               {character.is_locked ? '🔒' : '🔓'}
             </button>
@@ -1238,6 +1305,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
         </div>
         
         <div className="modal-body">
+          {isFormalOnlineMode() && <p className="capability-note">角色锁定暂未开放</p>}
           {/* 立绘展示区域 */}
           <div className="illustration-section">
             <div className="illustration-container">
@@ -1280,12 +1348,12 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
             >
               装备
             </button>
-            <button
+            {illustrationExchangeAvailable && <button
               className={`tab-btn ${activeTab === 'illustration' ? 'active' : ''}`}
               onClick={() => setActiveTab('illustration')}
             >
               立绘
-            </button>
+            </button>}
             <button
               className={`tab-btn ${activeTab === 'battle-soul' ? 'active' : ''}`}
               onClick={() => setActiveTab('battle-soul')}
@@ -1741,7 +1809,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
           )}
 
           {/* 立绘标签页 */}
-          {activeTab === 'illustration' && (
+          {illustrationExchangeAvailable && activeTab === 'illustration' && (
             <div className="detail-section">
               <h3>立绘兑换</h3>
               {illustrationFeedback && <div className="illustration-feedback">{illustrationFeedback}</div>}
@@ -1852,7 +1920,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
             <button
               className="action-btn enhance-btn"
               onClick={() => {
-                onNavigate('/enhancement')
+                onNavigate('/materials?tab=enhancement')
                 onClose()
               }}
             >
@@ -1861,7 +1929,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
             <button
               className="action-btn breakthrough-btn"
               onClick={() => {
-                onNavigate('/enhancement')
+                onNavigate('/materials?tab=enhancement')
                 onClose()
               }}
             >

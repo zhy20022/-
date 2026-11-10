@@ -2,6 +2,9 @@ import { LegacyPlayerRef, ensureOnlineSession, onlineApi } from './onlineApi'
 
 export interface LegacyInventoryItem {
   item_id: string
+  itemConfigId?: string
+  material_type?: string
+  attribute_type?: string | null
   item_type: string
   item_subtype: string | null
   item_name: string
@@ -19,6 +22,9 @@ export const mapOnlineInventoryItem = (item: any): LegacyInventoryItem => {
   const payload = item.payload || item.itemData || item.item_data || {}
   return {
     item_id: item.id || item.itemId || item.item_id,
+    itemConfigId: item.itemConfigId,
+    material_type: item.materialType || item.material_type || payload.materialType || payload.material_type,
+    attribute_type: item.attributeType || item.attribute_type || payload.attributeType || payload.attribute_type || null,
     item_type: item.itemType || item.item_type || 'item',
     item_subtype: payload.subtype || item.itemSubtype || item.item_subtype || null,
     item_name: payload.name || item.itemName || item.item_name || item.itemConfigId || 'Item',
@@ -46,14 +52,22 @@ export const groupOnlineInventory = (rows: any[]) => {
 export const loadOnlineInventory = async (player: LegacyPlayerRef | null | undefined) => {
   const session = await ensureOnlineSession(player)
   const response = await onlineApi.get(`/inventory/${session.player.id}`)
-  const rows = Array.isArray(response.data) ? response.data : response.data?.items || []
+  if (response.status >= 400 || response.data?.success === false) {
+    throw new Error('Online inventory request failed')
+  }
+  const rows = Array.isArray(response.data) ? response.data : response.data?.items
+  if (!Array.isArray(rows)) throw new Error('Invalid online inventory response')
   return { session, rows, inventory: groupOnlineInventory(rows) }
 }
 
 export const loadOnlineMaterials = async (player: LegacyPlayerRef | null | undefined) => {
   const session = await ensureOnlineSession(player)
   const response = await onlineApi.get(`/workshop/${session.player.id}/materials`)
-  const rows = response.data?.materials || []
+  if (response.status >= 400 || response.data?.success === false) {
+    throw new Error('Online materials request failed')
+  }
+  const rows = response.data?.materials
+  if (!Array.isArray(rows)) throw new Error('Invalid online materials response')
   return {
     session,
     materials: Object.fromEntries(rows.map((row: any) => [row.itemId, {

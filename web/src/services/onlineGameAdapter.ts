@@ -3,6 +3,8 @@ import { LegacyPlayerRef, createIdempotencyKey, ensureOnlineSession, getApiError
 
 export interface OnlineLegacyCharacter {
   character_id: string
+  config_id?: string
+  number?: number
   name: string
   profession_type: string
   attribute_type: string
@@ -158,6 +160,8 @@ export const mapOnlineCharacter = (character: any): OnlineLegacyCharacter => {
     characterNameFromConfigId(character.characterConfigId || character.character_config_id)
   return {
     character_id: character.id || character.character_id,
+    config_id: character.characterConfigId || character.character_config_id,
+    number: character.number ?? character.characterNumber ?? character.character_number,
     name,
     profession_type: professionType,
     attribute_type: normalizeAttribute(character.attributeType || character.attribute_type),
@@ -301,6 +305,9 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
 export const loadOnlineProfile = async (legacyPlayer: LegacyPlayerRef | null | undefined) => {
   const session = await ensureOnlineSession(legacyPlayer)
   const response = await onlineApi.get(`/players/${session.player.id}/profile`)
+  if (response.data?.success === false) {
+    throw new Error(response.data?.message || '角色数据加载失败')
+  }
   const characters = (response.data?.characters || []).map(mapOnlineCharacter)
   return {
     session,
@@ -317,6 +324,12 @@ export const loadOnlineDungeons = async (legacyPlayer: LegacyPlayerRef | null | 
     onlineApi.get('/dungeons'),
     onlineApi.get(`/battle-settlement/${profile.session.player.id}/progress`),
   ])
+  if (dungeonResponse.data?.success === false) {
+    throw new Error(dungeonResponse.data?.message || '副本数据加载失败')
+  }
+  if (progressResponse.data?.success === false) {
+    throw new Error(progressResponse.data?.message || '副本进度加载失败')
+  }
   const rawDungeons = dungeonResponse.data?.dungeons || []
   return {
     ...profile,

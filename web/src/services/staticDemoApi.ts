@@ -336,12 +336,17 @@ const parseBody = (data: unknown) => {
 const loadState = (): DemoState => {
   const cached = localStorage.getItem(demoKey)
   if (cached) {
+    let parsed: unknown
     try {
-      const state = normalizeState(JSON.parse(cached) as DemoState)
-      saveState(state)
-      return state
+      parsed = JSON.parse(cached)
     } catch {
       localStorage.removeItem(demoKey)
+      parsed = undefined
+    }
+    if (parsed !== undefined) {
+      const state = normalizeState(parsed as DemoState)
+      saveState(state, cached)
+      return state
     }
   }
   const state = createDefaultState()
@@ -349,8 +354,12 @@ const loadState = (): DemoState => {
   return state
 }
 
-const saveState = (state: DemoState) => {
-  localStorage.setItem(demoKey, JSON.stringify(state))
+const saveState = (state: DemoState, previous?: string) => {
+  const serialized = JSON.stringify(state)
+  // Reuse the serialization needed for migration checks; do not rewrite unchanged saves.
+  if (serialized !== previous) {
+    localStorage.setItem(demoKey, serialized)
+  }
 }
 
 const attributeNames: Record<string, string> = {

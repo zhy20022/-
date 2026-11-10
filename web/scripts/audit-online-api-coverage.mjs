@@ -6,7 +6,7 @@ const menu = readFileSync(resolve(root, 'src/pages/MainMenu.tsx'), 'utf8');
 const coverage = readFileSync(resolve(root, 'src/services/onlineFeatureCoverage.ts'), 'utf8');
 const expectedRoutes = [
   '/', '/characters', '/dungeons', '/gacha', '/crafting', '/inventory', '/online-progress',
-  '/shop', '/social', '/world-boss', '/quests', '/achievements', '/enhancement', '/admin', '/online-admin',
+  '/shop', '/social', '/world-boss', '/quests', '/achievements', '/enhancement', '/materials', '/admin', '/online-admin',
 ];
 const missing = expectedRoutes.filter((route) => !coverage.includes(`'${route}':`));
 if (missing.length) throw new Error(`main-city routes missing online coverage records: ${missing.join(', ')}`);

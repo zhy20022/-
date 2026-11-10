@@ -13,7 +13,7 @@ const primaryNavigation = [
   { path: '/characters', label: '角色', icon: '◇' },
   { path: '/dungeons', label: '副本', icon: '⚔' },
   { path: '/gacha', label: '召唤', icon: '✦' },
-  { path: '/inventory', label: '背包', icon: '▣' },
+  { path: '/materials', label: '材料', icon: '▣' },
 ]
 
 const compactNumber = new Intl.NumberFormat('zh-CN', { notation: 'compact', maximumFractionDigits: 1 })

@@ -37,6 +37,229 @@
   padding-top: 40px; /* 保持原有padding */
 }
 
+.app :is(.main-menu, .character-page, .materials-page, .inventory-page, .crafting-page, .enhancement-page, .dungeon-page, .battle-page) {
+  background: var(--surface-page);
+}
+
+.app :is(.character-page, .dungeon-page, .inventory-page, .crafting-page) > .page-container,
+.app :is(.menu-container, .materials-container, .enhancement-container, .battle-container) {
+  max-width: 1400px;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface-panel);
+  box-shadow: none;
+}
+
+.app :is(.main-menu, .character-page, .materials-page, .inventory-page, .crafting-page, .enhancement-page, .dungeon-page, .battle-page) h1 {
+  color: var(--text-strong);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  font-size: 24px;
+  letter-spacing: 0;
+}
+
+.app :is(.menu-buttons, .materials-action-links) button,
+.app :is(.back-btn, .craft-btn, .btn-enhance) {
+  min-height: 44px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-strong);
+  background: var(--surface-panel);
+  box-shadow: none;
+}
+
+.app .menu-buttons button {
+  padding: 16px;
+  font-size: 15px;
+}
+
+.app .menu-buttons button::before {
+  content: none;
+}
+
+.app :is(.menu-buttons button, .back-btn, .craft-btn, .btn-enhance):hover:not(:disabled) {
+  color: var(--accent);
+  background: #eff6ff;
+  border-color: #93c5fd;
+  transform: none;
+  box-shadow: none;
+}
+
+.app .menu-buttons .logout-btn {
+  color: var(--danger);
+}
+
+.app .player-info {
+  background: var(--surface-muted);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.app :is(.inventory-panel, .crafting-panel, .enhancement-panel) {
+  min-width: 0;
+}
+
+.app :is(.inventory-panel, .crafting-panel, .enhancement-panel) :is(button, input, select) {
+  min-height: 44px;
+}
+
+.app .inventory-panel .lock-btn {
+  position: static;
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+.app .character-page > .page-container {
+  padding: 16px;
+}
+
+.app .character-page .character-card {
+  border-radius: var(--radius-md);
+  padding: 6px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  align-content: start;
+}
+
+.app .character-card .character-number {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.app .character-card > .lock-btn {
+  position: static;
+  justify-self: start;
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.85);
+  transform: none;
+  grid-row: 2;
+}
+
+.app .character-card .star-rating {
+  position: static;
+  justify-self: start;
+  border-radius: 4px;
+  padding: 2px 4px;
+  color: #785100;
+  font-size: 12px;
+}
+
+.app .character-card .character-avatar {
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 6px;
+}
+
+.app .character-card .character-name {
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.app .character-card :is(.profession, .battle-soul-level, .exp-bar, .character-stats-preview) {
+  display: none;
+}
+
+.app .character-count {
+  margin: 12px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.app :is(.character-feedback, .dungeon-page .error-message) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: var(--danger);
+  background: #fff5f5;
+}
+
+.app .materials-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.app .materials-filters :is(input, select) {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+.app .materials-page .items-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 12px;
+}
+
+.app .materials-page .item-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface-panel);
+  box-shadow: none;
+  overflow-wrap: anywhere;
+}
+
+.app .capability-note {
+  color: var(--text-muted);
+  margin: 12px 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.app .material-detail {
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.app .material-detail header,
+.app .material-detail footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app .material-detail dl {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+
+.app .avatar-panel {
+  padding: 16px 0;
+}
+
+.app .avatar-panel h2 {
+  font-size: 18px;
+}
+
+.app .avatar-choice {
+  align-content: start;
+  justify-items: start;
+  text-align: left;
+  cursor: pointer;
+}
+
 /* 横竖屏布局优化 */
 .app-orientation-container.mobile.portrait {
   /* 移动端竖屏样式 */
@@ -73,6 +296,7 @@
   .app.mobile-shell-active .dungeon-page,
   .app.mobile-shell-active .gacha-page,
   .app.mobile-shell-active .crafting-page,
+  .app.mobile-shell-active .materials-page,
   .app.mobile-shell-active .inventory-page,
   .app.mobile-shell-active .shop-page,
   .app.mobile-shell-active .social-page,
@@ -96,6 +320,7 @@
   .app.mobile-shell-active .gacha-container,
   .app.mobile-shell-active .inventory-container,
   .app.mobile-shell-active .crafting-container,
+  .app.mobile-shell-active .materials-container,
   .app.mobile-shell-active .shop-container,
   .app.mobile-shell-active .social-container,
   .app.mobile-shell-active .quest-container,
@@ -141,6 +366,28 @@
     letter-spacing: 0;
   }
 
+  .app.mobile-shell-active .materials-header {
+    padding-top: 0;
+  }
+
+  .app.mobile-shell-active .character-page > .page-container {
+    padding: 0;
+  }
+
+  .app.mobile-shell-active .character-card .character-name {
+    font-size: 12px;
+  }
+
+  .app.mobile-shell-active .character-card .element-badge {
+    gap: 1px;
+    padding-inline: 3px;
+    font-size: 12px;
+  }
+
+  .app.mobile-shell-active .materials-filters input {
+    flex: 1 1 100%;
+  }
+
   .app.mobile-shell-active .back-btn,
   .app.mobile-shell-active .world-boss-back {
     display: none;
@@ -152,7 +399,6 @@
     min-height: 44px;
   }
 
-  .app.mobile-shell-active .characters-grid,
   .app.mobile-shell-active .dungeons-grid,
   .app.mobile-shell-active .inventory-grid,
   .app.mobile-shell-active .shop-grid,

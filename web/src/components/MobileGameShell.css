@@ -14,11 +14,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    color: #f8fafc;
-    background: rgba(19, 27, 38, 0.96);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.24);
-    backdrop-filter: blur(14px);
+    color: var(--text-strong);
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .mobile-player-summary {
@@ -63,7 +61,7 @@
 
   .mobile-player-copy small {
     margin-top: 4px;
-    color: #a7b2c2;
+    color: var(--text-muted);
     font-size: 10px;
   }
 
@@ -82,9 +80,9 @@
     padding: 6px 8px;
     align-items: center;
     column-gap: 5px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-subtle);
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--surface-muted);
   }
 
   .mobile-resource-item > span {
@@ -98,7 +96,7 @@
   }
 
   .mobile-resource-item small {
-    color: #a7b2c2;
+    color: var(--text-muted);
     font-size: 9px;
     line-height: 1;
   }
@@ -106,7 +104,7 @@
   .mobile-resource-item strong {
     max-width: 58px;
     overflow: hidden;
-    color: #f8fafc;
+    color: var(--text-strong);
     font-size: 12px;
     line-height: 1.2;
     text-overflow: ellipsis;
@@ -124,7 +122,6 @@
     background: rgba(255, 255, 255, 0.98);
     border-top: 1px solid #dbe2ea;
     box-shadow: 0 -6px 22px rgba(15, 23, 42, 0.12);
-    backdrop-filter: blur(14px);
   }
 
   .mobile-game-tabbar button {

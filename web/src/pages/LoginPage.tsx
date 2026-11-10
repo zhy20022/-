@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { isFormalOnlineMode } from '../config'
 import './LoginPage.css'
 
 const LoginPage: React.FC = () => {
@@ -8,24 +9,41 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const pending = useRef(false)
   
   const navigate = useNavigate()
-  const { login } = useAuthStore()
+  const { login, loginGuest, sessionError } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (pending.current) return
+    pending.current = true
     setError('')
     setLoading(true)
 
-    const result = await login(username, password)
-    
-    if (result.success) {
-      navigate('/')
-    } else {
-      setError(result.message)
+    try {
+      const result = await login(username, password)
+      if (result.success) navigate('/')
+      else setError(result.message)
+    } finally {
+      setLoading(false)
+      pending.current = false
     }
-    
-    setLoading(false)
+  }
+
+  const handleGuestLogin = async () => {
+    if (pending.current) return
+    pending.current = true
+    setError('')
+    setLoading(true)
+    try {
+      const result = await loginGuest()
+      if (result.success) navigate('/')
+      else setError(result.message)
+    } finally {
+      pending.current = false
+      setLoading(false)
+    }
   }
 
   return (
@@ -57,12 +75,15 @@ const LoginPage: React.FC = () => {
             />
           </div>
           
-          {error && <div className="error-message">{error}</div>}
+          {(error || sessionError) && <div role="alert" className="error-message">{error || sessionError}</div>}
           
           <button type="submit" disabled={loading}>
             {loading ? '登录中...' : '登录'}
           </button>
         </form>
+        {isFormalOnlineMode() && (
+          <button type="button" onClick={() => void handleGuestLogin()} disabled={loading}>游客登录</button>
+        )}
         
         <div className="register-link">
           还没有账号？<Link to="/register">立即注册</Link>

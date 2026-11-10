@@ -10,6 +10,7 @@ import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlin
 import './DungeonPage.css'
 import ElementBadge from '../components/ElementBadge'
 import { getAttributeColor } from '../services/elementTheme'
+import { safeErrorLog } from '../services/safeErrorLog'
 
 interface DungeonProgress {
   completion_count: number
@@ -222,6 +223,14 @@ const DungeonPage: React.FC = () => {
   const startingBattle = useRef(false)
   const [showDetail, setShowDetail] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null)
+  const [detailError, setDetailError] = useState<string | null>(null)
+  const detailRequestRef = useRef(0)
+  const dungeonLoadRequestRef = useRef(0)
+  const characterLoadRequestRef = useRef(0)
+  const detailTargetRef = useRef<Dungeon | null>(null)
+  const mountedRef = useRef(true)
   
   // 标签页和筛选状态
   const [activeTab, setActiveTab] = useState<TabType>('ALL')
@@ -230,8 +239,13 @@ const DungeonPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
+    mountedRef.current = true
     loadDungeons()
     loadCharacters()
+    return () => {
+      mountedRef.current = false
+      detailRequestRef.current++
+    }
   }, [])
 
   const firstCharacterAttribute = useMemo(() => (
@@ -239,38 +253,61 @@ const DungeonPage: React.FC = () => {
   ), [characters])
 
   const loadDungeons = async () => {
+    const requestId = dungeonLoadRequestRef.current + 1
+    dungeonLoadRequestRef.current = requestId
     try {
+      setLoadError(null)
+      setLoading(true)
       if (isFormalOnlineMode()) {
         const payload = await loadOnlineDungeons(player)
+        if (!Array.isArray(payload.dungeons)) {
+          throw new Error('副本数据加载失败')
+        }
+        if (!mountedRef.current || requestId !== dungeonLoadRequestRef.current) return
         setDungeons(payload.dungeons)
         setCharacters(payload.characters)
         return
       }
 
       const response = await axios.get('/api/dungeons')
-      if (response.data.success) {
-        setDungeons(response.data.dungeons)
+      if (!response.data?.success || !Array.isArray(response.data?.dungeons)) {
+        throw new Error(response.data?.message || '副本数据加载失败')
       }
+      if (!mountedRef.current || requestId !== dungeonLoadRequestRef.current) return
+      setDungeons(response.data.dungeons)
     } catch (error) {
-      console.error('加载副本失败', error)
+      safeErrorLog('dungeon.list', error)
+      if (mountedRef.current && requestId === dungeonLoadRequestRef.current) {
+        setLoadError(getOnlineModeError(error, '副本加载失败，请稍后重试'))
+      }
     } finally {
-      setLoading(false)
+      if (mountedRef.current && requestId === dungeonLoadRequestRef.current) setLoading(false)
     }
   }
 
   const loadCharacters = async () => {
     if (isFormalOnlineMode()) return
+    const requestId = characterLoadRequestRef.current + 1
+    characterLoadRequestRef.current = requestId
     try {
       const response = await axios.get('/api/characters')
       if (response.data.success) {
+        if (!mountedRef.current || requestId !== characterLoadRequestRef.current) return
         setCharacters(response.data.characters)
+      } else {
+        throw new Error(response.data.message || '角色数据加载失败')
       }
     } catch (error) {
-      console.error('加载角色失败', error)
+      safeErrorLog('dungeon.characters', error)
+      if (mountedRef.current && requestId === characterLoadRequestRef.current) {
+        setLoadError(getOnlineModeError(error, '角色加载失败，请稍后重试'))
+      }
     }
   }
 
   const handleStartDungeon = (dungeon: Dungeon) => {
+    detailRequestRef.current++
+    setDetailLoadingId(null)
     if (isFormalOnlineMode() || normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE') {
       // 单人副本，直接选择角色
       setSelectedDungeon(dungeon)
@@ -512,21 +549,36 @@ const DungeonPage: React.FC = () => {
   
   // 查看详情
   const handleViewDetail = async (dungeon: Dungeon) => {
+    const requestId = detailRequestRef.current + 1
+    detailRequestRef.current = requestId
+    detailTargetRef.current = dungeon
+    setShowDetail(false)
+    setDetailLoadingId(dungeon.dungeon_id)
+    setDetailError(null)
     try {
       if (isFormalOnlineMode()) {
         const response = await onlineApi.get(`/dungeons/${dungeon.dungeon_id}`)
+        if (!mountedRef.current || requestId !== detailRequestRef.current) return
+        if (response.status >= 400 || response.data?.success === false || !response.data?.dungeon) throw new Error('副本详情为空')
         setSelectedDungeon(mapOnlineDungeon(response.data.dungeon, [], characters as any))
         setShowDetail(true)
         return
       }
 
       const response = await axios.get(`/api/dungeons/${dungeon.dungeon_id}`)
-      if (response.data.success) {
-        setSelectedDungeon(response.data.dungeon)
-        setShowDetail(true)
+      if (!mountedRef.current || requestId !== detailRequestRef.current) return
+      if (response.status >= 400 || !response.data?.success || !response.data?.dungeon) {
+        throw new Error(response.data?.message || '副本详情加载失败')
       }
+      setSelectedDungeon(response.data.dungeon)
+      setShowDetail(true)
     } catch (error) {
-      console.error('获取副本详情失败', error)
+      safeErrorLog('dungeon.detail', error)
+      if (requestId === detailRequestRef.current) {
+        setDetailError(getOnlineModeError(error, '副本详情加载失败，请稍后重试'))
+      }
+    } finally {
+      if (requestId === detailRequestRef.current) setDetailLoadingId(null)
     }
   }
 
@@ -627,9 +679,32 @@ const DungeonPage: React.FC = () => {
           </div>
         </div>
 
+        {loadError && (
+          <div className="error-message" role="alert">
+            {loadError}
+            <button type="button" onClick={() => { void loadDungeons(); void loadCharacters() }}>重试</button>
+          </div>
+        )}
+
+        {detailError && (
+          <div className="error-message" role="alert">
+            <span>{detailError}</span>
+            {detailTargetRef.current && (
+              <button type="button" onClick={() => void handleViewDetail(detailTargetRef.current!)}>
+                重试详情
+              </button>
+            )}
+          </div>
+        )}
+
         {loading ? (
           <div className="loading">加载中...</div>
-        ) : (
+          ) : loadError && dungeons.length === 0 ? (
+            <div className="error-message error-state" role="alert">
+              <span>副本列表暂时无法显示，请先处理上方错误。</span>
+              <button type="button" onClick={() => { void loadDungeons(); void loadCharacters() }}>重试</button>
+            </div>
+          ) : (
           <div className="dungeons-grid">
             {filteredAndSortedDungeons.length === 0 ? (
               <div className="empty">暂无副本</div>
@@ -709,8 +784,9 @@ const DungeonPage: React.FC = () => {
                         <button
                           className="btn-detail"
                           onClick={() => handleViewDetail(dungeon)}
+                          disabled={detailLoadingId === dungeon.dungeon_id}
                         >
-                          详情
+                          {detailLoadingId === dungeon.dungeon_id ? '加载中...' : '详情'}
                         </button>
                         {dungeon.progress?.sweep_unlocked && (
                           <button
