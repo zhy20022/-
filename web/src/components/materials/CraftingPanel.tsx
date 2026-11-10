@@ -451,7 +451,9 @@ const CraftingPanel: React.FC = () => {
                   >
                     <option value="">请选择部位</option>
                     <option value="HELMET">头盔</option>
-                    <option value="ACCESSORY">饰品</option>
+                    <option value="SHOULDERS">肩</option>
+                    <option value="RING">戒指</option>
+                    <option value="NECKLACE">项链</option>
                     <option value="CHEST">胸</option>
                     <option value="GLOVES">手</option>
                     <option value="LEGS">腿</option>

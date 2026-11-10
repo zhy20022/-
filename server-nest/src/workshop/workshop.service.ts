@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { EQUIPMENT_SLOTS } from '../players/star-rules';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, In, Repository } from 'typeorm';
 import { IdempotencyService } from '../common/idempotency.service';
@@ -213,7 +214,7 @@ export class WorkshopService {
     return { ...rules, crafting: {
       ...rules.crafting,
       exclusive: { ...rules.crafting.exclusive, materialCost: 8, acceptedItemConfigIds: ['exclusive_material'] },
-      equipmentSet: { ...rules.crafting.equipmentSet, materialCost: 10, acceptedItemConfigIds: ['equipment_material'] },
+      equipmentSet: { ...rules.crafting.equipmentSet, slots: EQUIPMENT_SLOTS, materialCost: 10, acceptedItemConfigIds: ['equipment_material'] },
     } };
   }
 

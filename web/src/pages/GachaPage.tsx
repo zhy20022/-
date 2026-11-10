@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
-import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineProfile, onlineApi } from '../services/onlineGameAdapter'
 import './GachaPage.css'
@@ -160,7 +159,7 @@ const GachaPage: React.FC = () => {
             profession_type: item.professionType || item.character?.professionType || '',
           },
           is_duplicate: Boolean(item.duplicate),
-          essence_gained: Number(item.convertedTo?.quantity || 0),
+          essence_gained: Number(item.shardsGranted || (item.duplicate ? 1 : 0)),
         }))
         const newCharacters = onlineResults.filter((item: GachaResultItem) => !item.is_duplicate).length
         const duplicates = onlineResults.length - newCharacters
@@ -252,7 +251,6 @@ const GachaPage: React.FC = () => {
           </div>
         </div>
 
-        <NewPlayerGuide page="gacha" ownedCharacterCount={result?.summary?.new_characters || results.length} />
 
         <div className="pool-selector">
           {poolOptions.map((pool) => (
@@ -322,7 +320,7 @@ const GachaPage: React.FC = () => {
               <div className="summary-chips">
                 <span>新角色 {result.summary?.new_characters ?? result.new_characters}</span>
                 <span>重复 {result.summary?.duplicates ?? 0}</span>
-                <span>精华 +{result.summary?.essence_gained ?? result.essence_gained}</span>
+                <span>角色碎片 +{result.summary?.essence_gained ?? result.essence_gained}</span>
                 {(result.summary?.pity_triggered || 0) > 0 && <span>触发保底 {result.summary.pity_triggered}</span>}
               </div>
             </div>
@@ -333,7 +331,7 @@ const GachaPage: React.FC = () => {
                   <div className="result-badge">{item.is_duplicate ? '重复' : '新'}</div>
                   <h4>{item.character.name}</h4>
                   <p><ElementBadge attribute={item.character.attribute_type} /> · {getProfessionLabel(item.character.profession_type)}</p>
-                  {item.is_duplicate && <small>转化精华 +{item.essence_gained}</small>}
+                  {item.is_duplicate && <small>角色碎片 +{item.essence_gained}</small>}
                 </div>
               ))}
             </div>
@@ -356,7 +354,7 @@ const GachaPage: React.FC = () => {
                     <span>{entry.pull_count}抽</span>
                     <span>新 {entry.new_characters}</span>
                     <span>重复 {entry.duplicates}</span>
-                    <span>精华 +{entry.essence_gained}</span>
+                    <span>角色碎片 +{entry.essence_gained}</span>
                   </div>
                 </div>
               ))}

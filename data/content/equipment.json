@@ -15,7 +15,7 @@
       "materialCost": 10,
       "goldCost": 0,
       "quality": "rare",
-      "slots": ["HEAD", "CHEST", "LEGS", "BOOTS", "GLOVES", "ACCESSORY"],
+      "slots": ["HEAD", "CHEST", "SHOULDERS", "GLOVES", "LEGS", "BOOTS", "RING", "NECKLACE"],
       "professionCategories": ["A", "B", "C", "D"],
       "baseStats": { "hp_bonus": 100, "attack_bonus": 50, "defense_bonus": 50 }
     }

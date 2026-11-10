@@ -30,7 +30,7 @@ export const mapOnlineInventoryItem = (item: any): LegacyInventoryItem => {
     attribute_type: item.attributeType || item.attribute_type || payload.attributeType || payload.attribute_type || null,
     item_type: item.itemType || item.item_type || 'item',
     item_subtype: payload.subtype || item.itemSubtype || item.item_subtype || null,
-    item_name: payload.name || item.itemName || item.item_name || item.itemConfigId || 'Item',
+    item_name: payload.name || (payload.duplicateCharacter ? `${payload.duplicateCharacter}角色碎片` : '') || item.itemName || item.item_name || item.itemConfigId || 'Item',
     item_data: { ...payload, exclusive_info: payload.exclusiveInfo || payload.exclusive_info },
     count: Number(item.quantity ?? item.count ?? 1),
     level: Number(payload.enhancementLevel ?? item.level ?? 0),

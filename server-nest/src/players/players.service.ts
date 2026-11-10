@@ -5,6 +5,7 @@ import { applyCharacterExp, getExpForNextLevel, getExpRequiredToLevel, MAX_CHARA
 import { IdempotencyService } from '../common/idempotency.service';
 import { GameConfigsService } from '../configs/configs.service';
 import { SKILL_SLOT_RULES, skillSlotError } from './skill-slot-rules';
+import { characterStar, characterStats, starCost, STAR_MULTIPLIERS, EQUIPMENT_SLOTS, normalizeEquipmentSlot } from './star-rules';
 import { InventoryItemEntity, MailEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
 
 const CHARACTER_EXP_ITEM_ID = 'character_exp_crystal';
@@ -60,6 +61,34 @@ export class PlayersService {
       currency: 'gold',
       expItemConfigId: CHARACTER_EXP_ITEM_ID,
     };
+  }
+
+  async starPreview(playerId: string, characterId: string) {
+    await this.assertPlayer(playerId);
+    const character = await this.getOwnedCharacter(playerId, characterId);
+    const shard = await this.inventory.findOne({ where: { playerId, itemConfigId: `${character.characterConfigId}_shard`, itemType: 'fragment' } });
+    const star = characterStar(character.equipment);
+    return { star, required: starCost(star), owned: shard?.quantity || 0, multiplier: STAR_MULTIPLIERS[star - 1],
+      nextMultiplier: STAR_MULTIPLIERS[Math.min(star, 4)], canUpgrade: star < 5 && (shard?.quantity || 0) >= starCost(star) };
+  }
+
+  async starUp(playerId: string, characterId: string, idempotencyKey?: string) {
+    return this.idempotency.execute(playerId, 'character-star-up', idempotencyKey, { characterId }, async ({ manager, player }) => {
+      if (player.flags?.activeBattleSeed) throw new BadRequestException('请先完成当前战斗');
+      const character = await manager.findOne(PlayerCharacterEntity, { where: { id: characterId, playerId }, lock: { mode: 'pessimistic_write' } });
+      if (!character) throw new NotFoundException('character not found');
+      const star = characterStar(character.equipment);
+      if (star >= 5) throw new BadRequestException('角色已达到五星');
+      const shard = await manager.findOne(InventoryItemEntity, { where: { playerId,
+        itemConfigId: `${character.characterConfigId}_shard`, itemType: 'fragment' }, lock: { mode: 'pessimistic_write' } });
+      const cost = starCost(star);
+      if (!shard || shard.quantity < cost) throw new BadRequestException('角色碎片不足');
+      shard.quantity -= cost;
+      await manager.save(shard);
+      character.equipment = { ...character.equipment, star: star + 1 };
+      const saved = await manager.save(character);
+      return { success: true, character: this.serializeCharacter(saved), consumedShards: cost, remainingShards: shard.quantity };
+    });
   }
 
   async useExp(
@@ -172,7 +201,7 @@ export class PlayersService {
       ...item,
       canEquip: item.itemType !== 'weapon' || !item.payload?.characterId || item.payload.characterId === character.id || item.payload.characterConfigId === character.characterConfigId,
       isCurrentCharacterEquipped: equippedIds.has(item.id),
-      slot: item.itemType === 'weapon' ? 'weapon' : String(item.payload?.slot || 'ACCESSORY'),
+      slot: item.itemType === 'weapon' ? 'weapon' : normalizeEquipmentSlot(String(item.payload?.slot || 'ACCESSORY')),
     });
     return { success: true, weapons: items.filter((item) => item.itemType === 'weapon').map(serialize), equipment: items.filter((item) => item.itemType === 'equipment').map(serialize), character: this.serializeCharacter(character) };
   }
@@ -198,8 +227,11 @@ export class PlayersService {
       if (item.itemType === 'weapon') {
         equipment.weapon = payload;
       } else {
-        const slot = String(item.payload?.slot || 'ACCESSORY').toUpperCase();
-        equipment.equipment_set = { ...((equipment.equipment_set as Record<string, unknown>) || {}), [slot]: payload };
+        const slot = normalizeEquipmentSlot(String(item.payload?.slot || 'ACCESSORY'));
+        if (!EQUIPMENT_SLOTS.includes(slot)) throw new BadRequestException('invalid equipment slot');
+        const pieces = Object.fromEntries(Object.entries((equipment.equipment_set as Record<string, unknown>) || {})
+          .map(([key, value]) => [normalizeEquipmentSlot(key), value]));
+        equipment.equipment_set = { ...pieces, [slot]: payload };
       }
       character.equipment = equipment;
       const saved = await manager.save(character);
@@ -233,6 +265,9 @@ export class PlayersService {
   private serializeCharacter(character: PlayerCharacterEntity, config?: Record<string, unknown>) {
     return {
       ...character,
+      star: characterStar(character.equipment),
+      starMultiplier: STAR_MULTIPLIERS[characterStar(character.equipment) - 1],
+      ...characterStats(character),
       name: config?.name || character.equipment?.characterName || character.characterConfigId,
       attributeName: config?.attributeName,
       professionName: config?.professionName,

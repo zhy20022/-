@@ -15,6 +15,7 @@ import { getSeasonNumber } from '../services/seasons'
 const tabs = [
   { key: 'overview', label: '材料总览' },
   { key: 'breakthrough', label: '突破材料' },
+  { key: 'character-shards', label: '角色碎片' },
   { key: 'experience', label: '经验材料' },
   { key: 'equipment', label: '装备与强化材料' },
   { key: 'avatars', label: '角色头像' },
@@ -75,8 +76,8 @@ export default function MaterialsPage() {
   const location = useLocation()
   const requested = new URLSearchParams(location.search).get('tab')
   const activeTab: Tab = tabs.some((tab) => tab.key === requested) ? requested as Tab : 'overview'
-  const inventoryCategory = ['overview', 'breakthrough', 'experience', 'equipment', 'avatar-fragments'].includes(activeTab)
-    ? activeTab as 'overview' | 'breakthrough' | 'experience' | 'equipment' | 'avatar-fragments'
+  const inventoryCategory = ['overview', 'breakthrough', 'experience', 'equipment', 'avatar-fragments', 'character-shards'].includes(activeTab)
+    ? activeTab as 'overview' | 'breakthrough' | 'experience' | 'equipment' | 'avatar-fragments' | 'character-shards'
     : undefined
   return (
     <div className="materials-page">

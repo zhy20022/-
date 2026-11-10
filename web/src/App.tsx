@@ -11,6 +11,7 @@ import MainMenu from './pages/MainMenu'
 import './App.css'
 import SeasonScope from './components/SeasonTabs'
 import './compact-layout.css'
+import GameFrame from './components/GameFrame'
 
 const CharacterPage = lazy(() => import('./pages/CharacterPage'))
 const DungeonPage = lazy(() => import('./pages/DungeonPage'))
@@ -81,8 +82,10 @@ function App() {
       {showMobileShell && <MobileGameShell />}
       
       <Suspense fallback={<div role="status">加载中...</div>}>
+        {isAuthenticated ? <GameFrame>
         {seasonalRoute && isAuthenticated ? <SeasonScope key={location.pathname}><GameRoutes isAuthenticated={isAuthenticated} /></SeasonScope>
           : <GameRoutes isAuthenticated={isAuthenticated} />}
+        </GameFrame> : <GameRoutes isAuthenticated={isAuthenticated} />}
       </Suspense>
     </div>
   )

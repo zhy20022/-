@@ -91,7 +91,7 @@ export const completeNewPlayerGuideStep = (step: NewPlayerGuideStep) => {
   if (current.completed.includes(step)) return current
   const next = {
     ...current,
-    hidden: false,
+    hidden: current.completed.length + 1 === newPlayerGuideSteps.length,
     completed: [...current.completed, step]
   }
   setNewPlayerGuideState(next)

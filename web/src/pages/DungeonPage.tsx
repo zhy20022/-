@@ -2,7 +2,6 @@ import { getProfessionLabel } from '../services/professionLabels'
 import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { isExperienceSupportRole, isExperienceRoleWarningMuted, muteExperienceRoleWarningToday } from '../services/experienceRoleWarning'
 import { useAuthStore } from '../stores/authStore'
@@ -256,10 +255,6 @@ const DungeonPage: React.FC = () => {
       detailRequestRef.current++
     }
   }, [])
-
-  const firstCharacterAttribute = useMemo(() => (
-    characters.length > 0 ? normalizeAttribute(characters[0].attribute_type) : undefined
-  ), [characters])
 
   const loadDungeons = async () => {
     const requestId = dungeonLoadRequestRef.current + 1
@@ -629,11 +624,6 @@ const DungeonPage: React.FC = () => {
         </div>
 
         {/* 标签页切换 */}
-        <NewPlayerGuide
-          page="dungeons"
-          ownedCharacterCount={characters.length}
-          selectedCharacterAttribute={firstCharacterAttribute}
-        />
 
         <div className="dungeon-tabs">
           <button

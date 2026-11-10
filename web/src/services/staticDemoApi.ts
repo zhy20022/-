@@ -888,7 +888,13 @@ const createPulledCharacter = (state: DemoState, poolType: string) => {
   const entry = candidates[Math.floor(Math.random() * candidates.length)] || CHARACTER_POOL[0]
   const existing = state.characters.find((item) => item.config_id === entry.id || item.name === entry.name)
   if (existing) {
-    return { character: existing, is_duplicate: true, essence_gained: entry.rarity === 'epic' ? 30 : 10 }
+    const shardId = `${entry.id}_shard`
+    const shard = state.inventory.find(item => item.item_id === shardId)
+    if (shard) shard.count = Number(shard.count || 0) + 1
+    else state.inventory.push({ item_id: shardId, item_type: 'fragment', item_name: `${entry.name}角色碎片`,
+      material_type: 'CHARACTER_SHARD', item_data: { duplicateCharacter: entry.id, materialType: 'CHARACTER_SHARD' },
+      count: 1, level: 0, is_locked: false, is_equipped: false })
+    return { character: existing, is_duplicate: true, essence_gained: 1 }
   }
 
   const character = normalizeCharacter(toDemoCharacter(entry, `demo_gacha_${Date.now()}`))

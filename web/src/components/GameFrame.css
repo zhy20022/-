@@ -1,0 +1,42 @@
+.app { --game-width: 1400px; color: var(--text-strong); font-size: 14px; }
+.game-frame { max-width: var(--game-width); width: 100%; margin: 0 auto; padding: 16px; }
+.game-page-heading { position: relative; min-height: 52px; display: flex; align-items: center; justify-content: center; padding: 6px 52px; margin-bottom: 12px; }
+.game-page-heading h1 { font-size: 24px; line-height: 1.4; text-align: center; color: var(--text-strong); overflow-wrap: anywhere; }
+.game-home-key, .game-top-key { width: 40px; height: 40px; min-height: 40px; display: grid; place-items: center; border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--accent); background: white; cursor: pointer; padding: 0; }
+.game-home-key { position: absolute; right: 0; top: 6px; }
+.game-top-key { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1150; box-shadow: 0 2px 8px #17203318; }
+.game-content { min-width: 0; }
+.app .game-content > div, .app .game-content .season-scope > div { width: 100%; min-height: 0; padding: 0; margin: 0; background: transparent; }
+.app .game-content .season-scope > div { padding-bottom: 0; }
+.app .game-content [class$="-page"] { min-height: 0; padding: 0; background: transparent; }
+.app .game-content :is(.page-container, .menu-container, .materials-container, .enhancement-container, .battle-container, .shop-container, .social-container, .quest-container, .achievement-container, .admin-container, .online-admin-shell, .online-progress-shell, .world-boss-shell, .team-records-shell, .multiplayer-container) {
+  width: 100%; max-width: none; min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 6px; box-shadow: none; background: var(--surface-panel);
+}
+.app .game-content h1, .app .game-content :is(.back-btn, .admin-back, .online-back-btn, .online-admin-back) { display: none; }
+.app .game-content :is(.page-header, .header-top, .materials-header, .enhancement-header, .gacha-header) { padding-top: 0; min-height: 0; margin-top: 0; }
+.app .game-content :is(.page-header, .header-top):not(:has(p, select, input, a, button:not(.back-btn))) { display: none; }
+.app .game-content :is(h2, h3, h4) { color: var(--text-strong); letter-spacing: 0; text-shadow: none; }
+.app .game-content h2 { font-size: 20px; }
+.app .game-content h3 { font-size: 17px; }
+.app .game-content h4 { font-size: 15px; }
+.app .game-content p { line-height: 1.6; }
+.app .game-content :is(input, select, textarea) { color: var(--text-strong); background-color: white; font-size: 14px; border: 1px solid var(--border-subtle); border-radius: 6px; }
+.app .game-content button { font-family: inherit; letter-spacing: 0; border-radius: 6px; }
+.app .game-content :is(.filter-bar, .inventory-tabs, .materials-action-links, .player-info) { background: var(--surface-muted); box-shadow: none; border-radius: 6px; }
+.app .season-scope > .season-tabs { padding: 0 0 12px; margin: 0; max-width: none; }
+.app .season-tabs button { font-size: 14px; color: var(--text-muted); border-color: var(--border-subtle); }
+.app .season-tabs button[aria-selected="true"] { background: var(--accent); color: white; border-color: var(--accent); }
+.app .new-player-guide { margin: 0 0 12px; border-radius: 6px; box-shadow: none; }
+.app .new-player-guide-tab { display: block; width: 100%; text-align: left; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border-subtle); background: white; color: var(--text-muted); border-radius: 6px; }
+.app .orientation-toggle.top-right { top: 22px; left: max(18px, calc((100% - 1368px) / 2)); right: auto; width: 36px; height: 36px; min-height: 36px; padding: 6px; z-index: 20; }
+.app .orientation-toggle .orientation-label { display: none; }
+.app .game-content :is(.online-progress-header, .online-admin-header, .world-boss-header, .team-records-header) { background: none; color: var(--text-strong); border: 0; padding: 0 0 12px; }
+@media (max-width: 768px) {
+  .app.mobile-shell-active .game-frame { padding-top: calc(72px + env(safe-area-inset-top)); padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .app.mobile-shell-active .game-content [class$="-page"] { min-height: 0; padding: 0; }
+  .game-frame { padding: 10px; }
+  .game-page-heading h1 { font-size: 22px; }
+  .game-top-key { bottom: calc(78px + env(safe-area-inset-bottom)); right: 12px; }
+  .app .orientation-toggle.top-right { top: 78px; left: 12px; }
+  .app .game-content :is(.page-container, .menu-container, .materials-container, .enhancement-container, .battle-container, .shop-container, .social-container, .quest-container, .achievement-container, .multiplayer-container) { padding: 10px; }
+}

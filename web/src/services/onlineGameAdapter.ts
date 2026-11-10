@@ -16,6 +16,9 @@ export interface OnlineLegacyCharacter {
   exp_to_next_level: number
   exp_progress: number
   star: number
+  story?: string
+  base_stats?: OnlineLegacyCharacter['stats']
+  equipment_bonus?: OnlineLegacyCharacter['stats']
   is_locked: boolean
   stats: {
     hp: number
@@ -174,9 +177,13 @@ export const mapOnlineCharacter = (character: any): OnlineLegacyCharacter => {
     max_level: Number(character.maxLevel || character.max_level || 100),
     exp_to_next_level: expToNext,
     exp_progress: expToNext > 0 ? exp / expToNext : 0,
-    star: Math.min(5, Math.floor(level / 20) + 1),
+    star: Number(character.star || character.equipment?.star || 1),
+    story: character.story,
     is_locked: Boolean(character.locked || character.is_locked),
-    stats: estimateStats(level, professionType),
+    base_stats: character.base_stats,
+    equipment_bonus: character.equipment_bonus,
+    stats: character.stats || Object.fromEntries(Object.entries(estimateStats(level, professionType)).map(([key, value]) =>
+      [key, Math.round(value * Number(character.starMultiplier || [1, 1.2, 1.45, 1.7, 2][Number(character.star || character.equipment?.star || 1) - 1] || 1))])) as OnlineLegacyCharacter['stats'],
     equipment: character.equipment || {},
     skills: character.skillSlots || character.skills || {},
     online_raw: character,

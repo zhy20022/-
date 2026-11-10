@@ -2,7 +2,6 @@ import { getProfessionLabel } from '../services/professionLabels'
 import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
-import NewPlayerGuide from '../components/NewPlayerGuide'
 import { completeNewPlayerGuideStep } from '../services/newPlayerGuide'
 import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, loadOnlineProfile, mapOnlineCharacter, onlineApi } from '../services/onlineGameAdapter'
@@ -14,6 +13,11 @@ import { elementThemeStyle } from '../services/elementTheme'
 import { compareCharactersByNumber, createCharacterNumberMap, getCharacterNumber } from '../services/characterCatalog'
 import { safeErrorLog } from '../services/safeErrorLog'
 import { getSeasonNumber } from '../services/seasons'
+import CharacterLoadout from '../components/CharacterLoadout'
+import CharacterStars from '../components/CharacterStars'
+import { EQUIPMENT_SLOTS, equipmentPieces } from '../services/characterEquipment'
+import characterStories from '../../../data/content/character-stories.json'
+import '../components/CharacterLoadout.css'
 
 interface CharacterStats {
   hp?: number
@@ -40,6 +44,7 @@ interface Character {
   total_exp_to_current_level?: number
   total_exp_to_max_level?: number
   star?: number  // 星级（1-5星）
+  story?: string
   is_locked?: boolean  // 是否锁定
   stats?: CharacterStats
   base_stats?: CharacterStats
@@ -248,7 +253,7 @@ const CharacterPage: React.FC = () => {
         const chars = response.data.characters.map((char: Character) => ({
           ...char,
           number: getCharacterNumber(char),
-          star: char.star || Math.min(5, Math.floor(char.level / 20) + 1), // 根据等级计算星级
+          star: char.star || 1,
           is_locked: char.is_locked || false
         }))
         setCharacters(chars)
@@ -366,7 +371,7 @@ const CharacterPage: React.FC = () => {
   const handleCharacterUpdated = (updated: Character) => {
     const normalized = {
       ...updated,
-      star: updated.star || Math.min(5, Math.floor(updated.level / 20) + 1),
+      star: updated.star || 1,
       is_locked: updated.is_locked || false
     }
     setSelectedCharacter(normalized)
@@ -385,11 +390,6 @@ const CharacterPage: React.FC = () => {
         {isFormalOnlineMode() && <p className="capability-note">角色锁定暂未开放</p>}
 
         {/* 筛选和搜索栏 */}
-        <NewPlayerGuide
-          page="characters"
-          ownedCharacterCount={characters.length}
-          selectedCharacterAttribute={characters[0]?.attribute_type}
-        />
 
         <div className="filter-bar">
           <div className="search-section">
@@ -511,9 +511,7 @@ const CharacterPage: React.FC = () => {
                       </div>
                     )}
                     
-                    <div className="character-avatar">
-                      <ElementBadge attribute={char.attribute_type} />
-                    </div>
+                    <CharacterLoadout character={char} />
                     <div className="character-info">
                       <h3 className="character-name">{char.name}</h3>
                       <div className="character-meta">
@@ -628,9 +626,6 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   const expProgressPercent = Math.round(
     (character.exp_progress ?? (expToNextLevel > 0 ? character.exp / expToNextLevel : 1)) * 100
   )
-  const equippedPieces = character.equipment?.equipment_set && !character.equipment.equipment_set.name
-    ? Object.entries(character.equipment.equipment_set as Record<string, any>)
-    : []
   const statRows = [
     { key: 'hp', label: '生命值' },
     { key: 'attack', label: '攻击力' },
@@ -641,8 +636,8 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
   const configuredSkills = character.skill_summary
     ? [...character.skill_summary.low, ...character.skill_summary.mid, ...character.skill_summary.high]
     : []
-  const equipmentSlots = ['头盔', '胸甲', '护腿', '靴子', '手套', '饰品']
-  const equippedBySlot = new Map(equippedPieces.map(([slot, piece]) => [slot, piece]))
+  const equipmentSlots = EQUIPMENT_SLOTS
+  const equippedBySlot = equipmentPieces(character.equipment)
   const formatStats = (stats?: CharacterStats) => {
     if (!stats) return '无属性加成'
     const parts = statRows
@@ -1302,7 +1297,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
             >
               {character.is_locked ? '🔒' : '🔓'}
             </button>
-            <button className="close-btn" onClick={onClose}>×</button>
+            <button className="close-btn" aria-label="关闭角色详情" onClick={onClose}>×</button>
           </div>
         </div>
         
@@ -1360,7 +1355,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
               className={`tab-btn ${activeTab === 'battle-soul' ? 'active' : ''}`}
               onClick={() => setActiveTab('battle-soul')}
             >
-              战魂
+              背景故事
             </button>
           </div>
           
@@ -1391,7 +1386,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                   </div>
                   <div className="info-row">
                     <span className="info-label">装备：</span>
-                    <span>{character.equipment_summary?.equipped_piece_count || 0} / 6</span>
+                    <span>{Object.keys(equippedBySlot).length} / 8</span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">技能：</span>
@@ -1400,6 +1395,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                 </div>
               </div>
 
+              <CharacterStars character={character} onUpdated={onCharacterUpdated} />
               <div className="detail-section">
                 <h3>等级培养</h3>
                 <div className="growth-panel">
@@ -1642,12 +1638,12 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                     </div>
                   )}
                   <div className="equipment-slot-grid">
-                    {equipmentSlots.map((slot) => {
-                      const piece = equippedBySlot.get(slot)
+                    {equipmentSlots.map(([slot, label]) => {
+                      const piece = equippedBySlot[slot] as any
                       return (
                         <div key={slot} className={`equipment-slot-card ${piece ? 'equipped' : ''}`}>
                           <div>
-                            <h4>{slot}</h4>
+                            <h4>{label}</h4>
                             <strong>{piece ? (piece.name || piece.item_name || '已装备') : '未装备'}</strong>
                             <p>{piece ? `Lv.${piece.level || 0} · ${formatStats(piece.stats)}` : '空槽位'}</p>
                           </div>
@@ -1867,53 +1863,10 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
           
           {/* 战魂标签页 */}
           {activeTab === 'battle-soul' && (
-            <div className="detail-section">
-              <h3>战魂</h3>
-              {battleSoulInfo ? (
-                <div className="battle-soul-detail">
-                  <div className="battle-soul-status">
-                    <div className="status-item">
-                      <span className="status-label">当前等级：</span>
-                      <span className="status-value">{battleSoulInfo.level} / {battleSoulInfo.max_level}</span>
-                    </div>
-                    <div className="status-item">
-                      <span className="status-label">属性加成：</span>
-                      <span className="status-value">{(battleSoulInfo.bonus * 100).toFixed(0)}%</span>
-                    </div>
-                    <div className="status-item">
-                      <span className="status-label">当前精华：</span>
-                      <span className="status-value">{battleSoulInfo.essence_count}</span>
-                    </div>
-                    {battleSoulInfo.level < battleSoulInfo.max_level && (
-                      <div className="status-item">
-                        <span className="status-label">升级需要：</span>
-                        <span className="status-value">{battleSoulInfo.upgrade_cost} 精华</span>
-                      </div>
-                    )}
-                  </div>
-                  {battleSoulInfo.level < battleSoulInfo.max_level ? (
-                    <div className="battle-soul-upgrade-section">
-                      <button
-                        className={`btn-upgrade-large ${battleSoulInfo.can_upgrade ? '' : 'disabled'}`}
-                        onClick={handleBattleSoulUpgrade}
-                        disabled={!battleSoulInfo.can_upgrade || upgrading}
-                      >
-                        {upgrading ? '升级中...' : `升级到 ${battleSoulInfo.level + 1} 级`}
-                      </button>
-                      {!battleSoulInfo.can_upgrade && (
-                        <p className="upgrade-hint">精华不足，无法升级</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="battle-soul-max-level">
-                      <p>🎉 战魂已达到最高等级！</p>
-                      <p>属性加成: 100%</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="no-battle-soul">暂无战魂数据</p>
-              )}
+            <div className="detail-section character-story">
+              <h3>{character.name} · 背景故事</h3>
+              {(character.story || (characterStories as Record<string, string>)[character.config_id || character.characterConfigId || ''] || '背景故事尚未收录')
+                .split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
             </div>
           )}
           

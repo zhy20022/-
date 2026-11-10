@@ -1,0 +1,52 @@
+.app .character-page .character-card {
+  display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+  padding: 10px; min-width: 0; border: 1px solid var(--border-subtle); background: white; color: var(--text-strong);
+}
+.app .character-card > .lock-btn { display: none; }
+.app .character-card .character-number, .app .character-card .star-rating { position: static; font-size: 12px; }
+.app .character-card .character-number { align-self: flex-start; }
+.app .character-card .star-rating { align-self: flex-end; margin-top: -26px; color: #956000; background: #fff6d9; }
+.app .character-loadout { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr); align-items: start; gap: 8px; }
+.app .loadout-portrait { width: 100%; aspect-ratio: 1; border: 1px solid #bacbd3; border-radius: 4px; background: #eaf2f4; display: grid; place-items: center; overflow: hidden; }
+.app .loadout-portrait > span { font-size: 40px; color: #3e6370; }
+.app .loadout-portrait img { width: 100%; height: 100%; object-fit: cover; }
+.app .loadout-exclusive { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #b8c5d4; border-radius: 3px; background: #f5f7fa; color: #536277; gap: 3px; }
+.app .loadout-exclusive small { font-size: 10px; }
+.app .loadout-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); grid-auto-flow: column; gap: 2px; }
+.app .loadout-slot { aspect-ratio: 1; min-width: 0; border: 1px solid #cad1d9; border-radius: 2px; background: #f5f7fa; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #596575; overflow: hidden; }
+.app .loadout-slot small { font-size: 9px; line-height: 1; white-space: nowrap; }
+.app .loadout-slot.equipped, .app .loadout-exclusive.equipped { background: #e6f5ea; color: #22633a; border-color: #75ad87; }
+.app .character-card .character-info { min-width: 0; }
+.app .character-card .character-name { font-size: 15px; margin: 0 0 6px; }
+.app .character-card .character-meta { display: flex; justify-content: space-between; gap: 4px; font-size: 12px; margin: 0 0 6px; }
+.app .character-card .character-meta .profession { font-size: 12px; }
+.app .character-card .battle-soul-level { display: none; }
+.app .character-detail-modal .equipment-slot-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.app .equipment-slot-card { aspect-ratio: 1; min-width: 0; padding: 8px; display: flex; flex-direction: column; overflow-wrap: anywhere; border-radius: 4px; font-size: 12px; }
+.app .equipment-slot-card p { font-size: 11px; }
+.app .equipment-slot-card button { min-height: 28px; }
+.app .character-story p { color: var(--text-strong); line-height: 1.9; font-size: 14px; margin: 0 0 16px; white-space: pre-line; }
+.app .character-star-panel { flex: 1 1 100%; border-top: 1px solid var(--border-subtle); padding: 12px 0; }
+.app .character-star-panel button { background: var(--accent); color: white; padding: 10px 14px; border: 0; min-height: 40px; }
+.app .modal-overlay:has(.character-detail-modal) { z-index: 1400; padding: 12px; }
+.app:has(.character-detail-modal) :is(.mobile-game-topbar, .mobile-game-tabbar, .game-top-key, .orientation-toggle) { visibility: hidden; }
+.app .character-detail-modal { border-radius: 8px; max-width: 900px; max-height: calc(100dvh - 24px); }
+.app .character-detail-modal .modal-header { padding: 12px 16px; }
+.app .character-detail-modal .modal-body { padding: 16px; }
+.app .character-detail-modal .illustration-section { margin-bottom: 12px; }
+.app .character-detail-modal .illustration-container { width: 120px; max-width: 100%; margin: auto; }
+.app .character-detail-modal .illustration-placeholder { height: 120px; min-height: 0; aspect-ratio: 1; }
+.app .character-detail-modal .illustration-fallback p { font-size: 16px; }
+.app .character-detail-modal .detail-tabs { display: flex; flex-wrap: wrap; gap: 4px; overflow: visible; padding: 0 0 8px; }
+.app .character-detail-modal .detail-tabs button { flex: 1 1 60px; padding: 10px 4px; font-size: 13px; min-width: 0; color: var(--text-muted); background: var(--surface-muted); }
+.app .character-detail-modal .detail-tabs button.active { background: #e8efff; color: var(--accent); }
+.app .character-detail-modal .close-btn { color: var(--text-strong); background: var(--surface-muted); width: 36px; height: 36px; min-height: 36px; }
+@media (max-width: 600px) {
+  .app .character-loadout { gap: 4px; }
+  .app .loadout-slot svg { display: none; }
+  .app .loadout-exclusive svg { width: 16px; height: 16px; }
+  .app .loadout-exclusive small { font-size: 9px; }
+  .app .loadout-portrait > span { font-size: 28px; }
+  .app .character-card .character-meta { flex-wrap: wrap; }
+  .app .character-detail-modal .equipment-slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

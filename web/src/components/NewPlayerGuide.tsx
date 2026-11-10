@@ -68,7 +68,11 @@ const NewPlayerGuide: React.FC<NewPlayerGuideProps> = ({
   const progressText = `${guideState.completed.length}/${newPlayerGuideSteps.length}`
   const isComplete = !nextStep
 
-  if (guideState.hidden && !isComplete) {
+  useEffect(() => {
+    if (isComplete) setNewPlayerGuideHidden(true)
+  }, [isComplete])
+
+  if (guideState.hidden) {
     return (
       <button className="new-player-guide-tab" onClick={() => setNewPlayerGuideHidden(false)}>
         新手指引 {progressText}
@@ -159,7 +163,7 @@ const NewPlayerGuide: React.FC<NewPlayerGuideProps> = ({
 
       <div className="guide-actions">
         {renderPrimaryAction()}
-        {!isComplete && <button className="secondary" onClick={() => setNewPlayerGuideHidden(true)}>暂时收起</button>}
+        <button className="secondary" onClick={() => setNewPlayerGuideHidden(true)}>收起指引</button>
         {isComplete && <button className="secondary" onClick={resetNewPlayerGuide}>重新指引</button>}
       </div>
     </section>

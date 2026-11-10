@@ -59,6 +59,19 @@ export class PlayersController {
     return this.players.expPreview(playerId, characterId, Number(levelDelta || 1));
   }
 
+  @Get(':playerId/characters/:characterId/star-preview')
+  starPreview(@Headers('authorization') authorization: string | undefined, @Param('playerId') playerId: string, @Param('characterId') characterId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.players.starPreview(playerId, characterId);
+  }
+
+  @Post(':playerId/characters/:characterId/star-up')
+  starUp(@Headers('authorization') authorization: string | undefined, @Headers('idempotency-key') key: string | undefined,
+    @Param('playerId') playerId: string, @Param('characterId') characterId: string) {
+    this.auth.assertPlayerAccess(authorization, playerId);
+    return this.players.starUp(playerId, characterId, key);
+  }
+
   @Post(':playerId/characters/:characterId/use-exp')
   useExp(
     @Headers('authorization') authorization: string | undefined,

@@ -137,10 +137,11 @@ export class GachaService {
         const shards = await this.inventory.grant(playerId, [{
           itemConfigId: `${configId}_shard`,
           itemType: 'fragment',
-          quantity: rarity === 'epic' ? 30 : 10,
-          payload: { duplicateCharacter: configId, rarity },
+          quantity: 1,
+          payload: { duplicateCharacter: configId, rarity, materialType: 'CHARACTER_SHARD',
+            name: `${characterConfig?.name || entry.name || configId}角色碎片` },
         }], 'gacha_duplicate', manager);
-        return { ...entry, ...this.entryFromConfig(characterConfig), duplicate: true, convertedTo: shards[0] };
+        return { ...entry, ...this.entryFromConfig(characterConfig), duplicate: true, shardsGranted: 1, convertedTo: { ...shards[0], quantity: 1 } };
       }
       const character = await manager.save(manager.create(PlayerCharacterEntity, {
         playerId,
@@ -151,6 +152,7 @@ export class GachaService {
         exp: 0,
         skillSlots: this.skillSlotsFromConfig(characterConfig),
         equipment: {
+          star: 1,
           configId,
           rarity,
           weaponName: characterConfig?.weaponName || '',

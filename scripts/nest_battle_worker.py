@@ -39,6 +39,12 @@ def character_from_snapshot(row):
     character.saved_skill_slots = row.get('skillSlots') or None
     character.character_config_id = row.get('characterConfigId', row['id'])
     equipment = row.get('equipment') or {}
+    star = equipment.get('star', 1)
+    if not isinstance(star, int) or not 1 <= star <= 5:
+        star = 1
+    multiplier = [1, 1.2, 1.45, 1.7, 2][star - 1]
+    for stat in ('hp', 'attack', 'defense', 'magic_attack', 'magic_defense'):
+        setattr(character, stat, math.floor(getattr(character, stat) * multiplier + 0.5))
     seen = set()
 
     def visit(value):

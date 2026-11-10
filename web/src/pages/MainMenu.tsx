@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { isFormalOnlineMode } from '../config'
 import { ONLINE_ROUTE_COVERAGE, resolveFormalOnlineRoute } from '../services/onlineFeatureCoverage'
-import NewPlayerGuide from '../components/NewPlayerGuide'
 import './MainMenu.css'
 
 const MainMenu: React.FC = () => {
@@ -38,7 +37,6 @@ const MainMenu: React.FC = () => {
           <p>等级：{player?.level || 1} | 金币：{player?.gold || 0}</p>
         </div>
 
-        <NewPlayerGuide page="home" />
 
         <div className="menu-buttons">
           <button onClick={() => openMainRoute('/characters')}>角色管理</button>
