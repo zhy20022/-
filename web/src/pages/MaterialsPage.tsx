@@ -11,6 +11,7 @@ import ElementBadge from '../components/ElementBadge'
 import './MaterialsPage.css'
 import { compareCharactersByNumber } from '../services/characterCatalog'
 import { getSeasonNumber } from '../services/seasons'
+import { elementThemeStyle } from '../services/elementTheme'
 
 const tabs = [
   { key: 'overview', label: '材料总览' },
@@ -59,7 +60,7 @@ function AvatarPanel({ illustration = false }: { illustration?: boolean }) {
       {loading && <p role="status">加载中...</p>}
       <div className="materials-grid">
         {characters.map((character) => (
-          <button className="material-card avatar-choice" key={character.character_id} onClick={() => navigate('/characters', {
+          <button className="material-card avatar-choice element-themed" style={elementThemeStyle(character.attribute_type)} key={character.character_id} onClick={() => navigate('/characters', {
             state: { characterId: character.character_id, tab: illustration ? 'illustration' : 'info' },
           })}>
             <ElementBadge attribute={character.attribute_type} />

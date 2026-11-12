@@ -17,14 +17,14 @@
 .app .character-card .character-number, .app .character-card .star-rating { position: static; font-size: 12px; }
 .app .character-card .character-number { align-self: flex-start; }
 .app .character-card .star-rating { align-self: flex-end; margin-top: -26px; color: #956000; background: #fff6d9; }
-.app .character-loadout { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr); align-items: start; gap: 8px; }
-.app .loadout-portrait { width: 100%; aspect-ratio: 1; border: 1px solid #bacbd3; border-radius: 4px; background: #eaf2f4; display: grid; place-items: center; overflow: hidden; }
+.app .character-loadout { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr); align-items: stretch; gap: 8px; height: clamp(92px, 11vw, 156px); }
+.app .loadout-portrait { width: 100%; height: 100%; border: 1px solid #bacbd3; border-radius: 4px; background: color-mix(in srgb, var(--element-background) 72%, white); display: grid; place-items: center; overflow: hidden; }
 .app .loadout-portrait > span { font-size: 40px; color: #3e6370; }
 .app .loadout-portrait img { width: 100%; height: 100%; object-fit: cover; }
-.app .loadout-exclusive { width: 100%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #b8c5d4; border-radius: 3px; background: #f5f7fa; color: #536277; gap: 3px; }
+.app .loadout-exclusive { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--element-primary); border-radius: 3px; background: color-mix(in srgb, var(--element-background) 82%, white); color: var(--element-text); gap: 3px; }
 .app .loadout-exclusive small { font-size: 10px; }
-.app .loadout-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); grid-auto-flow: column; gap: 2px; }
-.app .loadout-slot { aspect-ratio: 1; min-width: 0; border: 1px solid #cad1d9; border-radius: 2px; background: #f5f7fa; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #596575; overflow: hidden; }
+.app .loadout-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); grid-auto-flow: column; gap: 2px; height: 100%; }
+.app .loadout-slot { min-width: 0; min-height: 0; border: 1px solid color-mix(in srgb, var(--element-primary) 48%, white); border-radius: 2px; background: color-mix(in srgb, var(--element-background) 90%, white); display: flex; align-items: center; justify-content: center; flex-direction: column; color: var(--element-text); overflow: hidden; }
 .app .loadout-slot small { font-size: 9px; line-height: 1; white-space: nowrap; }
 .app .loadout-slot.equipped, .app .loadout-exclusive.equipped { background: #e6f5ea; color: #22633a; border-color: #75ad87; }
 .app .character-card .character-info { min-width: 0; }
@@ -53,7 +53,7 @@
 .app .character-detail-modal .detail-tabs button.active { background: #e8efff; color: var(--accent); }
 .app .character-detail-modal .close-btn { color: var(--text-strong); background: var(--surface-muted); width: 36px; height: 36px; min-height: 36px; }
 @media (max-width: 600px) {
-  .app .character-loadout { gap: 4px; }
+  .app .character-loadout { gap: 4px; height: clamp(86px, 25vw, 118px); }
   .app .loadout-slot svg { display: none; }
   .app .loadout-exclusive svg { width: 16px; height: 16px; }
   .app .loadout-exclusive small { font-size: 9px; }

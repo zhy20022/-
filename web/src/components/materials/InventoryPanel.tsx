@@ -8,6 +8,7 @@ import { loadOnlineInventory } from '../../services/onlineInventoryAdapter'
 import { MaterialCategory, matchesMaterialCategory } from '../../services/materialCatalog'
 import { safeErrorLog } from '../../services/safeErrorLog'
 import { getSeasonNumber } from '../../services/seasons'
+import { elementThemeStyle } from '../../services/elementTheme'
 import MaterialDetail from './MaterialDetail'
 import '../../pages/InventoryPage.css'
 
@@ -249,7 +250,8 @@ const InventoryPanel: React.FC<{ category?: MaterialCategory }> = ({ category })
     return (
       <div className="items-grid">
         {items.map((item) => (
-          <div key={item.item_id} className={`item-card ${item.is_locked ? 'locked' : ''}`}>
+          <div key={item.item_id} className={`item-card ${item.is_locked ? 'locked' : ''} ${item.attribute_type || item.item_data?.attributeType || item.item_data?.attribute_type ? 'element-themed' : ''}`}
+            style={elementThemeStyle(item.attribute_type || item.item_data?.attributeType || item.item_data?.attribute_type)}>
             <div className="item-header">
               <h3>{item.item_name}</h3>
               {item.is_locked && <span className="lock-badge">已锁定</span>}

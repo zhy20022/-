@@ -41,9 +41,24 @@
 .character-card.element-themed,
 .result-card.element-themed,
 .unit-card.element-themed,
-.character-room-grid button.element-themed {
+.character-room-grid button.element-themed,
+.dungeon-card.element-themed,
+.item-card.element-themed,
+.material-card.element-themed {
   border-color: var(--element-primary);
   border-top: 4px solid var(--element-primary);
+  background: var(--element-background);
+  color: var(--element-text);
+}
+
+.app .result-card.element-themed,
+.app .unit-card.element-themed,
+.app .character-room-grid button.element-themed,
+.app .dungeon-card.element-themed,
+.app .item-card.element-themed,
+.app .material-card.element-themed {
+  border-color: var(--element-primary);
+  border-top-color: var(--element-primary);
   background: var(--element-background);
   color: var(--element-text);
 }

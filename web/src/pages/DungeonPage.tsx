@@ -8,7 +8,7 @@ import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import './DungeonPage.css'
 import ElementBadge from '../components/ElementBadge'
-import { getAttributeColor } from '../services/elementTheme'
+import { elementThemeStyle, getAttributeColor } from '../services/elementTheme'
 import { safeErrorLog } from '../services/safeErrorLog'
 import { compareCharactersByNumber, getCharacterNumber, CharacterNumberSource } from '../services/characterCatalog'
 import { SeasonTabs } from '../components/SeasonTabs'
@@ -738,7 +738,8 @@ const DungeonPage: React.FC = () => {
               filteredAndSortedDungeons.map((dungeon) => (
                 <div
                   key={dungeon.dungeon_id}
-                  className={`dungeon-card ${!dungeon.is_unlocked ? 'locked' : ''}`}
+                  className={`dungeon-card element-themed ${!dungeon.is_unlocked ? 'locked' : ''}`}
+                  style={elementThemeStyle(dungeon.attribute_type)}
                 >
                   <div className="dungeon-header">
                     <h3>{normalizeDungeonType(dungeon.dungeon_type) === 'SINGLE'
