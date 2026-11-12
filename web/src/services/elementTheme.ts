@@ -14,14 +14,14 @@ export interface ElementTheme {
 }
 
 export const ELEMENT_THEMES: Record<string, ElementTheme> = {
-  FIRE: { key: 'FIRE', name: '\u706b', symbol: '\u25b2', primary: '#c62828', secondary: '#8e1b1b', highlight: '#ffb454', background: '#fff1f0', dark: '#3b1313', text: '#861b1b', onPrimary: '#ffffff' },
-  WATER: { key: 'WATER', name: '\u6c34', symbol: '\u25cf', primary: '#1565c0', secondary: '#0d4182', highlight: '#70dbff', background: '#eef6ff', dark: '#10273e', text: '#124b8e', onPrimary: '#ffffff' },
-  EARTH: { key: 'EARTH', name: '\u571f', symbol: '\u25a0', primary: '#795548', secondary: '#4e342e', highlight: '#d9b58c', background: '#f7f1ed', dark: '#30221c', text: '#583a30', onPrimary: '#ffffff' },
-  WOOD: { key: 'WOOD', name: '\u6728', symbol: '\u2663', primary: '#2e7d32', secondary: '#1b5e20', highlight: '#a4df71', background: '#eff8ed', dark: '#182f1b', text: '#235f27', onPrimary: '#ffffff' },
-  THUNDER: { key: 'THUNDER', name: '\u96f7', symbol: '\u03df', primary: '#7b1fa2', secondary: '#4a1463', highlight: '#e1a5ff', background: '#f8effc', dark: '#2e1639', text: '#641883', onPrimary: '#ffffff' },
-  WIND: { key: 'WIND', name: '\u98ce', symbol: '\u224b', primary: '#007f8b', secondary: '#005662', highlight: '#7be7e5', background: '#ecfafa', dark: '#123135', text: '#00616b', onPrimary: '#ffffff' },
-  LIGHT: { key: 'LIGHT', name: '\u5149', symbol: '\u2600', primary: '#f2c230', secondary: '#856500', highlight: '#fff2a6', background: '#fffbe5', dark: '#332d15', text: '#685000', onPrimary: '#302500' },
-  DARK: { key: 'DARK', name: '\u6697', symbol: '\u25c6', primary: '#202124', secondary: '#08090a', highlight: '#bdc4ce', background: '#f0f1f3', dark: '#111214', text: '#202124', onPrimary: '#ffffff' },
+  FIRE: { key: 'FIRE', name: '\u706b', symbol: '\u25b2', primary: '#a85c58', secondary: '#7e4140', highlight: '#d99a91', background: '#f2d9d5', dark: '#3b2524', text: '#713c3b', onPrimary: '#ffffff' },
+  WATER: { key: 'WATER', name: '\u6c34', symbol: '\u25cf', primary: '#5b86a4', secondary: '#41647b', highlight: '#9fc0d0', background: '#d9e9ef', dark: '#253944', text: '#365d76', onPrimary: '#ffffff' },
+  EARTH: { key: 'EARTH', name: '\u571f', symbol: '\u25a0', primary: '#92776a', secondary: '#6f574e', highlight: '#c4a99b', background: '#e7ddd6', dark: '#382c27', text: '#624d43', onPrimary: '#ffffff' },
+  WOOD: { key: 'WOOD', name: '\u6728', symbol: '\u2663', primary: '#6f956b', secondary: '#507151', highlight: '#a9c29e', background: '#dce8d8', dark: '#29392a', text: '#466c48', onPrimary: '#ffffff' },
+  THUNDER: { key: 'THUNDER', name: '\u96f7', symbol: '\u03df', primary: '#886d9d', secondary: '#654d78', highlight: '#bca8c8', background: '#e4dbe9', dark: '#332b39', text: '#604b70', onPrimary: '#ffffff' },
+  WIND: { key: 'WIND', name: '\u98ce', symbol: '\u224b', primary: '#5d9997', secondary: '#427572', highlight: '#9bc4bf', background: '#d8e9e7', dark: '#293d3c', text: '#3e706d', onPrimary: '#ffffff' },
+  LIGHT: { key: 'LIGHT', name: '\u5149', symbol: '\u2600', primary: '#ad9560', secondary: '#806d43', highlight: '#d5c58f', background: '#f1e8c9', dark: '#3d3623', text: '#715c2f', onPrimary: '#302500' },
+  DARK: { key: 'DARK', name: '\u6697', symbol: '\u25c6', primary: '#68717a', secondary: '#4d555d', highlight: '#aab2b8', background: '#d9dde0', dark: '#25292d', text: '#414a51', onPrimary: '#ffffff' },
 }
 
 const unknown: ElementTheme = {

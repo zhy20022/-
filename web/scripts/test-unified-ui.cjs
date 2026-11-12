@@ -8,7 +8,7 @@ const origin = 'http://127.0.0.1:3065'
 const player = { id: 'ui-player', displayName: '测试玩家', level: 20, gold: 10000 }
 const characters = [1, 2].map(number => ({
   id: `owned-${number}`, characterConfigId: number === 1 ? 'char_001_water_physical_tank' : 'char_002_water_magic_tank',
-  number, name: number === 1 ? '江无尘' : '默渊', attributeType: 'WATER', professionType: 'PHYSICAL_TANK',
+  number, name: number === 1 ? '江无尘' : '默渊', attributeType: number === 1 ? 'WATER' : 'FIRE', professionType: 'PHYSICAL_TANK',
   level: 1, star: 1, equipment: {},
 }))
 let server, browser
@@ -72,6 +72,9 @@ async function main() {
           const w = selector => node.querySelector(selector).getBoundingClientRect().width
           return [w('.loadout-portrait'), w('.loadout-exclusive'), w('.loadout-slot')]
         })
+        const cardColors = await page.locator('.character-card').evaluateAll(nodes => nodes.slice(0, 2)
+          .map(node => getComputedStyle(node).backgroundColor))
+        assert(cardColors[0] !== cardColors[1], 'attribute card colors')
         assert(Math.abs(sizes[0] / sizes[1] - 2) < .05)
         assert(Math.abs(sizes[1] / sizes[2] - 2) < .3)
         await page.getByRole('button', { name: '查看江无尘', exact: true }).click()

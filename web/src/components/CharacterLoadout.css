@@ -2,6 +2,17 @@
   display: flex; flex-direction: column; align-items: stretch; gap: 8px;
   padding: 10px; min-width: 0; border: 1px solid var(--border-subtle); background: white; color: var(--text-strong);
 }
+.app .character-page .character-card.element-themed {
+  border-color: var(--element-primary);
+  border-top: 4px solid var(--element-primary);
+  background: var(--element-background);
+  color: var(--element-text);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 42%), 0 2px 5px rgb(23 32 51 / 10%);
+}
+.app .character-page .character-card.element-themed:hover {
+  border-color: var(--element-secondary);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 55%), 0 5px 12px rgb(23 32 51 / 14%);
+}
 .app .character-card > .lock-btn { display: none; }
 .app .character-card .character-number, .app .character-card .star-rating { position: static; font-size: 12px; }
 .app .character-card .character-number { align-self: flex-start; }
