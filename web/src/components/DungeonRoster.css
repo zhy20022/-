@@ -1,0 +1,33 @@
+.app .dungeon-roster-modal { width: min(1100px, calc(100% - 16px)); max-width: 1100px; max-height: calc(100dvh - 24px); }
+.app .dungeon-roster-modal .close-btn { color: var(--text-strong); background: var(--surface-muted); width: 36px; height: 36px; min-height: 36px; }
+.app:has(.dungeon-roster-modal) :is(.mobile-game-topbar, .mobile-game-tabbar, .game-top-key) { visibility: hidden; }
+.app .dungeon-roster-modal .characters-select-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.app .dungeon-roster-modal .character-select-card {
+  display: flex; flex-direction: column; min-width: 0; gap: 10px; padding: 10px;
+  background: var(--element-background); color: var(--element-text); border: 1px solid var(--element-primary);
+  border-top: 4px solid var(--element-primary); text-align: center; border-radius: 6px;
+}
+.app .dungeon-roster-modal .character-select-card.selected { outline: 3px solid var(--element-secondary); outline-offset: -4px; background: var(--element-background); }
+.app .dungeon-roster-modal .character-select-card:disabled { opacity: .65; cursor: not-allowed; }
+.roster-card-heading { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 6px; width: 100%; }
+.roster-number, .roster-level { font-size: 12px; white-space: nowrap; padding-top: 3px; }
+.roster-identity { min-width: 0; overflow-wrap: anywhere; }
+.app .roster-identity h4 { margin: 0 0 4px; font-size: 15px; }
+.roster-identity > span { display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; font-size: 12px; }
+.roster-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; margin: 0; gap: 4px; padding: 8px 0; border-block: 1px solid rgb(23 32 51 / 12%); }
+.roster-stats div { min-width: 0; }
+.roster-stats dt { font-size: 11px; }
+.roster-stats dd { margin: 4px 0 0; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.roster-equipment { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; width: 100%; }
+.roster-exclusive, .roster-gear-slot { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; border: 1px solid var(--element-primary); background: rgb(255 255 255 / 42%); border-radius: 3px; gap: 3px; }
+.roster-gear { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, 38px); gap: 4px; }
+.roster-exclusive small, .roster-gear-slot small { font-size: 10px; }
+.roster-equipment .equipped { background: rgb(255 255 255 / 72%); border: 2px solid var(--element-secondary); }
+.roster-stars { color: #785619; font-size: 16px; line-height: 20px; }
+.roster-selected-label { font-size: 12px; font-weight: 600; }
+@media (max-width: 600px) {
+  .app .dungeon-roster-modal .modal-body { padding: 10px; }
+  .app .dungeon-roster-modal .characters-select-grid { grid-template-columns: minmax(0, 1fr); }
+  .app .dungeon-roster-modal .modal-header { padding: 12px; }
+  .app .dungeon-roster-modal .modal-header h2 { font-size: 18px; }
+}

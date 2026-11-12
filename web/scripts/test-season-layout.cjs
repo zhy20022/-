@@ -9,8 +9,9 @@ const origin = 'http://127.0.0.1:3063'
 const player = { id: 'season-test', displayName: '界面验收', level: 20, gold: 10000 }
 const characters = [10, 2, 1].map(number => ({
   id: `owned-${number}`, characterConfigId: `test-${number}`, number, name: `角色${number}`,
-  attributeType: 'WATER', professionType: number === 2 ? 'HEALER' : 'PHYSICAL_MELEE_DPS',
-  level: number * 2,
+  attributeType: number === 10 ? 'FIRE' : 'WATER', professionType: number === 2 ? 'HEALER' : 'PHYSICAL_MELEE_DPS',
+  level: number * 2, star: 3, equipment: { star: 3 },
+  stats: { hp: 2345, attack: 180, defense: 99, magic_attack: 40, magic_defense: 80 },
 }))
 const dungeons = ['normal', 'hard', 'nightmare'].map((difficulty, index) => ({
   dungeonId: `water-${difficulty}`, name: `水经验${difficulty}`, dungeonType: 'SINGLE',
@@ -29,7 +30,7 @@ async function main() {
     await delay(100)
   }
   browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' })
-  for (const width of [1280, 390]) {
+  for (const width of [1280, 390, 320]) {
     const context = await browser.newContext({ viewport: { width, height: 900 } })
     await context.addInitScript(player => {
       window.__GAMER_RUNTIME_CONFIG__ = { formalOnline: true, staticDemo: false, apiBase: location.origin }
@@ -93,6 +94,17 @@ async function main() {
     assert.match(await page.locator('.difficulty-option').first().innerText(), /推荐等级/)
     await page.locator('.difficulty-option').first().click()
     await page.locator('.character-select-card').first().waitFor()
+    const roster = page.locator('.character-select-card')
+    assert.equal(await roster.first().locator('.roster-gear-slot').count(), 8)
+    assert.equal(await roster.first().locator('.roster-stats dd').count(), 5)
+    assert.match(await roster.first().locator('.roster-stats').innerText(), /2,345/)
+    assert.equal(await roster.first().locator('.roster-stars').getAttribute('aria-label'), '角色3星')
+    const backgrounds = await roster.evaluateAll(rows => rows.map(row => getComputedStyle(row).backgroundColor))
+    assert.notEqual(backgrounds[0], backgrounds[2])
+    await roster.first().click()
+    assert.equal(await roster.first().getAttribute('aria-pressed'), 'true')
+    assert.equal(await roster.first().evaluate(row => getComputedStyle(row).backgroundColor), backgrounds[0])
+    assert(await page.locator('.dungeon-roster-modal').evaluate(row => row.scrollWidth <= row.clientWidth + 1))
     await page.getByLabel('角色类型筛选').selectOption('MAGIC')
     assert.equal(await page.locator('.character-select-card').count(), 1)
     assert.match(await page.locator('.character-select-card').innerText(), /角色2/)

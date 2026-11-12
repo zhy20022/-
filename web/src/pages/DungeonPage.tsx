@@ -7,12 +7,15 @@ import { isExperienceSupportRole, isExperienceRoleWarningMuted, muteExperienceRo
 import { useAuthStore } from '../stores/authStore'
 import { createIdempotencyKey, getOnlineModeError, isFormalOnlineMode, loadOnlineDungeons, mapOnlineDungeon, onlineApi } from '../services/onlineGameAdapter'
 import './DungeonPage.css'
+import '../components/DungeonRoster.css'
 import ElementBadge from '../components/ElementBadge'
 import { elementThemeStyle, getAttributeColor } from '../services/elementTheme'
 import { safeErrorLog } from '../services/safeErrorLog'
 import { compareCharactersByNumber, getCharacterNumber, CharacterNumberSource } from '../services/characterCatalog'
 import { SeasonTabs } from '../components/SeasonTabs'
 import { getSeasonNumber } from '../services/seasons'
+import { EQUIPMENT_SLOTS, equipmentPieces } from '../services/characterEquipment'
+import { Shield, Swords } from 'lucide-react'
 
 interface DungeonProgress {
   completion_count: number
@@ -57,6 +60,9 @@ interface Character extends CharacterNumberSource {
   profession_type: string
   attribute_type: string
   level: number
+  star?: number
+  equipment?: Record<string, any>
+  stats?: Record<string, number>
 }
 
 type BossSkillTier = 'low' | 'mid' | 'high'
@@ -990,7 +996,7 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content dungeon-roster-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>选择角色 ({selectedCharacters.length}/{maxSelect})</h2>
           <button className="close-btn" onClick={onClose}>×</button>
@@ -1026,27 +1032,50 @@ const CharacterSelectModal: React.FC<CharacterSelectModalProps> = ({
                 aria-pressed={selectedCharacters.includes(char.character_id)}
                 disabled={(selectedCharacters.length >= maxSelect && !selectedCharacters.includes(char.character_id)
                   && normalizeDungeonType(dungeon.dungeon_type) !== 'SINGLE') || !canSelectCharacter(char)}
-                className={`character-select-card ${selectedCharacters.includes(char.character_id) ? 'selected' : ''} ${(selectedCharacters.length >= maxSelect && !selectedCharacters.includes(char.character_id)) || !canSelectCharacter(char) ? 'disabled' : ''}`}
+                className={`character-select-card element-themed ${selectedCharacters.includes(char.character_id) ? 'selected' : ''} ${!canSelectCharacter(char) ? 'disabled' : ''}`}
+                style={elementThemeStyle(char.attribute_type)}
                 onClick={() => {
                   if (canSelectCharacter(char) && (maxSelect === 1 || selectedCharacters.length < maxSelect || selectedCharacters.includes(char.character_id))) {
                     onToggle(char.character_id)
                   }
                 }}
               >
-                <div className="character-select-avatar">
-                  <div className="character-level">Lv.{char.level}</div>
+                <div className="roster-card-heading">
+                  <small className="roster-number">#{getCharacterNumber(char) ?? '?'}</small>
+                  <div className="roster-identity">
+                    <h4>{char.name}</h4>
+                    <span><ElementBadge attribute={char.attribute_type} /> {getProfessionLabel(char.profession_type)}</span>
+                  </div>
+                  <strong className="roster-level">Lv.{char.level}</strong>
                 </div>
-                <div className="character-select-info">
-                  <small>#{getCharacterNumber(char) ?? '?'}</small>
-                  <h4>{char.name}</h4>
-                  <ElementBadge attribute={char.attribute_type} />
-                  <p>{getProfessionLabel(char.profession_type)}</p>
+                <dl className="roster-stats">
+                  {([['hp', '血量'], ['attack', '攻击'], ['defense', '防御'], ['magic_attack', '法攻'], ['magic_defense', '法防']] as const)
+                    .map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{char.stats?.[key]?.toLocaleString() ?? '--'}</dd></div>)}
+                </dl>
+                <div className="roster-equipment" aria-label="角色装备">
+                  <span className={`roster-exclusive ${char.equipment?.weapon ? 'equipped' : ''}`}
+                    title={char.equipment?.weapon?.name || '未装备专属道具'}>
+                    <Swords size={18} /><small>专属</small>
+                  </span>
+                  <div className="roster-gear">
+                    {EQUIPMENT_SLOTS.map(([slot, label]) => {
+                      const piece = equipmentPieces(char.equipment)[slot] as any
+                      return <span key={slot} className={`roster-gear-slot ${piece ? 'equipped' : ''}`}
+                        aria-label={`${label}槽位`} title={`${label}：${piece?.name || piece?.item_name || '未装备'}`}>
+                        <Shield size={12} /><small>{label}</small>
+                      </span>
+                    })}
+                  </div>
+                </div>
+                <div className="roster-stars" aria-label={`角色${char.star || char.equipment?.star || 1}星`}>
+                  {'★'.repeat(Math.min(5, Math.max(1, char.star || char.equipment?.star || 1)))}
+                  {'☆'.repeat(5 - Math.min(5, Math.max(1, char.star || char.equipment?.star || 1)))}
+                </div>
                   {isExperienceDungeon && !canSelectCharacter(char) && (
                     <small>只能进入同属性经验本</small>
                   )}
-                </div>
                 {selectedCharacters.includes(char.character_id) && (
-                  <div className="select-checkmark">✓</div>
+                  <span className="roster-selected-label">已选择</span>
                 )}
               </button>
             ))}
