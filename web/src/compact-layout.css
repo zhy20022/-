@@ -31,6 +31,8 @@
 .app .character-card .character-number { top: 10px; left: 48px; }
 .app .dungeon-card {
   min-width: 0;
+  height: 246px;
+  box-sizing: border-box;
   padding: 14px;
   border-radius: 8px;
   display: flex;
@@ -38,11 +40,14 @@
 }
 .app .dungeon-card .dungeon-header { flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .app .dungeon-card h3 { font-size: 16px; margin: 0; overflow-wrap: anywhere; }
-.app .dungeon-card .dungeon-description,
-.app .dungeon-card .dungeon-card-summary,
-.app .dungeon-card .dungeon-info > .info-item,
-.app .dungeon-card .dungeon-progress .progress-item:nth-child(2) { display: none; }
-.app .dungeon-card .dungeon-info { flex: 1; }
+.app .dungeon-card .dungeon-info { flex: 1; min-height: 0; }
+.app .dungeon-card .dungeon-quick-summary { margin: 0 0 6px; gap: 4px; }
+.app .dungeon-card .dungeon-quick-summary span { padding: 2px 4px; font-size: 11px; }
+.app .dungeon-inline-reward { display: flex; flex-direction: column; gap: 2px; font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+.app .dungeon-inline-reward strong { font-weight: 600; }
+.app .dungeon-inline-boss { margin-top: 3px; font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+.app .dungeon-card .dungeon-progress { margin-top: 5px; padding-top: 4px; }
+.app .dungeon-card .progress-item { margin-bottom: 2px; gap: 4px; font-size: 11px; line-height: 1.35; }
 .app .dungeon-card .dungeon-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .app .dungeon-card .dungeon-actions button { flex: 1 1 65px; min-width: 0; padding: 8px; white-space: normal; }
 .app .dungeon-quick-summary { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -71,8 +76,11 @@
   .app .character-card { grid-template-columns: minmax(0, 1fr); padding: 40px 8px 8px; }
   .app .character-card .character-avatar { width: 44px; height: 44px; justify-self: center; }
   .app .character-card .character-name { font-size: 14px; }
-  .app .dungeon-card { padding: 10px; }
+  .app .dungeon-card { padding: 10px; height: 427px; }
   .app .dungeon-card h3 { font-size: 14px; }
   .app .dungeon-card .dungeon-progress { font-size: 11px; padding: 6px 0; }
   .app .battle-units { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
+@media (max-width: 340px) {
+  .app .dungeon-card { height: 461px; }
 }

@@ -5,7 +5,7 @@ const { setTimeout: delay } = require('node:timers/promises')
 const path = require('node:path')
 const { chromium } = require('../../server-nest/node_modules/playwright')
 
-const origin = 'http://127.0.0.1:3063'
+const origin = process.env.UI_TEST_ORIGIN || 'http://127.0.0.1:3063'
 const player = { id: 'season-test', displayName: '界面验收', level: 20, gold: 10000 }
 const characters = [10, 2, 1].map(number => ({
   id: `owned-${number}`, characterConfigId: `test-${number}`, number, name: `角色${number}`,
@@ -18,15 +18,20 @@ const dungeons = ['normal', 'hard', 'nightmare'].map((difficulty, index) => ({
   attributeType: 'WATER', difficulty, recommendedLevel: index * 20 + 1,
   rewardConfig: { type: 'experience', fullExp: 531 }, duration: 60,
 }))
+dungeons.push(...['SQUAD', 'TEAM', 'SERVER_BOSS'].map(type => ({
+  dungeonId: `fire-${type}`, name: type === 'SQUAD' ? '火属性专属道具材料本' : type === 'TEAM' ? '火属性套装材料本' : '火属性世界Boss',
+  dungeonType: type, attributeType: 'FIRE', difficulty: 'normal',
+  duration: type === 'SQUAD' ? 120 : 180, rewardConfig: {},
+})))
 let server, browser
 
 async function main() {
-  server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '3063', '--strictPort'], {
+  if (!process.env.UI_TEST_ORIGIN) server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '3063', '--strictPort'], {
     cwd: path.resolve(__dirname, '..'), windowsHide: true, stdio: 'pipe',
   })
   for (let attempt = 0; attempt < 100; attempt++) {
     try { if ((await fetch(origin)).ok) break } catch {}
-    if (server.exitCode !== null) throw new Error('Test server exited')
+    if (server && server.exitCode !== null) throw new Error('Test server exited')
     await delay(100)
   }
   browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' })
@@ -86,9 +91,30 @@ async function main() {
     await page.locator('.character-card').first().scrollIntoViewIfNeeded()
     await page.screenshot({ path: path.resolve(__dirname, `../../artifacts/season-characters-${width}.png`) })
     await page.goto(`${origin}/#/dungeons`)
-    await page.locator('.dungeon-card').waitFor()
-    assert.equal(await page.locator('.dungeon-card').count(), 1)
-    await page.getByRole('button', { name: '开始挑战', exact: true }).click()
+    await page.locator('.dungeon-card').first().waitFor()
+    assert.equal(await page.locator('.dungeon-card').count(), 4)
+    assert.equal(await page.locator('.dungeon-card .difficulty-badge, .dungeon-card .btn-detail').count(), 0)
+    const dungeonCard = page.locator('.dungeon-card').first()
+    assert.match(await dungeonCard.innerText(), /经验结晶 531/)
+    assert.match(await dungeonCard.innerText(), /限时 60秒/)
+    assert.match(await dungeonCard.innerText(), /通关 0\/10/)
+    const geometries = await page.locator('.dungeon-card').evaluateAll(cards => cards.map(card => {
+      const info = card.querySelector('.dungeon-info')
+      const actions = card.querySelector('.dungeon-actions')
+      return {
+        height: card.getBoundingClientRect().height,
+        fits: card.scrollHeight <= card.clientHeight + 1 && card.scrollWidth <= card.clientWidth + 1,
+        infoFits: info.scrollHeight <= info.clientHeight + 1,
+        noOverlap: info.getBoundingClientRect().bottom <= actions.getBoundingClientRect().top,
+      }
+    }))
+    for (const geometry of geometries) {
+      assert.equal(geometry.height, width === 1280 ? 246 : width === 390 ? 427 : 461)
+      assert(geometry.fits && geometry.infoFits && geometry.noOverlap, JSON.stringify(geometry))
+    }
+    await dungeonCard.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: path.resolve(__dirname, `../../artifacts/dungeon-inline-${width}.png`) })
+    await page.getByRole('button', { name: '开始挑战', exact: true }).first().click()
     await page.getByRole('dialog', { name: '选择副本难度' }).waitFor()
     assert.equal(await page.locator('.difficulty-option').count(), 3)
     assert.match(await page.locator('.difficulty-option').first().innerText(), /推荐等级/)
@@ -120,7 +146,7 @@ async function main() {
     await page.getByRole('button', { name: '再次战斗', exact: true }).click()
     await page.getByRole('button', { name: '再次战斗', exact: true }).waitFor()
     await page.getByRole('button', { name: '返回副本选择界面', exact: true }).click()
-    await page.locator('.dungeon-card').waitFor()
+    await page.locator('.dungeon-card').first().waitFor()
     assert.deepEqual(errors, [])
     console.log(`PASS ${width}px: backpack, seasons, two columns, numbering, difficulty, filters, no auto-return, rematch`)
     await context.close()
