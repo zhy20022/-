@@ -68,7 +68,12 @@ def _han(b, c, s, a, e):
                 _mark(t, c, s, '水蚀印记', cap=3)
             if slot == 1:
                 if had:
-                    _hit(b, c, s, t, .005, true_damage=True, health_ratio='current')
+                    if len(e) == 1:
+                        amount = min(t.current_health * .005, c.character.attack * .2)
+                        ratio = amount / max(1, t.current_health)
+                    else:
+                        ratio = .005
+                    _hit(b, c, s, t, ratio, true_damage=True, health_ratio='current')
                 _mark(t, c, s, '水蚀印记', cap=3)
             elif slot == 2:
                 if hit == 0:
@@ -78,7 +83,7 @@ def _han(b, c, s, a, e):
             else:
                 count = _clear(t, '水蚀印记', c)
                 for _ in range(count):
-                    _hit(b, c, s, t, 1.5,
+                    _hit(b, c, s, t, 1.35 if len(e) == 1 else 1.5,
                          ignore_defense=.2 if _layers(c, '断潮', c) else 0)
                 if count >= 2:
                     _mark(c, c, s, '断潮')
@@ -126,10 +131,12 @@ def _jing(b, c, s, a, e):
 
 def _heng(b, c, s, a, e):
     slot = s.authored_effect['slot']
+    lone = len(e) == 1
+    cracked_ratios = {1: 2.25 if lone else 2.52, 2: 1.3, 3: 3.1 if lone else 3.2}
+    base_ratios = {1: 1.8, 2: 1.3, 3: 2.8}
     for t in ([_single(e)] if slot == 1 else e):
         cracked = any(x['name'] == '裂甲' for x in states(t))
-        _hit(b, c, s, t, (1.8 * (1.4 if cracked else 1)) if slot == 1
-             else 1.3 if slot == 2 else 3.2 if cracked else 2.8)
+        _hit(b, c, s, t, (cracked_ratios if cracked else base_ratios)[slot])
         if slot == 2:
             stat(t, c, '裂甲', ['defense'], -.15)
 
@@ -145,14 +152,18 @@ def _mo(b, c, s, a, e):
             c.heal(int(dealt * (.35 if health > .6 else .25)), 0)
             b.threat_system.add_threat_from_heal(c, c, max(0, c.current_health - old))
         elif slot == 2:
-            stat(t, c, '贯刺破甲', ['defense'], -.2)
+            stat(t, c, '贯刺破甲', ['magic_defense'], -.2)
 
 
 def _shi(b, c, s, a, e):
     slot = s.authored_effect['slot']
+    lone = len(e) == 1
     for t in (e if slot == 3 else [_single(e)]):
-        names = {x['name'] for x in states(t)}
-        ratio = 1.6 if slot == 1 else 1.5 if slot == 2 else 2.4 * (1 + .15 * len(names & {'蚀骨', '炽火'}))
+        ratio = 1.6 if slot == 1 else 1.5
+        if slot == 3:
+            names = {x['name'] for x in states(t)}
+            bonus_count = len(names & {'蚀骨', '炽火'})
+            ratio = (2.25 * (1 + .15 * min(1, bonus_count)) if lone else 2.4 * (1 + .15 * bonus_count))
         _hit(b, c, s, t, ratio)
         if slot == 1:
             stat(t, c, '蚀骨', ['defense'], -.2)
@@ -211,7 +222,9 @@ def _xi(b, c, s, a, e):
         else:
             count = _clear(t, '迓', c)
             if count:
-                _hit(b, c, s, t, 2.2 * count, 'magical')
+                ratio = (1.65 * min(count, 2) + .55 * max(0, count - 2)
+                         if len(e) == 1 else 2.2 * count)
+                _hit(b, c, s, t, ratio, 'magical')
             if count >= 3:
                 _mark(t, c, s, '天刑', pulse='punishment', pulse_skill=s.skill_id,
                       pulse_name=s.name, pulse_slot=slot)
@@ -257,7 +270,7 @@ def _chun(b, c, s, a, e):
 def _wei(b, c, s, a, e):
     slot, t = s.authored_effect['slot'], _single(e)
     count = len(_layers(t, '气滞', c)) + len(_layers(t, '风压', c))
-    _hit(b, c, s, t, {1: 1.5, 2: 1.6, 3: 2.2}[slot], 'magical')
+    _hit(b, c, s, t, {1: 1.25, 2: 1.35, 3: 1.83}[slot], 'magical')
     if slot == 1:
         _mark(t, c, s, '气滞', stats=('magic_defense',), value=-.15)
     elif slot == 2:
@@ -269,7 +282,7 @@ def _wei(b, c, s, a, e):
 
 def _mu(b, c, s, a, e):
     slot = s.authored_effect['slot']
-    ratios = {1: (1.8, 1.2), 2: (1.5,), 3: (.8, .9, 1, 1.1, 1.2, 1.3)}[slot]
+    ratios = {1: (1.44, .96), 2: (1.2,), 3: (.64, .72, .8, .88, .96, 1.04)}[slot]
     targets = [_single(e)] if slot == 1 else e
     for ratio in ratios:
         for t in targets:
@@ -288,7 +301,7 @@ def _shi_zhi(b, c, s, a, e):
         empowered = True
     for _ in range(3 if slot == 3 else 1):
         for t in e:
-            _hit(b, c, s, t, {1: 1.3, 2: 1.4, 3: .9}[slot] * (1.4 if empowered else 1), 'magical')
+            _hit(b, c, s, t, {1: 1.04, 2: 1.12, 3: .72}[slot] * (1.4 if empowered else 1), 'magical')
     if slot == 1:
         _mark(c, c, s, '递进', cap=1, remaining=None)
 
@@ -326,15 +339,12 @@ def cast(battle, caster, skill, allies, enemies):
     return True
 
 
-def after_cast(battle, unit, before):
-    # before still contains the final pulse after the parent expires its state.
+def after_effect_cast(battle, owner, unit, before):
     for item in before:
         pulse = item.get('pulse')
         if pulse not in ('mirage', 'punishment') or not unit.is_alive():
             continue
-        owner = next((u for u in battle.player_units + battle.enemy_units
-                      if u.character.character_id == item.get('owner_id')), None)
-        if owner is None:
+        if not any(s is item for s in states(unit)):
             continue
         skill = SimpleNamespace(skill_id=item['pulse_skill'], name=item['pulse_name'],
                                 authored_effect={'slot': item['pulse_slot'], 'name': item['pulse_name']})

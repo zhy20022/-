@@ -100,7 +100,7 @@ export class WorkshopService {
           stats: rules.crafting.exclusive.baseStats,
           enhancementLevel: 0,
           breakthroughs: [],
-          specialSkill: this.buildExclusiveSkill(config),
+          specialSkill: this.configs.getAuthoredExclusiveEffect(character.characterConfigId),
         },
       });
       return { success: true, message: 'exclusive weapon crafted', item: await manager.save(item), player };
@@ -290,12 +290,6 @@ export class WorkshopService {
     const base = (payload.baseStats || payload.stats || {}) as Record<string, number>;
     const multiplier = (1 + level * 0.02) * Math.pow(1.2, breakthroughCount);
     return Object.fromEntries(Object.entries(base).map(([key, value]) => [key, Math.round(Number(value || 0) * multiplier)]));
-  }
-
-  private buildExclusiveSkill(config: Record<string, unknown> | null) {
-    const skills = Array.isArray(config?.skills) ? config.skills as Array<Record<string, unknown>> : [];
-    const signature = skills[2] || skills[0] || {};
-    return { id: `${String(config?.id || 'character')}_exclusive_skill`, name: `${String(config?.name || 'Character')} Exclusive Effect`, trigger: 'on_skill_cast', sourceSkillSlot: signature.slot || 3, effect: signature.effect || 'Increase final skill damage by 10%.', damageMultiplier: 1.1 };
   }
 
   private async findCharacterConfig(configId: string) {

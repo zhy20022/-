@@ -61,8 +61,15 @@ def character_from_snapshot(row):
                 if key in {'hp', 'attack', 'defense', 'magic_attack', 'magic_defense'} and isinstance(amount, (int, float)) and math.isfinite(amount):
                     setattr(character, key, getattr(character, key) + max(0, int(amount)))
             special = payload.get('specialSkill') or payload.get('special_skill')
-            if special and value.get('itemType', value.get('item_type')) == 'weapon':
-                character.exclusive_weapon = SimpleNamespace(weapon_id=item_id, name=payload.get('name', 'Exclusive'), special_skill=special, attack_bonus=0, magic_attack_bonus=0)
+            if value is equipment.get('weapon') and value.get('itemType', value.get('item_type')) == 'weapon':
+                bound_config = payload.get('characterConfigId')
+                if payload.get('subtype') == 'exclusive_weapon':
+                    if bound_config == character.character_config_id and bound_config in CHARACTER_NAMES:
+                        character.exclusive_weapon = SimpleNamespace(
+                            weapon_id=item_id, name=payload.get('name', 'Exclusive'), special_skill=None,
+                            attack_bonus=0, magic_attack_bonus=0, authored_config_id=bound_config)
+                elif special:
+                    character.exclusive_weapon = SimpleNamespace(weapon_id=item_id, name=payload.get('name', 'Exclusive'), special_skill=special, attack_bonus=0, magic_attack_bonus=0)
             return
         for child in value.values():
             visit(child)

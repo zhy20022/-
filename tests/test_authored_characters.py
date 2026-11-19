@@ -1,12 +1,15 @@
 import contextlib
 import io
 import unittest
+from unittest.mock import patch
 
 from scripts.nest_battle_worker import character_from_snapshot
 from src.combat.battle_unit import BattleUnit
 from src.combat.battle import Battle
 from src.combat.authored_monsters import begin_cast, end_cast, states, absorb_damage, modifiers
+from src.enemies.authored_catalog import skill as monster_skill
 from src.skills.authored_characters import library
+from src.skills.characters.dps_first import _layers
 from src.attributes.attribute import Attribute, AttributeType
 
 
@@ -118,6 +121,43 @@ class AuthoredCharacterTests(unittest.TestCase):
                     self.assertEqual([10000 - e.current_health for e in enemies], [expected] * count)
                     self.assertEqual(battle.damage_stats[caster.character.character_id]['physical_damage'], 0)
 
+    def test_wenwei_finisher_resolves_every_hit_before_qizhi_expires(self):
+        config = 'char_028_wind_magic_melee_dps'
+        battle, caster, enemies = self.damage_encounter(config, 1)
+        target = enemies[0]
+        caster.character.attribute = target.character.attribute = Attribute(AttributeType.WIND)
+        target.character.magic_defense = 100
+        skills = library(caster.character)
+
+        def cast(slot):
+            self.assertTrue(battle._cast_skill(caster, skills[f'{config}:{slot}'], enemies, [caster]))
+
+        def remaining(name):
+            return [mark['remaining'] for mark in _layers(target, name, caster)]
+
+        def enemy_casts():
+            for _ in range(3):
+                battle.monster_runtime.cast(target, monster_skill('interleaved cast'))
+
+        with patch('random.random', return_value=.99), \
+             patch('src.skills.authored_characters.damage_scale', return_value=1):
+            cast(1)
+            self.assertEqual(remaining('气滞'), [2])
+            enemy_casts()
+            self.assertEqual(remaining('气滞'), [2])
+            cast(2)
+            self.assertEqual(remaining('气滞'), [1])
+            self.assertEqual(remaining('风压'), [2])
+            enemy_casts()
+            self.assertEqual(modifiers(target)['magic_defense'], -15)
+            old_hp = target.current_health
+            cast(3)
+            self.assertEqual(old_hp - target.current_health, 193)
+            self.assertEqual(remaining('气滞'), [])
+            self.assertEqual(modifiers(target).get('magic_defense', 0), 0)
+            self.assertEqual(remaining('风压'), [1])
+            self.assertEqual(caster.cast_count, 3)
+
     def test_threshold_is_not_recalculated_after_aoe_kills(self):
         config_id = 'char_038_fire_magic_ranged_dps'
         battle, caster, enemies = self.damage_encounter(config_id, 3)
@@ -166,6 +206,9 @@ class AuthoredCharacterTests(unittest.TestCase):
         self.assertEqual(states(caster), [])
 
     def setUp(self):
+        scaling = patch('src.skills.authored_characters.damage_scale', return_value=1)
+        scaling.start()
+        self.addCleanup(scaling.stop)
         output = contextlib.redirect_stdout(io.StringIO())
         output.__enter__()
         self.addCleanup(output.__exit__, None, None, None)
@@ -207,7 +250,7 @@ class AuthoredCharacterTests(unittest.TestCase):
                     self.assertEqual(states(unit)[0]['amount'], 100 if i < 5 else 50)
                     self.assertEqual(states(unit)[0]['remaining'], 2)
 
-    def test_shields_overwrite_by_source_share_damage_and_expire_on_owner_casts(self):
+    def test_shields_overwrite_share_damage_and_expire_on_independent_source_casts(self):
         battle, party = self.party(5)
         caster, other, target = party[:3]
         self.cast(battle, caster, 2)
@@ -220,8 +263,13 @@ class AuthoredCharacterTests(unittest.TestCase):
         battle.current_time = 100
         self.assertEqual([s['remaining'] for s in states(target)], [2, 2])
         end_cast(battle, target, begin_cast(target))
-        self.assertEqual([s['remaining'] for s in states(target)], [1, 1])
-        end_cast(battle, target, begin_cast(target))
+        self.assertEqual([s['remaining'] for s in states(target)], [2, 2])
+        end_cast(battle, caster, begin_cast(caster))
+        self.assertEqual([s['remaining'] for s in states(target)], [1, 2])
+        end_cast(battle, caster, begin_cast(caster))
+        self.assertEqual([s['remaining'] for s in states(target)], [2])
+        end_cast(battle, other, begin_cast(other))
+        end_cast(battle, other, begin_cast(other))
         self.assertEqual(states(target), [])
 
     def test_default_loadout_executes_real_authored_skills(self):

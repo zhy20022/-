@@ -13,6 +13,23 @@ export class GameConfigsService {
     @InjectRepository(GameConfigEntity) private readonly configs: Repository<GameConfigEntity>,
   ) {}
 
+  private exclusiveEffects?: Record<string, string>;
+
+  getAuthoredExclusiveEffect(configId: string) {
+    this.exclusiveEffects ??= JSON.parse(readFileSync(
+      this.getContentFilePath('authored-exclusive-effects'), 'utf-8',
+    )) as Record<string, string>;
+    const effect = this.exclusiveEffects[configId];
+    if (typeof effect !== 'string') return undefined;
+    return { id: `${configId}_exclusive_skill`, name: '专属效果', trigger: 'authored_skill', effect };
+  }
+
+  exclusiveItemPayload(payload: Record<string, unknown>) {
+    if (payload.subtype !== 'exclusive_weapon' || typeof payload.characterConfigId !== 'string') return payload;
+    const specialSkill = this.getAuthoredExclusiveEffect(payload.characterConfigId);
+    return specialSkill ? { ...payload, specialSkill } : payload;
+  }
+
   async list() {
     const dbConfigs = await this.configs.find({ order: { configKey: 'ASC' } });
     return {
@@ -60,6 +77,7 @@ export class GameConfigsService {
     return [
       'skills',
       'characters',
+      'authored-exclusive-effects',
       'dungeons',
       'monsters',
       'monster-catalog',

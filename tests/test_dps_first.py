@@ -15,6 +15,12 @@ IDS = {int(key.split('_')[1]): key for key in dps.CONFIG_IDS}
 
 
 class DpsFirstTests(unittest.TestCase):
+    def setUp(self):
+        # These assertions isolate authored mechanics; parity has integration tests.
+        scaling = patch('src.skills.authored_characters.damage_scale', return_value=1)
+        scaling.start()
+        self.addCleanup(scaling.stop)
+
     def encounter(self, number, count=2):
         def unit(uid, config):
             obj = BattleUnit.__new__(BattleUnit)
@@ -40,9 +46,12 @@ class DpsFirstTests(unittest.TestCase):
         return SimpleNamespace(skill_id=f'{caster.character.character_config_id}:{slot}',
             name=f'test-{slot}', authored_effect={'slot': slot, 'name': f'test-{slot}'}, use=Mock())
 
-    def cast(self, battle, caster, enemies, slot):
+    def cast(self, battle, caster, enemies, slot, lifecycle=False):
         skill = self.skill(caster, slot)
+        before = begin_cast(caster) if lifecycle else None
         result = dps.cast(battle, caster, skill, [caster], enemies)
+        if lifecycle and result:
+            end_cast(battle, caster, before)
         skill.use.assert_not_called()
         return result
 
@@ -51,7 +60,7 @@ class DpsFirstTests(unittest.TestCase):
 
     def test_every_opener_has_authored_damage_or_resources(self):
         expected = {4: 80, 5: 160, 6: 45, 11: 180, 12: 170, 13: 160,
-                    14: 160, 19: 160, 21: 120, 22: 42, 28: 150, 29: 300, 30: 130}
+                    14: 160, 19: 160, 21: 120, 22: 42, 28: 125, 29: 240, 30: 104}
         for number, amount in expected.items():
             with self.subTest(number=number):
                 b, c, e = self.encounter(number)
@@ -64,14 +73,14 @@ class DpsFirstTests(unittest.TestCase):
     def test_han_per_hit_true_damage_cap_detonation_and_penetration(self):
         b, c, e = self.encounter(3, 1)
         self.cast(b, c, e, 1)
-        self.assertEqual(e[0].current_health, 9771)
+        self.assertEqual(e[0].current_health, 9800)
         self.assertEqual(len(dps._layers(e[0], '水蚀印记', c)), 2)
         self.cast(b, c, e, 2)
         self.assertEqual(len(dps._layers(e[0], '水蚀印记', c)), 3)
         self.assertEqual(len(dps._layers(e[0], '破甲', c)), 1)
         old = e[0].current_health
         self.cast(b, c, e, 3)
-        self.assertEqual(old - e[0].current_health, 650)
+        self.assertEqual(old - e[0].current_health, 605)
         self.assertEqual(len(dps._layers(e[0], '水蚀印记', c)), 0)
         self.assertTrue(dps._layers(c, '断潮', c))
         self.assertFalse(dps._layers(c, '餍足', c))
@@ -80,14 +89,25 @@ class DpsFirstTests(unittest.TestCase):
             self.cast(b, c, e, 1)
             self.assertEqual(hit.call_args_list[0].args[2].authored_effect['ignore_defense'], .2)
 
+    def test_han_multi_target_does_not_apply_single_enemy_limits(self):
+        b, c, e = self.encounter(3, 2)
+        self.cast(b, c, e, 1)
+        self.assertEqual(e[0].current_health, 9771)
+        self.cast(b, c, e, 2)
+        e[0].current_health = e[0].max_health
+        self.cast(b, c, e, 3)
+        self.assertEqual(e[0].current_health, 9350)
+
     def test_short_marks_age_independently_at_cap(self):
         b, c, e = self.encounter(4, 1)
         self.cast(b, c, e, 1)
         self.tick(b, e[0])
+        self.assertEqual([s['remaining'] for s in dps._layers(e[0], '稀释', c)], [2])
+        self.tick(b, c)
         self.cast(b, c, e, 1)
         self.cast(b, c, e, 1)
         self.assertEqual([s['remaining'] for s in dps._layers(e[0], '稀释', c)], [1, 2])
-        self.tick(b, e[0])
+        self.tick(b, c)
         self.assertEqual([s['remaining'] for s in dps._layers(e[0], '稀释', c)], [1])
 
     def test_lin_dilution_is_owner_only_and_wet_modifiers_expire(self):
@@ -106,8 +126,9 @@ class DpsFirstTests(unittest.TestCase):
         old = t.current_health
         self.cast(b, c, e, 3)
         self.assertEqual(old - t.current_health, int(150 / 1.7))
-        self.tick(b, t)
-        self.tick(b, t)
+        c.character.character_id = 'caster'
+        self.tick(b, c)
+        self.tick(b, c)
         self.assertEqual(modifiers(t).get('magic_defense', 0), 0)
 
     def test_sheng_aoe_bonus_uses_preexisting_water(self):
@@ -128,12 +149,14 @@ class DpsFirstTests(unittest.TestCase):
         self.cast(b, c, e, 2)
         self.assertEqual(e[0].current_health, 9955)
         self.tick(b, e[0])
+        self.assertEqual(e[0].current_health, 9955)
+        self.tick(b, c)
         self.assertEqual(e[0].current_health, 9895)
         self.assertEqual(len(dps._layers(e[0], '蜃痕', c)), 2)
-        self.tick(b, e[0])
+        self.tick(b, c)
         self.assertEqual(e[0].current_health, 9835)
         self.assertEqual(len(dps._layers(e[0], '随引幻影', c)), 0)
-        self.tick(b, e[0])
+        self.tick(b, c)
         self.assertEqual(e[0].current_health, 9835)
         self.cast(b, c, e, 1)
         self.cast(b, c, e, 1)
@@ -151,10 +174,10 @@ class DpsFirstTests(unittest.TestCase):
         e[0].character.defense = 0
         old = e[0].current_health
         self.cast(b, c, e, 1)
-        self.assertEqual(old-e[0].current_health, 252)
+        self.assertEqual(old-e[0].current_health, 225)
         old = e[0].current_health
         self.cast(b, c, e, 3)
-        self.assertEqual(old-e[0].current_health, 320)
+        self.assertEqual(old-e[0].current_health, 310)
 
     def test_mo_strict_health_boundaries_and_lifesteal(self):
         for health, damage in [(3999, 380), (4000, 260), (6000, 260), (6001, 380)]:
@@ -172,8 +195,32 @@ class DpsFirstTests(unittest.TestCase):
         e[0].current_health = 3000
         self.cast(b, c, e, 2)
         self.assertEqual(e[0].current_health, 2820)
-        e[0].character.defense = 100
-        self.assertEqual(modifiers(e[0])['defense'], -20)
+        e[0].character.magic_defense = 100
+        self.assertEqual(modifiers(e[0])['magic_defense'], -20)
+
+    def test_mo_pierce_reduces_only_target_magic_defense_for_two_casts(self):
+        b, c, enemies = self.encounter(12)
+        target = enemies[0]
+        target.character.defense = target.character.magic_defense = 100
+        self.cast(b, c, enemies, 2)
+        self.assertEqual(target.current_health, 9925)
+        self.assertEqual(modifiers(target)['magic_defense'], -20)
+        self.assertEqual(modifiers(target).get('defense', 0), 0)
+        self.assertFalse(states(enemies[1]))
+        effect = next(s for s in states(target) if s['name'] == '贯刺破甲')
+        self.assertEqual(effect['remaining'], 2)
+        old = target.current_health
+        self.cast(b, c, [target], 1, lifecycle=True)
+        self.assertEqual(old - target.current_health, int(170 / 1.8))
+        self.assertEqual(effect['remaining'], 1)
+        self.assertEqual(modifiers(target)['magic_defense'], -20)
+        self.tick(b, target)
+        self.assertEqual(effect['remaining'], 1)
+        self.tick(b, c)
+        self.assertEqual(modifiers(target).get('magic_defense', 0), 0)
+        old = target.current_health
+        self.cast(b, c, [target], 1)
+        self.assertEqual(old - target.current_health, 85)
 
     def test_shi_separate_corrosion_and_fire_states(self):
         b, c, e = self.encounter(13, 1)
@@ -183,7 +230,7 @@ class DpsFirstTests(unittest.TestCase):
         self.assertEqual(modifiers(e[0])['element_in_EARTH'], .2)
         old = e[0].current_health
         self.cast(b, c, e, 3)
-        self.assertEqual(old-e[0].current_health, 374)
+        self.assertEqual(old-e[0].current_health, 309)
 
     def test_zhong_followup_clears_mark_and_its_defense_modifier(self):
         b, c, e = self.encounter(14, 1)
@@ -241,7 +288,7 @@ class DpsFirstTests(unittest.TestCase):
 
     def test_pulse_hooks_ignore_unrelated_states(self):
         b, c, e = self.encounter(6, 1)
-        dps.after_cast(b, e[0], [dict(kind='mark', name='unrelated', remaining=0)])
+        dps.after_effect_cast(b, c, e[0], [dict(kind='mark', name='unrelated', remaining=0)])
         self.assertEqual(e[0].current_health, 10000)
         b._record_damage.assert_not_called()
 
@@ -274,13 +321,30 @@ class DpsFirstTests(unittest.TestCase):
         self.assertAlmostEqual(modifiers(e[0])['element_in_THUNDER'], .15)
         old = e[0].current_health
         self.cast(b, c, e, 3)
-        self.assertEqual(old-e[0].current_health, 660)
+        self.assertEqual(old-e[0].current_health, 385)
         self.assertFalse(dps._layers(e[0], '迓', c))
         old = e[0].current_health
         self.tick(b, e[0])
-        self.tick(b, e[0])
-        self.tick(b, e[0])
+        self.assertEqual(e[0].current_health, old)
+        for _ in range(3):
+            self.tick(b, c)
         self.assertEqual(old-e[0].current_health, 100)
+
+    def test_only_one_effective_enemy_uses_reduced_followups(self):
+        for number, slot, reduced, retained in ((11, 1, 225, 252), (11, 3, 310, 320),
+                                                 (13, 3, 309, 374), (22, 3, 385, 660)):
+            for active, expected in ((1, reduced), (2, retained)):
+                with self.subTest(number=number, slot=slot, active=active):
+                    b, c, e = self.encounter(number, 3)
+                    e[1].mechanic_inactive = active == 1
+                    e[2].current_health = 0
+                    if number != 11:
+                        self.cast(b, c, e, 1)
+                    e[0].current_health = e[0].max_health
+                    self.cast(b, c, e, 2)
+                    e[0].current_health = e[0].max_health
+                    self.cast(b, c, e, slot)
+                    self.assertEqual(10000 - e[0].current_health, expected)
 
     def test_chun_word_branches_and_consumable_next_sword_bonuses(self):
         for slots, expected in [((1, 2), [600, 0]), ((1, 1), [420, 420]), ((2, 2), [250, 250])]:
@@ -329,35 +393,101 @@ class DpsFirstTests(unittest.TestCase):
     def test_wei_two_mark_damage_and_element_vulnerability(self):
         b, c, e = self.encounter(28, 1)
         self.cast(b, c, e, 1)
+        old = e[0].current_health
         self.cast(b, c, e, 2)
+        self.assertEqual(old - e[0].current_health, 135)
         old = e[0].current_health
         self.cast(b, c, e, 3)
-        self.assertEqual(old-e[0].current_health, 408)
+        self.assertEqual(old - e[0].current_health, 363)
         self.assertEqual(len(dps._layers(e[0], '气滞', c)), 1)
+
+    def test_wei_qizhi_and_magic_defense_last_through_c_despite_enemy_casts(self):
+        b, c, e = self.encounter(28, 1)
+        target = e[0]
+        target.character.magic_defense = 100
+        self.cast(b, c, e, 1, lifecycle=True)
+        for _ in range(3):
+            self.tick(b, target)
+        self.assertEqual([s['remaining'] for s in dps._layers(target, '气滞', c)], [2])
+        self.cast(b, c, e, 2, lifecycle=True)
+        for _ in range(3):
+            self.tick(b, target)
+        self.assertEqual([s['remaining'] for s in dps._layers(target, '气滞', c)], [1])
+        self.assertEqual(modifiers(target)['magic_defense'], -15)
+        old = target.current_health
+        self.cast(b, c, e, 3, lifecycle=True)
+        self.assertEqual(old - target.current_health, 193)
+        self.assertFalse(dps._layers(target, '气滞', c))
+        self.assertNotIn('magic_defense', modifiers(target))
+        self.assertEqual([s['remaining'] for s in dps._layers(target, '风压', c)], [1])
 
     def test_mu_six_real_hits_order_and_no_retarget_on_death(self):
         b, c, e = self.encounter(29)
         with patch.object(authored_characters, 'damage', wraps=authored_characters.damage) as hit:
             self.cast(b, c, e, 3)
             self.assertEqual([call.args[4] for call in hit.call_args_list],
-                             [.8, .8, .9, .9, 1, 1, 1.1, 1.1, 1.2, 1.2, 1.3, 1.3])
-        self.assertEqual([t.current_health for t in e], [9370, 9370])
+                             [.64, .64, .72, .72, .8, .8, .88, .88, .96, .96, 1.04, 1.04])
+        self.assertEqual([t.current_health for t in e], [9496, 9496])
         e[0].current_health, e[1].current_health = 100, 50
         self.cast(b, c, e, 1)
         self.assertEqual([t.current_health for t in e], [0, 50])
 
+    def test_mu_all_skill_ratios_reduced_twenty_percent_with_same_targets(self):
+        old_ratios = {1: (1.8, 1.2), 2: (1.5,), 3: (.8, .9, 1, 1.1, 1.2, 1.3)}
+        for count in (1, 5, 10):
+            for slot, ratios in old_ratios.items():
+                with self.subTest(count=count, slot=slot):
+                    b, c, enemies = self.encounter(29, count)
+                    with patch.object(authored_characters, 'damage', wraps=authored_characters.damage) as hit:
+                        self.cast(b, c, enemies, slot)
+                    targets = enemies[:1] if slot == 1 else enemies
+                    self.assertEqual(
+                        [(call.args[3], call.args[4]) for call in hit.call_args_list],
+                        [(target, round(ratio * .8, 12)) for ratio in ratios for target in targets])
+                    expected = {1: 240, 2: 120, 3: 504}[slot]
+                    self.assertEqual([10000 - t.current_health for t in enemies],
+                                     [expected if t in targets else 0 for t in enemies])
+
     def test_shizhi_progression_consumed_once_all_three_hits_enhanced(self):
         b, c, e = self.encounter(30, 1)
         self.cast(b, c, e, 1)
+        old = e[0].current_health
         self.cast(b, c, e, 2)
+        self.assertEqual(old-e[0].current_health, 156)
         self.assertFalse(dps._layers(c, '递进', c))
         self.assertTrue(dps._layers(c, '转折', c))
         old = e[0].current_health
         self.cast(b, c, e, 3)
-        self.assertEqual(old-e[0].current_health, 378)
+        self.assertEqual(old-e[0].current_health, 300)
+        self.assertFalse(dps._layers(c, '转折', c))
         old = e[0].current_health
         self.cast(b, c, e, 3)
-        self.assertEqual(old-e[0].current_health, 270)
+        self.assertEqual(old-e[0].current_health, 216)
+
+    def test_shizhi_reduced_ratios_keep_aoe_hits_and_empowerment(self):
+        for count in (1, 5, 10):
+            for slot, ratio, hits in ((1, 1.04, 1), (2, 1.12, 1), (3, .72, 3)):
+                for empowered in (False, True) if slot != 1 else (False,):
+                    with self.subTest(count=count, slot=slot, empowered=empowered):
+                        b, c, enemies = self.encounter(30, count)
+                        if empowered:
+                            mark = '递进' if slot == 2 else '转折'
+                            dps._mark(c, c, self.skill(c, 1), mark, remaining=None)
+                        with patch.object(authored_characters, 'damage', wraps=authored_characters.damage) as hit:
+                            self.cast(b, c, enemies, slot)
+                        expected_ratio = round(ratio * (1.4 if empowered else 1), 12)
+                        self.assertEqual(
+                            [(call.args[3], call.args[4]) for call in hit.call_args_list],
+                            [(target, expected_ratio) for _ in range(hits) for target in enemies])
+                        self.assertTrue(all(call.args[2].authored_effect['damageType'] == 'magical'
+                                            for call in hit.call_args_list))
+                        self.assertEqual([10000 - t.current_health for t in enemies],
+                                         [int(100 * expected_ratio) * hits] * count)
+                        if slot == 2:
+                            self.assertEqual(bool(dps._layers(c, '转折', c)), empowered)
+                            self.assertFalse(dps._layers(c, '递进', c))
+                        elif slot == 3:
+                            self.assertFalse(dps._layers(c, '转折', c))
 
     def test_no_targets_inactive_filter_and_no_lifecycle_ownership(self):
         b, c, e = self.encounter(29)

@@ -41,7 +41,8 @@ async function main() {
     assert(exclusivePreview.preview.canCraft, 'exclusive weapon preview should be affordable');
     const exclusive = await postJson(`/workshop/${playerId}/crafting/exclusive`, { characterId }, auth);
     assert(exclusive.item?.itemType === 'weapon', 'exclusive weapon should enter inventory');
-    assert(exclusive.item.payload?.specialSkill?.damageMultiplier === 1.1, 'exclusive weapon should contain its battle skill effect');
+    assert(exclusive.item.payload?.specialSkill?.trigger === 'authored_skill' &&
+      exclusive.item.payload.specialSkill.effect, 'exclusive weapon should contain its authored effect');
 
     const equipmentPreview = await postJson(`/workshop/${playerId}/crafting/preview`, { craftingType: 'equipment', attributeType: 'FIRE' }, auth);
     assert(equipmentPreview.preview.canCraft, 'equipment preview should be affordable');

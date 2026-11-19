@@ -12,6 +12,8 @@ def encounter():
     target.character.defense = target.character.magic_defense = 100
     battle.damage_calculator.base_crit_rate = 0
     skill = copy(library(caster.character)['char_051_light_physical_melee_dps:1'])
+    # Core arithmetic is independent of the versioned roster ratio profiles.
+    caster.character.character_config_id = 'damage-core-fixture'
     return battle, caster, target, skill
 
 

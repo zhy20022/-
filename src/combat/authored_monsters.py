@@ -83,36 +83,69 @@ class HealthPool:
         self.sync()
 
 
-def begin_cast(unit):
-    # Only effects present before this cast may tick/expire afterwards.
-    return list(states(unit))
+def begin_cast(caster):
+    # Snapshot the caster's effects on every recipient, before any new application.
+    battle = getattr(caster, '_battle', None)
+    roster = getattr(battle, 'player_units', []) + getattr(battle, 'enemy_units', [])
+    caster_id = caster.character.character_id
+    before = []
+    for target in [caster] + [unit for unit in roster if unit is not caster]:
+        effects = []
+        for item in states(target):
+            owner = item.get('owner')
+            if owner is not None:
+                owned = owner is caster
+            elif 'owner_id' in item:
+                owned = item['owner_id'] == caster_id
+            else:
+                owned = target is caster
+            if owned:
+                effects.append(item)
+        if effects:
+            before.append((target, effects))
+    return before
 
 
-def end_cast(battle, unit, before):
-    for item in before:
-        if not any(s is item for s in states(unit)):
-            continue
-        if unit.is_alive():
+def end_cast(battle, caster, before):
+    from ..skills.characters.registry import hook, sync_max_health
+
+    for target, effects in before:
+        for item in effects:
+            if not target.is_alive() or not any(s is item for s in states(target)):
+                continue
             if item["kind"] == "dot":
-                dealt = unit.take_damage(0, item["amount"], is_attack=False, source=item.get('owner'))
-                battle._log(f"{unit.character.name}：{item['name']}结算 {dealt} 伤害", "dot")
                 owner = item.get("owner")
+                dealt = target.take_damage(0, item["amount"], is_attack=False, source=owner)
+                battle._log(f"{target.character.name}：{item['name']}结算 {dealt} 伤害", "dot")
                 if item.get("drain") and owner and owner.is_alive():
                     owner.heal(dealt, 0)
             elif item["kind"] == "hot":
-                if not item.get('bound_shield') or any(s['kind'] == 'shield' and s.get('source_skill') == item.get('source_skill') for s in states(unit)):
-                    unit.heal(int(item.get('amount', unit.max_health * item.get('value', 0))), 0)
-                battle._log(f"{unit.character.name}：{item['name']}结算治疗", "heal")
-        if item.get("remaining") is not None:
-            item["remaining"] -= 1
-            if item["remaining"] <= 0:
-                unit.cast_effects = [s for s in states(unit) if s is not item]
-    if unit.is_dead() and not unit.is_player:
-        battle._on_enemy_killed(unit)
-    from ..skills.characters.registry import hook, sync_max_health
-    unit.cast_count = getattr(unit, 'cast_count', 0) + 1
-    hook('after_cast', battle, unit, before)
-    sync_max_health(unit)
+                if not item.get('bound_shield') or any(s['kind'] == 'shield' and s.get('source_skill') == item.get('source_skill') for s in states(target)):
+                    target.heal(int(item.get('amount', target.max_health * item.get('value', 0))), 0)
+                    battle._log(f"{target.character.name}：{item['name']}结算治疗", "heal")
+        hook('after_effect_cast', battle, caster, target, effects)
+
+    caster_effects = []
+    for target, effects in before:
+        if target is caster:
+            caster_effects = effects
+        expired = set()
+        for item in effects:
+            if item.get("remaining") is not None and any(s is item for s in states(target)):
+                item["remaining"] -= 1
+                if item["remaining"] <= 0:
+                    expired.add(id(item))
+        if expired:
+            target.cast_effects = [s for s in states(target) if id(s) not in expired]
+            if target is not caster:
+                sync_max_health(target)
+        if target is not caster and target.is_dead() and not target.is_player:
+            battle._on_enemy_killed(target)
+    if caster.is_dead() and not caster.is_player:
+        battle._on_enemy_killed(caster)
+    caster.cast_count = getattr(caster, 'cast_count', 0) + 1
+    hook('after_cast', battle, caster, caster_effects)
+    sync_max_health(caster)
 
 
 class MonsterRuntime:

@@ -114,10 +114,12 @@ class SupportTests(unittest.TestCase):
         target.take_damage(800, 0)
         self.assertEqual(target.current_health, 500)
         self.tick(battle, target)
+        self.assertEqual(target.current_health, 500)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 700)
-        self.tick(battle, target)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 900)
-        self.tick(battle, target)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 900)
 
     def test_mu_magic_scaling_heal_bonus_cashout_and_once_guard(self):
@@ -175,8 +177,8 @@ class SupportTests(unittest.TestCase):
         self.cast(battle, caster, party, 3)
         self.cast(battle, caster, party, 3)
         self.assertEqual(target.current_health, 1040)
-        self.tick(battle, target)
-        self.tick(battle, target)
+        self.tick(battle, caster)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 1040)
 
     def test_shield_break_cannot_resurrect_from_lethal_overflow(self):
@@ -199,8 +201,8 @@ class SupportTests(unittest.TestCase):
         caster.character.attribute = Attribute(AttributeType.EARTH)
         target.take_damage(100, 0, source=caster)
         self.assertEqual(target.current_health, 875)
-        self.tick(battle, target)
-        self.tick(battle, target)
+        self.tick(battle, caster)
+        self.tick(battle, caster)
         self.assertFalse(states(target))
 
     def test_nalan_revive_tank_then_oldest_with_once_battle_and_cross_ratio(self):
@@ -244,18 +246,18 @@ class SupportTests(unittest.TestCase):
         party[1].current_health = 100
         self.cast(battle, caster, party, 1)
         self.assertEqual(party[1].current_health, 100)
-        self.tick(battle, party[1])
-        self.tick(battle, party[1])
+        self.tick(battle, caster)
+        self.tick(battle, caster)
         self.assertEqual(party[1].current_health, 500)
         self.cast(battle, caster, party, 2)
-        self.tick(battle, party[5])
+        self.tick(battle, caster)
         self.assertEqual(party[5].current_health, 1060)
         self.cast(battle, caster, party, 3)
         self.assertEqual(self.shield_amount(party[5]), 40)
         party[5].take_damage(40, 0)
-        self.tick(battle, party[5])
+        self.tick(battle, caster)
         self.assertEqual(party[5].current_health, 1180)
-        self.tick(battle, party[5])
+        self.tick(battle, caster)
         self.assertEqual(party[5].current_health, 1240)
 
     def test_su_cleanse_only_six_types_and_preserves_mixed_other_components(self):
@@ -300,13 +302,13 @@ class SupportTests(unittest.TestCase):
         self.cast(battle, caster, party, 2)
         target = party[5]
         self.assertEqual(self.shield_amount(target), 50)
-        self.tick(battle, target)
-        self.tick(battle, target)
+        self.tick(battle, caster)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 1030)
         self.assertEqual(self.shield_amount(target), 0)
         self.cast(battle, caster, party, 2)
         target.take_damage(50, 0)
-        self.tick(battle, target)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 1030)
 
     def test_jiao_cleanse_local_only_preserves_marks_and_permanent(self):
@@ -332,8 +334,8 @@ class SupportTests(unittest.TestCase):
                 self.assertEqual(target.max_health, expected)
                 self.assertEqual(target.current_health, 1000)
                 target.current_health = expected
-                self.tick(battle, target)
-                self.tick(battle, target)
+                self.tick(battle, caster)
+                self.tick(battle, caster)
                 self.assertEqual(target.max_health, 10000)
                 self.assertEqual(target.current_health, 10000)
 
@@ -397,8 +399,7 @@ class SupportTests(unittest.TestCase):
         self.addCleanup(roll.stop)
         target = party[5]
         self.cast(battle, caster, party, 1)
-        self.tick(battle, target)
-        self.cast(battle, caster, party, 1)
+        self.cast(battle, caster, party, 1, lifecycle=True)
         self.assertEqual([s['remaining'] for s in states(target)], [3, 4])
         self.cast(battle, caster, party, 3)
         self.cast(battle, caster, party, 1)
@@ -406,7 +407,8 @@ class SupportTests(unittest.TestCase):
         self.assertAlmostEqual(modifiers(target)['defense'], 15)
         self.assertEqual(modifiers(target)['attack'], 5)
         self.assertEqual(self.shield_amount(target), 22.5)
-        self.tick(battle, target)
+        self.tick(battle, caster)
+        self.assertEqual([s['remaining'] for s in supports.mark_layers(target, '枯')], [2, 3, 3])
         self.assertEqual(target.current_health, 1006)
         supports._cleanse(target)
         self.assertEqual(len(supports.mark_layers(target, '枯')), 3)
@@ -436,7 +438,7 @@ class SupportTests(unittest.TestCase):
         self.assertEqual(party[1].current_health, 3000)
         self.assertEqual(party[2].current_health, 1000)
         self.cast(battle, caster, party, 1)
-        self.tick(battle, party[2])
+        self.tick(battle, caster)
         self.assertEqual(party[2].current_health, 1040)
 
     def test_zhu_hot_healing_received_highest_max_target_and_bonus(self):
@@ -446,7 +448,7 @@ class SupportTests(unittest.TestCase):
         party[6].max_health = 20000
         self.cast(battle, caster, party, 1)
         self.assertAlmostEqual(modifiers(target)['healing_received'], .8)
-        self.tick(battle, target)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 127)
         self.cast(battle, caster, party, 2)
         self.assertEqual(modifiers(party[6])['defense'], 50)
@@ -479,12 +481,14 @@ class SupportTests(unittest.TestCase):
         self.cast(battle, caster, party, 3)
         self.assertEqual(target.current_health, 1000)
         self.tick(battle, target)
+        self.assertEqual(target.current_health, 1000)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 1300)
         self.assertEqual(self.shield_amount(target), 0)
-        self.tick(battle, target)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 1300)
         shield(target, caster, 'later', 100)
-        self.tick(battle, target)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 1300)
 
     def test_sikong_conversion_preserves_final_cast_shield_snapshot(self):
@@ -492,7 +496,7 @@ class SupportTests(unittest.TestCase):
         target = party[5]
         shield(target, caster, 'last-tick', 100, remaining=1)
         self.cast(battle, caster, party, 3)
-        self.tick(battle, target)
+        self.tick(battle, caster)
         self.assertEqual(target.current_health, 1050)
 
     def test_qian_elemental_effects(self):

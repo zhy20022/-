@@ -392,25 +392,21 @@ def after_damage(unit, context):
         _heal(context.get('battle', getattr(unit, '_battle', None)), owner, unit, amount)
 
 
-def after_cast(battle, unit, before):
-    sync_max_health(unit)
+def after_effect_cast(battle, caster, unit, before):
     if not unit.is_alive():
         return
     for item in before:
+        if not any(s is item for s in states(unit)):
+            continue
         if item.get('support_tick_heal') and item.get('amount', 0) > 0:
-            # Include a shield that just expired on this second subsequent cast.
-            if any(s is item for s in states(unit)) or item.get('remaining') == 0:
-                _heal(battle, item['owner'], unit, item['support_tick_heal'])
+            _heal(battle, caster, unit, item['support_tick_heal'])
         if item['kind'] == 'support_conversion':
-            if not (any(s is item for s in states(unit)) or item.get('remaining') == 0):
-                continue
-            shields = [s for s in before if s['kind'] == 'shield'
-                       and (any(current is s for current in states(unit)) or s.get('remaining') == 0)]
+            shields = [s for s in states(unit) if s['kind'] == 'shield']
             amount = sum(s['amount'] for s in shields)
             for current in shields:
                 current['amount'] = 0
             unit.cast_effects = [s for s in states(unit) if not any(s is old for old in shields)]
-            _heal(battle, item['owner'], unit, amount * item.get('scale', 1))
+            _heal(battle, caster, unit, amount * item.get('scale', 1))
 
 
 def on_death(battle, unit):

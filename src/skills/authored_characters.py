@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..combat.skill_system import Skill, SkillLogic, SkillTier
 from ..combat.authored_monsters import begin_cast, end_cast, modifiers, states
+from .damage_balance import damage_scale
 
 DEFINITIONS = json.loads((Path(__file__).resolve().parents[2] / 'data/content/authored-character-skills.json').read_text(encoding='utf-8'))['characters']
 
@@ -30,10 +31,15 @@ def library(character, include_drafts=False):
 def damage(battle, caster, skill, target, ratio):
     if target.is_dead():
         return 0
+    scale = damage_scale(battle, caster)
+    ratio *= scale
     effect = skill.authored_effect
     physical = effect['damageType'] == 'physical'
     attacker = copy(caster.character)
     buffs = modifiers(caster)
+    if scale < 1:
+        # The old 10%-attack floor must not undo a reduced multihit budget.
+        buffs['no_damage_floor'] = True
     buffs['ignore_defense'] = buffs.get('ignore_defense', 0) + effect.get('ignore_defense', 0)
     defenses = modifiers(target)
     if any(s['kind'] == 'magical_crit_immunity' for s in states(target)):
@@ -75,6 +81,22 @@ def damage(battle, caster, skill, target, ratio):
 
 
 def cast(battle, caster, skill, allies, enemies):
+    from .characters import exclusives
+
+    if not exclusives.enabled(caster) or caster.is_dead() or not skill.can_use():
+        return _cast(battle, caster, skill, allies, enemies)
+    before = exclusives.before_cast(battle, caster, skill, enemies)
+    result = _cast(battle, caster, skill, allies, enemies)
+    if result and caster.is_alive():
+        caster._damage_balance_target_count = len(before['targets'])
+        try:
+            exclusives.after_cast(battle, caster, skill, allies, enemies, before)
+        finally:
+            del caster._damage_balance_target_count
+    return result
+
+
+def _cast(battle, caster, skill, allies, enemies):
     effect = skill.authored_effect
     if effect['kind'] == 'custom':
         from .characters.registry import find_handler, sync_max_health
@@ -87,8 +109,13 @@ def cast(battle, caster, skill, allies, enemies):
         before = begin_cast(caster)
         # Handlers own effects only; all hits share this single cast lifecycle.
         log_index = len(battle.battle_log)
-        if not handler.cast(battle, caster, skill, allies, enemies):
-            return False
+        caster._damage_balance_target_count = sum(
+            u.is_alive() and not getattr(u, 'mechanic_inactive', False) for u in enemies)
+        try:
+            if not handler.cast(battle, caster, skill, allies, enemies):
+                return False
+        finally:
+            del caster._damage_balance_target_count
         skill.use()
         battle._log(f'{caster.character.name} 使用技能 {skill.name}', 'skill', {
             'caster_id': caster.character.character_id, 'skill_id': skill.skill_id,
@@ -120,11 +147,15 @@ def cast(battle, caster, skill, allies, enemies):
     attack = max(0, caster.character.attack + modifiers(caster).get('attack', 0))
     if effect['kind'] == 'damage':
         ratio = effect.get('conditionalRatio', effect['ratio']) if enemy_count <= effect.get('enemyCountMax', -1) else effect['ratio']
-        for target in targets:
-            for _ in range(effect.get('hits', 1)):
-                if not target.is_alive():
-                    break
-                damage(battle, caster, skill, target, ratio)
+        caster._damage_balance_target_count = enemy_count
+        try:
+            for target in targets:
+                for _ in range(effect.get('hits', 1)):
+                    if not target.is_alive():
+                        break
+                    damage(battle, caster, skill, target, ratio)
+        finally:
+            del caster._damage_balance_target_count
         end_cast(battle, caster, before)
         return True
     for target in targets:
@@ -142,11 +173,12 @@ def cast(battle, caster, skill, allies, enemies):
             source = f'{caster.character.character_id}:{skill.skill_id}'
             target.cast_effects = [item for item in states(target) if not (item['kind'] == 'shield' and item.get('source_skill') == source)]
             states(target).append(dict(kind='shield', name=skill.name, source_skill=source,
-                                       amount=amount, remaining=effect['casts']))
+                                       amount=amount, remaining=effect['casts'], owner=caster))
         elif effect['kind'] in {'stat', 'attack_reduction'}:
             states(target).append(dict(kind=effect['kind'], name=skill.name,
                 source_skill=f'{caster.character.character_id}:{skill.skill_id}',
-                value=effect['ratio'], stats=effect.get('stats', []), remaining=effect['casts']))
+                value=effect['ratio'], stats=effect.get('stats', []), remaining=effect['casts'],
+                owner=caster))
             amount = effect['ratio']
         else:
             raise ValueError(f"Unsupported character effect: {effect['kind']}")

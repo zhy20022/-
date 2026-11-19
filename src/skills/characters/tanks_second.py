@@ -124,10 +124,11 @@ def _fixed_magic(battle, caster, skill, target, amount):
     _hit(battle, caster, skill, target, 1, amount=amount)
 
 
-def _health_loss(battle, unit, amount):
+def _health_loss(battle, unit, amount, *, nonlethal=False):
     # Health costs/deferred repayment must not feed storage or consume shields.
     old = unit.current_health
-    unit.current_health = max(0, old - max(0, int(amount)))
+    floor = 1 if nonlethal and old > 0 else 0
+    unit.current_health = max(floor, old - max(0, int(amount)))
     unit._sync_legacy_health_fields()
     if old > 0 and unit.is_dead():
         from .registry import hook
@@ -179,15 +180,15 @@ def cast(battle, caster, skill, allies, enemies) -> bool:
             pool = _pool(caster, LEAVES)
             consumed = min(pool['value'], caster.max_health * .25)
             pool['value'] -= consumed
-            caster.heal(int(consumed), 0)
+            caster.heal(int(consumed * 1.2), 0)
         elif slot == 2:
             pool = _pool(caster, LEAVES)
             if pool['value'] > 0:
-                _stat(caster, caster, name, ['magic_defense'], pool['value'] / caster.max_health)
+                _stat(caster, caster, name, ['magic_defense'], pool['value'] / caster.max_health * 1.2)
             pool['value'] = 0
         else:
             for target in alive(allies):
-                _stat(target, caster, name, ['magic_defense'], .25)
+                _stat(target, caster, name, ['magic_defense'], .3)
     elif config == 'char_049_light_physical_tank':
         if slot == 1:
             for target in alive(allies):
@@ -229,7 +230,7 @@ def cast(battle, caster, skill, allies, enemies) -> bool:
                 item['amount'] += missing * .6
                 if not any(s is item for s in states(caster)) and item['amount'] > 0:
                     states(caster).append(item)
-            _health_loss(battle, caster, caster.max_health * .1)
+            _health_loss(battle, caster, caster.max_health * .1, nonlethal=True)
     elif config == 'char_058_dark_magic_tank':
         if slot == 1:
             _mode(caster, 'blood_mode', .4, 2)
@@ -249,7 +250,7 @@ def cast(battle, caster, skill, allies, enemies) -> bool:
         else:
             total = _pool(caster, BLOOD)['value'] + _pool(caster, BRUISE)['value']
             _pool(caster, BLOOD)['value'] = _pool(caster, BRUISE)['value'] = 0
-            _health_loss(battle, caster, caster.max_health * .2)
+            _health_loss(battle, caster, caster.max_health * .2, nonlethal=True)
             if caster.is_dead():
                 return True
             old_max = caster.max_health
@@ -264,6 +265,13 @@ def cast(battle, caster, skill, allies, enemies) -> bool:
 
 
 def before_damage(unit, physical, magical, context) -> tuple:
+    if _id(unit) == 'char_042_wood_magic_tank' and not context.get('is_true'):
+        from .exclusives import enabled
+        if enabled(unit) and not getattr(unit, '_tanks_second_settled', False):
+            pool = _pool(unit, LEAVES)
+            stored = min(physical * .15, max(0, unit.max_health * .5 - pool['value']))
+            pool['value'] += stored
+            physical -= stored
     source = context.get('source')
     if source is not None and not context.get('is_true'):
         reduction = min(1, sum(s['value'] for s in states(source)

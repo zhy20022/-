@@ -82,7 +82,8 @@ class TanksSecondTests(unittest.TestCase):
         unit.take_damage(1000, 0, source=enemy)
         self.assertEqual(old - unit.current_health, 940)
         self.tick(enemy)
-        self.tick(enemy)
+        self.assertEqual(modifiers(enemy)['attack'], -20)
+        self.tick()
         self.assertEqual(modifiers(enemy).get('attack', 0), 0)
 
     def test_calamity_modes_replace_and_healing_consumes_resource(self):
@@ -157,12 +158,12 @@ class TanksSecondTests(unittest.TestCase):
         unit = self.encounter(42, party_size=7)
         tanks._pool(unit, tanks.LEAVES)['value'] = 4000
         self.assertTrue(self.cast(2))
-        self.assertEqual(modifiers(unit)['magic_defense'], 40)
+        self.assertEqual(modifiers(unit)['magic_defense'], 48)
         self.assertEqual(tanks._pool(unit, tanks.LEAVES)['value'], 0)
         self.party[1].current_health = 0
         self.party[2].mechanic_inactive = True
         self.cast(3)
-        self.assertEqual(modifiers(self.party[6])['magic_defense'], 25)
+        self.assertEqual(modifiers(self.party[6])['magic_defense'], 30)
         self.assertEqual(states(self.party[1]), [])
         self.assertEqual(states(self.party[2]), [])
 
@@ -181,8 +182,8 @@ class TanksSecondTests(unittest.TestCase):
         self.assertEqual(pool['value'], 5000)
 
     def test_leaf_a_heals_actual_spend_without_hot_or_clearing_remainder(self):
-        for stored, healed, remaining in [(0, 0, 0), (1000, 1000, 0),
-                                           (2500, 2500, 0), (5000, 2500, 2500)]:
+        for stored, healed, remaining in [(0, 0, 0), (1000, 1200, 0),
+                                           (2500, 3000, 0), (5000, 3000, 2500)]:
             with self.subTest(stored=stored):
                 unit = self.encounter(42)
                 unit.current_health = 1000
@@ -200,13 +201,32 @@ class TanksSecondTests(unittest.TestCase):
         unit = self.encounter(42)
         unit.take_damage(0, 1000)
         self.cast(1)
-        self.assertEqual(unit.current_health, 9600)
+        self.assertEqual(unit.current_health, 9660)
         unit.take_damage(0, 2000)
         self.cast(2)
-        self.assertEqual(modifiers(unit)['magic_defense'], 6)
+        self.assertAlmostEqual(modifiers(unit)['magic_defense'], 7.2)
         self.assertEqual(tanks._pool(unit, tanks.LEAVES)['value'], 0)
         self.cast(3)
-        self.assertEqual(modifiers(unit)['magic_defense'], 31)
+        self.assertAlmostEqual(modifiers(unit)['magic_defense'], 37.2)
+
+    def test_leaf_increased_conversion_still_caps_healing_and_defense_expires(self):
+        unit = self.encounter(42)
+        unit.current_health = 9500
+        pool = tanks._pool(unit, tanks.LEAVES)
+        pool['value'] = 5000
+        self.cast(1)
+        self.assertEqual(unit.current_health, 10000)
+        self.assertEqual(pool['value'], 2500)
+        pool['value'] = 5000
+        self.cast(2)
+        self.assertEqual(modifiers(unit)['magic_defense'], 60)
+        self.assertEqual(pool['value'], 0)
+        self.cast(3)
+        self.assertAlmostEqual(modifiers(unit)['magic_defense'], 90)
+        self.tick()
+        self.assertEqual(modifiers(unit)['magic_defense'], 30)
+        self.tick()
+        self.assertEqual(modifiers(unit).get('magic_defense', 0), 0)
 
     def test_ready_manifest_includes_dark_tank(self):
         self.assertEqual(tanks.READY_CONFIG_IDS, tanks.CONFIG_IDS)
@@ -234,15 +254,18 @@ class TanksSecondTests(unittest.TestCase):
         for _ in range(3):
             self.cast(1)
         marks = [s for s in states(target) if s.get('name') == tanks.PERSUADE]
-        self.assertEqual([s['remaining'] for s in marks], [6, 7, 7])
+        self.assertEqual([s['remaining'] for s in marks], [4, 5, 6])
         self.assertTrue(all(s['unique_mark'] for s in marks))
         unit.take_damage(1000, 0, source=target)
         self.assertEqual(unit.current_health, 9300)
-        for _ in range(6):
-            self.tick(target)
+        for _ in range(4):
+            self.tick()
         old = unit.current_health
         unit.take_damage(1000, 0, source=target)
         self.assertEqual(old - unit.current_health, 800)
+        self.tick()
+        self.tick()
+        self.assertFalse([s for s in states(target) if s.get('name') == tanks.PERSUADE])
 
     def test_bless_magic_defense_three_layer_cap_and_heal(self):
         unit = self.encounter(50)
@@ -285,7 +308,44 @@ class TanksSecondTests(unittest.TestCase):
         self.tick()
         self.assertFalse(any(s['kind'] == 'shield' for s in states(unit)))
 
-    def test_health_cost_death_records_hooks_once(self):
+    def test_bone_repair_cost_floor_preserves_full_repair_and_shields(self):
+        for hp in (1001, 1000, 999, 500, 1):
+            with self.subTest(hp=hp):
+                unit = self.encounter(57)
+                self.cast(2)
+                armor = next(s for s in states(unit) if s.get('tank_key') == 'bone_armor')
+                armor['amount'] = 1000
+                other = dict(kind='shield', amount=700, remaining=2, source_skill='other')
+                states(unit).append(other)
+                unit.current_health = hp
+                with patch.object(tanks, 'on_death', wraps=tanks.on_death) as death:
+                    self.assertTrue(self.cast(3))
+                self.assertEqual(unit.current_health, max(1, hp - 1000))
+                self.assertEqual(armor['amount'], 1600)
+                self.assertEqual(armor['remaining'], 1)
+                self.assertEqual(other['amount'], 700)
+                self.assertTrue(unit.is_alive())
+                self.assertEqual(getattr(unit, 'death_serial', 0), 0)
+                death.assert_not_called()
+
+    def test_bone_empty_repair_still_pays_cost_with_one_hp_floor(self):
+        for armor_present in (False, True):
+            unit = self.encounter(57)
+            if armor_present:
+                self.cast(2)
+            unit.current_health = 500
+            self.assertTrue(self.cast(3))
+            self.assertEqual(unit.current_health, 1)
+
+    def test_one_hp_repair_does_not_protect_against_enemy_damage(self):
+        unit = self.encounter(57)
+        unit.current_health = 1
+        self.cast(3)
+        self.assertEqual(unit.current_health, 1)
+        unit.take_damage(100, 0, source=self.enemies[0])
+        self.assertTrue(unit.is_dead())
+
+    def test_health_loss_still_records_lethal_hooks_once(self):
         unit = self.encounter(57)
         self.cast(2)
         unit.current_health = 500
@@ -323,7 +383,7 @@ class TanksSecondTests(unittest.TestCase):
         self.assertEqual(unit.current_health, 9000)
         self.assertEqual(next(s['amount'] for s in states(unit) if s['kind'] == 'shield'), 9000)
 
-    def test_blood_clear_damage_is_magic_not_true_and_stops_on_cost_death(self):
+    def test_blood_clear_damage_is_magic_not_true_and_continues_at_one_hp(self):
         unit = self.encounter(58)
         tanks._pool(unit, tanks.BLOOD)['value'] = 1000
         self.cast(3)
@@ -333,8 +393,75 @@ class TanksSecondTests(unittest.TestCase):
         unit.current_health = 1000
         tanks._pool(unit, tanks.BLOOD)['value'] = 500
         self.cast(3)
+        self.assertTrue(unit.is_alive())
+        self.assertEqual(unit.current_health, 1)
+        self.assertEqual([u.current_health for u in self.enemies], [8125, 8125])
+
+    def test_blood_clear_thresholds_preserve_full_damage_and_external_shield(self):
+        for hp in (2001, 2000, 1999, 1000, 1):
+            with self.subTest(hp=hp):
+                unit = self.encounter(58)
+                tanks._pool(unit, tanks.BLOOD)['value'] = 1000
+                other = dict(kind='shield', amount=700, remaining=2, source_skill='other')
+                states(unit).append(other)
+                unit.current_health = hp
+                with patch.object(tanks, 'on_death', wraps=tanks.on_death) as death:
+                    self.assertTrue(self.cast(3))
+                self.assertEqual(unit.current_health, max(1, hp - 2000))
+                self.assertEqual([u.current_health for u in self.enemies], [8750, 8750])
+                self.assertEqual(tanks._pool(unit, tanks.BLOOD)['value'], 0)
+                self.assertEqual(tanks._pool(unit, tanks.BRUISE)['value'], 0)
+                self.assertEqual(other['amount'], 700)
+                self.assertEqual(getattr(unit, 'death_serial', 0), 0)
+                death.assert_not_called()
+
+    def test_blood_low_hp_clear_restores_max_health_and_completes_bonus_damage(self):
+        unit = self.encounter(58)
+        tanks._pool(unit, tanks.BLOOD)['value'] = 1000
+        self.cast(2)
+        self.assertEqual(unit.max_health, 9500)
+        unit.current_health = 500
+        self.assertTrue(self.cast(3))
+        self.assertEqual(unit.max_health, 10000)
+        # The cost leaves 1 HP; restoring the lost max HP still heals 500.
+        self.assertEqual(unit.current_health, 501)
+        self.assertEqual([u.current_health for u in self.enemies], [8700, 8700])
+        self.assertEqual(tanks._pool(unit, tanks.BLOOD)['value'], 0)
+        self.assertEqual(tanks._pool(unit, tanks.BRUISE)['value'], 0)
+
+    def test_blood_empty_clear_still_pays_cost_with_one_hp_floor(self):
+        unit = self.encounter(58)
+        unit.current_health = 10000
+        self.cast(3)
+        self.assertEqual(unit.current_health, 8000)
+        unit.current_health = 1000
+        self.cast(3)
+        self.assertEqual(unit.current_health, 1)
+        self.cast(3)
+        self.assertEqual(unit.current_health, 1)
+        self.assertEqual([u.current_health for u in self.enemies], [10000, 10000])
+
+    def test_blood_battle_end_repayment_remains_lethal_and_once_only(self):
+        unit = self.encounter(58)
+        unit.current_health = 500
+        tanks._pool(unit, tanks.BLOOD)['value'] = 1000
+        other = dict(kind='shield', amount=9000, remaining=2, source_skill='other')
+        states(unit).append(other)
+        with patch.object(tanks, 'on_death', wraps=tanks.on_death) as death:
+            tanks.battle_end(self.battle)
+            tanks.battle_end(self.battle)
         self.assertTrue(unit.is_dead())
-        self.assertEqual([u.current_health for u in self.enemies], [8750, 8750])
+        self.assertEqual(unit.death_serial, 1)
+        self.assertEqual(death.call_count, 1)
+        self.assertEqual(other['amount'], 9000)
+        self.assertEqual(tanks._pool(unit, tanks.BLOOD)['value'], 0)
+
+    def test_nonlethal_cost_does_not_revive_a_dead_character(self):
+        unit = self.encounter(58)
+        unit.current_health = 0
+        tanks._health_loss(self.battle, unit, 100, nonlethal=True)
+        self.assertEqual(unit.current_health, 0)
+        self.assertFalse(self.cast(3))
 
     def test_bruise_converts_partial_pool_then_clear_restores_hp_and_aoe_bonus(self):
         unit = self.encounter(58)

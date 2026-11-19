@@ -37,6 +37,34 @@ for (const slot of [1, 2, 3]) assert(authored.events.some(event => event.payload
 assert(authored.frames.some(frame => frame.units.some(([id, , shield]) => id.startsWith('character-') && shield > 0)), 'authored shield must reach replay');
 console.log('authored healer: configured ABC casts and shield replay passed');
 
+const exclusiveId = 'char_062_dark_magic_ranged_dps';
+const exclusiveOwner = {
+  ...row(0), characterConfigId: exclusiveId, attributeType: 'DARK', professionType: 'MAGIC_RANGED_DPS',
+  skillSlots: { skillSlots: { low: Array(5).fill(`${exclusiveId}:1`), mid: [`${exclusiveId}:2`, `${exclusiveId}:2`], high: [`${exclusiveId}:3`, `${exclusiveId}:3`] } },
+};
+const exclusiveProbe = (character) => service.simulate({
+  seed: 'bound-exclusive-legacy-probe',
+  dungeon: { dungeonId: 'probe-exclusive', name: 'probe', attributeType: 'DARK', dungeonType: 'SQUAD', duration: 120, difficulty: 'nightmare' },
+  characters: [character, ...[1, 2, 3, 4].map(row)],
+});
+const legacyWeapon = (characterConfigId) => ({
+  itemId: 'probe-legacy-weapon', itemType: 'weapon',
+  itemData: {
+    subtype: 'exclusive_weapon', characterConfigId,
+    specialSkill: { damageMultiplier: 1.1, trigger: 'on_skill_cast' },
+  },
+});
+const bare = await exclusiveProbe(exclusiveOwner);
+const wrongBinding = await exclusiveProbe({ ...exclusiveOwner, equipment: { weapon: legacyWeapon(authoredId) } });
+const wrongSlot = await exclusiveProbe({ ...exclusiveOwner, equipment: { other: legacyWeapon(exclusiveId) } });
+const equipped = await exclusiveProbe({ ...exclusiveOwner, equipment: { weapon: legacyWeapon(exclusiveId) } });
+assert.deepEqual(wrongBinding, bare, 'another character cannot trigger the exclusive');
+assert.deepEqual(wrongSlot, bare, 'the exclusive only triggers in the weapon slot');
+assert(equipped.events.some(event => event.payload?.skill_id === `${exclusiveId}:1`), 'authored A must execute');
+assert.notEqual(equipped.damageScore, bare.damageScore, 'the bound legacy weapon must change the battle');
+assert(!equipped.events.some(event => event.event_type === 'exclusive_weapon_skill'), 'legacy automatic skill must not also fire');
+console.log('bound exclusive equipment and legacy compatibility passed');
+
 const { DungeonsService } = require('../dist/dungeons/dungeons.service.js');
 const dungeons = new DungeonsService(null, service, null, null).list().dungeons;
 const balance = JSON.parse(readFileSync(resolve('../data/content/team-dungeon-balance.json'), 'utf8'));

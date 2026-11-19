@@ -61,7 +61,7 @@ class AuthoredMonsterTests(unittest.TestCase):
                             battle.monster_runtime.cast(battle.enemy_units[0], common, triggered=True)
         self.assertEqual(count, 64)
 
-    def test_dot_ticks_only_on_next_two_casts(self):
+    def test_dot_ticks_only_on_monsters_next_two_casts(self):
         battle = setup_encounter(WORLD["FIRE"])
         caster, target = battle.enemy_units[0], battle.player_units[0]
         spell = skill("test", effect("dot", "single", 1, casts=2))
@@ -69,13 +69,18 @@ class AuthoredMonsterTests(unittest.TestCase):
         self.assertEqual(target.current_health, target.max_health)
         before = target.current_health
         end_cast(battle, target, begin_cast(target))
+        self.assertEqual(target.current_health, before)
+        self.assertEqual(states(target)[0]["remaining"], 2)
+        followup = skill("followup")
+        battle.monster_runtime.cast(caster, followup)
         self.assertLess(target.current_health, before)
+        self.assertEqual(states(target)[0]["remaining"], 1)
         before = target.current_health
-        end_cast(battle, target, begin_cast(target))
+        battle.monster_runtime.cast(caster, followup)
         self.assertLess(target.current_health, before)
         self.assertEqual(states(target), [])
         before = target.current_health
-        end_cast(battle, target, begin_cast(target))
+        battle.monster_runtime.cast(caster, followup)
         self.assertEqual(target.current_health, before)
 
     def test_self_application_does_not_consume_cast(self):
@@ -89,13 +94,14 @@ class AuthoredMonsterTests(unittest.TestCase):
         caster, target = battle.enemy_units[0], battle.player_units[0]
         spell = skill("stack", stat("defense", -.05, "single", cap=9, stacks=3))
         for _ in range(3):
-            battle.monster_runtime.cast(caster, spell)
+            battle.monster_runtime.cast(caster, spell, triggered=True)
         self.assertEqual(len(states(target)), 9)
         end_cast(battle, target, begin_cast(target))
+        self.assertTrue(all(s["remaining"] == 2 for s in states(target)))
         battle.monster_runtime.cast(caster, spell)
         self.assertEqual(len(states(target)), 9)
         self.assertTrue(all(s["remaining"] == 1 for s in states(target)))
-        end_cast(battle, target, begin_cast(target))
+        battle.monster_runtime.cast(caster, skill("followup"))
         self.assertEqual(states(target), [])
 
     def test_shields_replace_same_source_and_absorb_proportionally(self):
@@ -181,15 +187,15 @@ class AuthoredMonsterTests(unittest.TestCase):
         casts = [log["payload"]["skill_name"] for log in battle.battle_log if log["event_type"] == "boss_skill"]
         self.assertEqual(casts, [s["name"] for s in WORLD["EARTH"]["phases"][0]] * 2)
 
-    def test_real_player_cast_consumes_dot_and_records_only_positive_damage(self):
+    def test_real_player_cast_does_not_consume_monster_dot(self):
         battle = setup_encounter(WORLD["FIRE"], players=1)
         boss, player = battle.enemy_units[0], battle.player_units[0]
         battle.monster_runtime.cast(boss, skill("dot", effect("dot", "single", .5, casts=2)))
         attack = Skill("test", "test", SkillLogic.A, SkillTier.LOW, 0, 1, 1, 0, SkillTargetType.SINGLE)
         before = player.current_health
         battle._cast_skill(player, attack, [boss], [player])
-        self.assertLess(player.current_health, before)
-        self.assertEqual(states(player)[0]["remaining"], 1)
+        self.assertEqual(player.current_health, before)
+        self.assertEqual(states(player)[0]["remaining"], 2)
         recorded = sum(row["total_damage"] for row in battle.damage_stats.values())
         boss.heal(1000, 0)
         self.assertEqual(recorded, sum(row["total_damage"] for row in battle.damage_stats.values()))

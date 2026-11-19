@@ -199,6 +199,7 @@ export class PlayersService {
     const equippedIds = this.getEquippedIds(character.equipment);
     const serialize = (item: InventoryItemEntity) => ({
       ...item,
+      payload: this.configs.exclusiveItemPayload(item.payload),
       canEquip: item.itemType !== 'weapon' || !item.payload?.characterId || item.payload.characterId === character.id || item.payload.characterConfigId === character.characterConfigId,
       isCurrentCharacterEquipped: equippedIds.has(item.id),
       slot: item.itemType === 'weapon' ? 'weapon' : normalizeEquipmentSlot(String(item.payload?.slot || 'ACCESSORY')),
@@ -263,8 +264,15 @@ export class PlayersService {
   }
 
   private serializeCharacter(character: PlayerCharacterEntity, config?: Record<string, unknown>) {
+    const equipment = character.equipment || {};
+    const weapon = equipment.weapon as Record<string, unknown> | undefined;
+    const data = weapon?.itemData as Record<string, unknown> | undefined;
+    const payload = data && this.configs.exclusiveItemPayload(data);
     return {
       ...character,
+      equipment: payload && payload !== data
+        ? { ...equipment, weapon: { ...weapon, ...payload, itemData: payload, item_data: payload } }
+        : equipment,
       star: characterStar(character.equipment),
       starMultiplier: STAR_MULTIPLIERS[characterStar(character.equipment) - 1],
       ...characterStats(character),
@@ -364,7 +372,8 @@ export class PlayersService {
   }
 
   private serializeEquippedItem(item: InventoryItemEntity) {
-    return { itemId: item.id, item_id: item.id, itemConfigId: item.itemConfigId, itemType: item.itemType, item_type: item.itemType, itemName: item.payload?.name || item.itemConfigId, item_name: item.payload?.name || item.itemConfigId, level: Number(item.payload?.enhancementLevel || 0), itemData: item.payload, item_data: item.payload, ...item.payload };
+    const payload = this.configs.exclusiveItemPayload(item.payload);
+    return { itemId: item.id, item_id: item.id, itemConfigId: item.itemConfigId, itemType: item.itemType, item_type: item.itemType, itemName: payload.name || item.itemConfigId, item_name: payload.name || item.itemConfigId, level: Number(payload.enhancementLevel || 0), itemData: payload, item_data: payload, ...payload };
   }
 
   private async getCharacterConfigMap() {

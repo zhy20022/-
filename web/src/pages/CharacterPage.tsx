@@ -1590,6 +1590,9 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                           <p>绑定：{getExclusiveInfo(character.equipment.weapon).bound_character_name}</p>
                         )}
                         <p>{formatStats(character.equipment.weapon.stats)}</p>
+                        {character.equipment.weapon.specialSkill?.trigger === 'authored_skill' && (
+                          <p>{character.equipment.weapon.specialSkill.effect}</p>
+                        )}
                         <div className="exclusive-weapon-actions">
                           <button
                             className="equipment-action-btn"
@@ -1740,6 +1743,9 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({
                             {getExclusiveInfo(item).breakthrough_level !== undefined ? ` · 突破+${getExclusiveInfo(item).breakthrough_level}` : ''}
                             {getExclusiveInfo(item).bound_character_name ? ` · 绑定${getExclusiveInfo(item).bound_character_name}` : ''}
                           </small>
+                          {item.item_data?.specialSkill?.trigger === 'authored_skill' && (
+                            <small>{item.item_data.specialSkill.effect}</small>
+                          )}
                         </div>
                         <div className="equipment-option-actions">
                           <button

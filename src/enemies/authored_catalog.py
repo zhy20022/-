@@ -1,6 +1,6 @@
 """Explicit, versioned monster effects. Numbers are first-pass tuning, not lore.
 
-Durations count subsequent successful casts by the affected holder. Components
+Durations count subsequent successful casts by the effect's source. Components
 are independent: support skills never implicitly deal a basic attack.
 """
 

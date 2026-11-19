@@ -251,6 +251,12 @@ def before_damage(unit, physical, magical, context):
             physical, magical = 0, max(0, physical + magical - stored)
         else:
             physical = max(0, physical - stored)
+        from .exclusives import enabled
+        if enabled(unit) and not true:
+            native = min(magical, context.get('original_magical', magical))
+            stored = min(native * .12, max(0, unit.max_health * .5 - pool['amount']))
+            pool['amount'] += stored
+            magical -= stored
     # Avoid truncating exact integral results such as 1000 * .75 * .6 to 449.
     return max(0, round(physical, 9)), max(0, round(magical, 9))
 

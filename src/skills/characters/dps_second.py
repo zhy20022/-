@@ -103,7 +103,7 @@ def cast(battle, caster, skill, allies, enemies):
 
     if number == 35:
         if slot == 1:
-            _hit(battle, caster, skill, primary, 2.6, number)
+            _hit(battle, caster, skill, primary, 2.08, number)
             _mark(caster, caster, skill, '龙爪印', cap=9, remaining=None,
                   modifier=('crit_rate', .02))
         elif slot == 2:
@@ -111,29 +111,34 @@ def cast(battle, caster, skill, allies, enemies):
             _mark(caster, caster, skill, '龙首印', cap=3, remaining=None,
                   modifier=('crit_damage', .1))
         else:
-            ratio, ignore = 2.5, 0
+            ratio, ignore = 2, 0
             if len(_layers(caster, '龙爪印', caster)) >= 9:
                 _remove(caster, '龙爪印', caster, 9)
-                ratio = 15
+                ratio = 12
             elif len(_layers(caster, '龙首印', caster)) >= 3:
                 _remove(caster, '龙首印', caster, 3)
-                ratio, ignore = 15, .3
+                ratio, ignore = 12, .3
+            from .exclusives import enabled
+            if enabled(caster) and not getattr(caster, '_exclusive_first_dragon', False):
+                caster._exclusive_first_dragon = True
+                if ratio == 2:
+                    ratio = 2.9
             _hit(battle, caster, skill, primary, ratio, number, ignore_defense=ignore)
     elif number == 36:
         if slot == 1:
-            _hit(battle, caster, skill, primary, .8, number)
+            _hit(battle, caster, skill, primary, .64, number)
             _mark(primary, caster, skill, '蛛毒', cap=10, remaining=None)
         elif slot == 2:
-            _hit(battle, caster, skill, primary, .8, number)
+            _hit(battle, caster, skill, primary, .64, number)
             if _remove(primary, '蛛毒', caster, 1):
                 _mark(primary, caster, skill, '火毒', 2, cap=20, remaining=None,
                       modifier=('healing_received', -.02))
         else:
             count = len(_layers(primary, '火毒', caster))
-            _hit(battle, caster, skill, primary, 2 * (2 + .25 * count), number,
+            _hit(battle, caster, skill, primary, 1.6 * (2 + .25 * count), number,
                  ignore_defense=.3 if count >= 20 else 0)
     elif number == 37:
-        ratio, count = {1: (1.8, 1), 2: (2.6, 1), 3: (1.2, 4)}[slot]
+        ratio, count = {1: (1.8, 1), 2: (2.08, 1), 3: (.96, 4)}[slot]
         _hits(battle, caster, skill, [primary] if slot == 1 else targets, ratio, count, number)
     elif number == 43:
         if slot == 1:
@@ -162,7 +167,7 @@ def cast(battle, caster, skill, allies, enemies):
                     _hit(battle, caster, skill, target, 1, number)
     elif number == 45:
         if slot == 1:
-            _hit(battle, caster, skill, primary, 1.2, number)
+            _hit(battle, caster, skill, primary, 1.5, number)
             _mark(primary, caster, skill, '花痕', 3, cap=10)
         elif slot == 2:
             _hits(battle, caster, skill, targets, .8, 3, number)
@@ -170,7 +175,8 @@ def cast(battle, caster, skill, allies, enemies):
                 _mark(target, caster, skill, '花痕', cap=10)
         else:
             count = len(_layers(primary, '花痕', caster))
-            _hit(battle, caster, skill, primary, .8 * count, number)
+            ratio = .95 * min(count, 3) if len(targets) == 1 else count
+            _hit(battle, caster, skill, primary, ratio, number)
             _remove(primary, '花痕', caster)
     elif number == 46:
         if slot in (1, 2):
@@ -183,7 +189,13 @@ def cast(battle, caster, skill, allies, enemies):
             selected = sorted(targets, key=lambda unit: unit.current_health, reverse=True)[:5]
             for target in selected:
                 count = len(_layers(target, '絮蚀', caster))
-                _hit(battle, caster, skill, target, .8 + .2 * count, number)
+                if len(targets) == 1:
+                    ratio = round(1.2 + .3 * count, 12)
+                elif len(targets) == 3:
+                    ratio = (80 + 40 * count) / 100
+                else:
+                    ratio = .8 + .2 * count
+                _hit(battle, caster, skill, target, ratio, number)
                 _remove(target, '絮蚀', caster)
     elif number == 52:
         if slot == 1:
@@ -228,19 +240,23 @@ def cast(battle, caster, skill, allies, enemies):
                           modifier=('element_in_DARK', .1))
         else:
             count = len(_layers(primary, '太阴引', caster))
+            secondary = sorted((t for t in targets if t is not primary),
+                               key=lambda unit: unit.current_health, reverse=True)[:4]
             _hit(battle, caster, skill, primary, 3.5 + .4 * count, number)
             _remove(primary, '太阴引', caster)
+            for target in secondary:
+                _hit(battle, caster, skill, target, 1.2 + .2 * min(count, 3), number)
     elif number == 61:
         for target in ([primary] if slot == 1 else targets):
             if slot in (1, 2):
                 # Author ruling: slot 1 is ordinary physical damage, no penetration.
-                _hit(battle, caster, skill, target, 2 if slot == 1 else 1.5, number)
+                _hit(battle, caster, skill, target, 2.5 if slot == 1 else 1.5, number)
                 _mark(target, caster, skill, '丝线', cap=10, remaining=None)
             else:
                 count = min(10, len(_layers(target, '丝线', caster)))
-                _hit(battle, caster, skill, target, .8 * count, number)
+                _hit(battle, caster, skill, target, (1.2 if len(targets) == 1 else .8) * count, number)
                 _remove(target, '丝线', caster)
     elif number == 62:
-        ratio = {1: 1, 2: .8, 3: 1.2}[slot]
+        ratio = {1: 1, 2: .64, 3: .96}[slot]
         _hits(battle, caster, skill, [primary] if slot == 1 else targets, ratio, 3, number)
     return True

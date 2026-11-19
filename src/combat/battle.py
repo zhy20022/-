@@ -268,6 +268,9 @@ class Battle:
         weapon = getattr(caster.character, "exclusive_weapon", None)
         if not weapon:
             return None
+        from ..skills.characters.exclusives import enabled
+        if enabled(caster):
+            return None
         special_skill = getattr(weapon, "special_skill", None) or {}
         skill_name = special_skill.get("name") or f"{weapon.name}共鸣"
         damage_multiplier = float(special_skill.get("damage_multiplier", 1.5) or 1.5)

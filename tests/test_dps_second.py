@@ -9,9 +9,10 @@ from unittest.mock import patch
 
 from scripts.nest_battle_worker import character_from_snapshot
 from src.attributes.attribute import Attribute, AttributeType
-from src.combat.authored_monsters import begin_cast, end_cast, modifiers, states
+from src.combat.authored_monsters import HealthPool, begin_cast, end_cast, modifiers, states
 from src.combat.battle import Battle
 from src.combat.battle_unit import BattleUnit
+from src.skills.authored_characters import library
 from src.skills.characters import dps_second as dps
 
 
@@ -22,6 +23,9 @@ CHARACTERS = {row['number']: row for row in CONTENT['characters']}
 
 class DpsSecondTests(unittest.TestCase):
     def setUp(self):
+        scaling = patch('src.skills.authored_characters.damage_scale', return_value=1)
+        scaling.start()
+        self.addCleanup(scaling.stop)
         self.output = contextlib.redirect_stdout(io.StringIO())
         self.output.__enter__()
         self.addCleanup(self.output.__exit__, None, None, None)
@@ -58,13 +62,30 @@ class DpsSecondTests(unittest.TestCase):
             end_cast(battle, caster, before)
         return result
 
+    def test_jiwei_three_target_exclusive_does_not_recount_after_lethal_hit(self):
+        config = CHARACTERS[46]['id']
+        battle, caster, enemies = self.encounter(46, 3)
+        caster.character.profession = character_from_snapshot({
+            'id': 'owner', 'characterConfigId': config, 'attributeType': 'WOOD',
+            'professionType': 'MAGIC_RANGED_DPS', 'level': 1,
+        }).profession
+        caster.character.exclusive_weapon = SimpleNamespace(authored_config_id=config)
+        skills = library(caster.character)
+        for target in enemies:
+            dps._mark(target, caster, skills[config + ':2'], '絮蚀', cap=5, remaining=None)
+        enemies[0].current_health = 1
+        self.assertTrue(battle._cast_skill(caster, skills[config + ':3'], enemies, [caster]))
+        self.assertTrue(enemies[0].is_dead())
+        self.assertEqual([len(dps._layers(t, '絮蚀', caster)) for t in enemies], [0, 2, 2])
+        self.assertFalse(hasattr(caster, '_damage_balance_target_count'))
+
     def test_all_simple_authored_damage_segments(self):
         cases = {
-            37: [(1, 180, 1, False), (2, 260, 1, True), (3, 480, 4, True)],
+            37: [(1, 180, 1, False), (2, 208, 1, True), (3, 384, 4, True)],
             53: [(1, 170, 1, True), (2, 210, 3, True), (3, 300, 10, True)],
             54: [(1, 160, 1, False), (2, 240, 3, True), (3, 280, 1, True)],
             59: [(1, 250, 1, False), (2, 180, 1, True), (3, 540, 6, False)],
-            62: [(1, 300, 3, False), (2, 240, 3, True), (3, 360, 3, True)],
+            62: [(1, 300, 3, False), (2, 192, 3, True), (3, 288, 3, True)],
         }
         for number, slots in cases.items():
             for slot, expected, hits, aoe in slots:
@@ -96,14 +117,14 @@ class DpsSecondTests(unittest.TestCase):
     def test_dragon_fallback_caps_and_consumption(self):
         battle, caster, enemies = self.encounter(35)
         self.cast(battle, caster, 35, 3, enemies)
-        self.assertEqual(enemies[0].current_health, 99750)
+        self.assertEqual(enemies[0].current_health, 99800)
         for _ in range(10):
             self.cast(battle, caster, 35, 1, enemies, tick=True)
         self.assertEqual(len(dps._layers(caster, '龙爪印', caster)), 9)
         self.assertTrue(all(s['remaining'] is None for s in states(caster)))
         old = enemies[0].current_health
         self.cast(battle, caster, 35, 3, enemies)
-        self.assertEqual(old - enemies[0].current_health, 1500)
+        self.assertEqual(old - enemies[0].current_health, 1200)
         self.assertFalse(dps._layers(caster, '龙爪印', caster))
         self.assertFalse(any('crit_rate' in s.get('stats', []) for s in states(caster)))
 
@@ -121,18 +142,18 @@ class DpsSecondTests(unittest.TestCase):
         battle, caster, enemies = self.encounter(45)
         target = enemies[0]
         self.cast(battle, caster, 45, 1, enemies)
-        end_cast(battle, target, begin_cast(target))
+        end_cast(battle, caster, begin_cast(caster))
         self.cast(battle, caster, 45, 1, enemies)
         self.assertEqual([s['remaining'] for s in dps._layers(target, '花痕', caster)],
                          [1, 1, 1, 2, 2, 2])
-        end_cast(battle, target, begin_cast(target))
+        end_cast(battle, caster, begin_cast(caster))
         self.assertEqual(len(dps._layers(target, '花痕', caster)), 3)
         for _ in range(3):
             self.cast(battle, caster, 45, 1, enemies)
         self.assertEqual(len(dps._layers(target, '花痕', caster)), 10)
         old = target.current_health
         self.cast(battle, caster, 45, 3, enemies)
-        self.assertEqual(old - target.current_health, 800)
+        self.assertEqual(old - target.current_health, 284)
         self.assertFalse(dps._layers(target, '花痕', caster))
         old = target.current_health
         self.assertTrue(self.cast(battle, caster, 45, 3, enemies))
@@ -195,7 +216,7 @@ class DpsSecondTests(unittest.TestCase):
         battle, caster, enemies = self.encounter(36)
         target = enemies[0]
         self.cast(battle, caster, 36, 2, enemies)
-        self.assertEqual(target.current_health, 99920)
+        self.assertEqual(target.current_health, 99936)
         self.assertFalse(dps._layers(target, '火毒', caster))
         self.cast(battle, caster, 36, 1, enemies)
         self.cast(battle, caster, 36, 2, enemies)
@@ -206,7 +227,7 @@ class DpsSecondTests(unittest.TestCase):
         self.assertEqual(target.current_health, 1096)
         old = target.current_health
         self.cast(battle, caster, 36, 3, enemies)
-        self.assertEqual(old - target.current_health, 500)
+        self.assertEqual(old - target.current_health, 400)
         self.assertEqual(len(dps._layers(target, '火毒', caster)), 2)
 
     def test_poison_hook_affects_both_types_but_not_true_damage(self):
@@ -264,7 +285,7 @@ class DpsSecondTests(unittest.TestCase):
         battle, caster, enemies = self.encounter(61, 2)
         enemies[0].character.defense = 100
         self.cast(battle, caster, 61, 1, enemies)
-        self.assertEqual([u.current_health for u in enemies], [99900, 100000])
+        self.assertEqual([u.current_health for u in enemies], [99875, 100000])
         mark = dps._layers(enemies[0], '丝线', caster)[0]
         self.assertIsNone(mark['remaining'])
         self.assertTrue(mark['unique_mark'])
@@ -283,7 +304,7 @@ class DpsSecondTests(unittest.TestCase):
         target.character.defense = 100
         old = target.current_health
         self.cast(battle, caster, 35, 3, enemies)
-        self.assertEqual(old - target.current_health, int(1500 * 100 / 170))
+        self.assertEqual(old - target.current_health, int(1200 * 100 / 170))
         self.assertEqual(modifiers(caster).get('crit_damage', 0), 0)
 
     def test_dragon_claw_crit_chance_really_changes_attack(self):
@@ -293,7 +314,7 @@ class DpsSecondTests(unittest.TestCase):
         old = enemies[0].current_health
         with patch('random.random', return_value=.01):
             self.cast(battle, caster, 35, 1, enemies)
-        self.assertEqual(old - enemies[0].current_health, 390)
+        self.assertEqual(old - enemies[0].current_health, 312)
 
     def test_poison_real_incoming_damage_caps_and_full_fire_poison(self):
         battle, caster, enemies = self.encounter(36)
@@ -311,10 +332,10 @@ class DpsSecondTests(unittest.TestCase):
         target.character.magic_defense = 100
         old = target.current_health
         self.cast(battle, caster, 36, 3, enemies)
-        self.assertEqual(old - target.current_health, int(1400 * 100 / 170))
+        self.assertEqual(old - target.current_health, int(1120 * 100 / 170))
         self.assertEqual(len(dps._layers(target, '火毒', caster)), 20)
 
-    def test_light_marks_have_numeric_effect_and_expire_with_target(self):
+    def test_light_marks_have_numeric_effect_and_expire_with_source_casts(self):
         battle, caster, enemies = self.encounter(52)
         target = enemies[0]
         caster.character.attribute = target.character.attribute = Attribute(AttributeType.LIGHT)
@@ -329,7 +350,7 @@ class DpsSecondTests(unittest.TestCase):
         target.character.magic_defense = 100
         self.assertEqual(modifiers(target)['magic_defense'], -15)
         for _ in range(2):
-            end_cast(battle, target, begin_cast(target))
+            end_cast(battle, caster, begin_cast(caster))
         self.assertEqual(states(target), [])
         self.assertEqual(modifiers(target).get('element_in_LIGHT', 0), 0)
 
@@ -372,9 +393,161 @@ class DpsSecondTests(unittest.TestCase):
                  owner_id='other-caster', source_skill='other'),
         ])
         self.cast(battle, caster, 45, 3, enemies)
-        self.assertEqual(target.current_health, 99920)
+        self.assertEqual(target.current_health, 99905)
         self.assertEqual(len(states(target)), 1)
         self.assertEqual(states(target)[0]['owner_id'], 'other-caster')
+
+    def test_dragon_reduced_single_hits_preserve_aoe_and_full_mark_thresholds(self):
+        for slot, expected in ((1, [208, 0]), (2, [200, 200]), (3, [200, 0])):
+            battle, caster, enemies = self.encounter(35, 2)
+            self.cast(battle, caster, 35, slot, enemies)
+            self.assertEqual([100000 - t.current_health for t in enemies], expected)
+        for name, threshold in (('龙爪印', 9), ('龙首印', 3)):
+            for count in (threshold - 1, threshold):
+                with self.subTest(name=name, count=count):
+                    battle, caster, enemies = self.encounter(35)
+                    dps._mark(caster, caster, self.skill(35, 1), name, count, remaining=None)
+                    self.cast(battle, caster, 35, 3, enemies)
+                    full = count == threshold
+                    self.assertEqual(100000 - enemies[0].current_health, 1200 if full else 200)
+                    self.assertEqual(len(dps._layers(caster, name, caster)), 0 if full else count)
+
+    def test_poison_reduced_finisher_scales_at_empty_partial_and_full_stacks(self):
+        for count in (0, 2, 19, 20):
+            with self.subTest(count=count):
+                battle, caster, enemies = self.encounter(36, 2)
+                target = enemies[0]
+                target.character.magic_defense = 100
+                dps._mark(target, caster, self.skill(36, 2), '火毒', count, remaining=None)
+                self.cast(battle, caster, 36, 3, enemies)
+                expected = int(160 * (2 + .25 * count) * 100 / (170 if count == 20 else 200))
+                self.assertEqual(100000 - target.current_health, expected)
+                self.assertEqual(enemies[1].current_health, 100000)
+                self.assertEqual(len(dps._layers(target, '火毒', caster)), count)
+
+    def test_flower_stronger_opener_and_finisher_keep_layer_cap_and_single_target(self):
+        battle, caster, enemies = self.encounter(45, 2)
+        self.cast(battle, caster, 45, 1, enemies)
+        self.assertEqual([t.current_health for t in enemies], [99850, 100000])
+        self.assertEqual(len(dps._layers(enemies[0], '花痕', caster)), 3)
+        # Keep the marked target selected for the finisher.
+        enemies[0].current_health = 100000
+        self.cast(battle, caster, 45, 3, enemies)
+        self.assertEqual([t.current_health for t in enemies], [99700, 100000])
+        self.assertFalse(dps._layers(enemies[0], '花痕', caster))
+
+    def test_floating_poison_bonus_uses_active_count_and_clears_only_owner(self):
+        for active, (base, per_layer) in ((1, (120, 30)), (2, (80, 20)),
+                                          (3, (80, 40)), (4, (80, 20))):
+            for count in (0, 3, 5):
+                with self.subTest(active=active, count=count):
+                    battle, caster, enemies = self.encounter(46, active + 2)
+                    target = enemies[0]
+                    enemies[-2].mechanic_inactive = True
+                    enemies[-1].current_health = 0
+                    dps._mark(target, caster, self.skill(46, 1), '絮蚀', count, cap=5)
+                    other = dict(kind='mark', name='絮蚀', value=1, remaining=2,
+                                 owner_id='other', source_skill='other')
+                    states(target).append(other)
+                    self.cast(battle, caster, 46, 3, enemies)
+                    expected = base + per_layer * count
+                    self.assertEqual(100000 - target.current_health, expected)
+                    self.assertFalse(dps._layers(target, '絮蚀', caster))
+                    self.assertIn(other, states(target))
+                    self.assertEqual(enemies[-2].current_health, 100000)
+                    self.assertEqual([100000 - t.current_health for t in enemies[1:active]],
+                                     [base] * (active - 1))
+
+    def test_zhang_secondary_damage_has_four_target_cap_and_owner_only_resource(self):
+        for count in (0, 3, 6):
+            with self.subTest(count=count):
+                battle, caster, enemies = self.encounter(60, 7)
+                for i, target in enumerate(enemies):
+                    target.current_health -= i
+                enemies[6].mechanic_inactive = True
+                primary = enemies[0]
+                dps._mark(primary, caster, self.skill(60, 2), '太阴引', count)
+                other = dict(kind='mark', name='太阴引', value=1, remaining=2,
+                             owner_id='other', source_skill='other')
+                states(primary).append(other)
+                before = [t.current_health for t in enemies]
+                self.cast(battle, caster, 60, 3, enemies)
+                self.assertEqual([hp - t.current_health for hp, t in zip(before, enemies)],
+                                 [350 + 40 * count] + [120 + 20 * min(count, 3)] * 4 + [0, 0])
+                self.assertFalse(dps._layers(primary, '太阴引', caster))
+                self.assertIn(other, states(primary))
+                self.assertTrue(all(not dps._layers(t, '太阴引', caster) for t in enemies[1:]))
+
+    def test_zhang_lethal_primary_does_not_cancel_secondary_hits(self):
+        battle, caster, enemies = self.encounter(60, 3)
+        for i, target in enumerate(enemies):
+            target.current_health = 300 - i
+        self.cast(battle, caster, 60, 3, enemies)
+        self.assertEqual([t.current_health for t in enemies], [0, 179, 178])
+
+    def test_zhang_shared_pool_applies_only_selected_hits_and_stays_synchronized(self):
+        battle, caster, enemies = self.encounter(60, 7)
+        pool = HealthPool(enemies)
+        self.cast(battle, caster, 60, 3, enemies)
+        self.assertEqual(pool.current, pool.maximum - 350 - 4 * 120)
+        self.assertTrue(all(t.current_health == pool.current for t in enemies))
+        events = [r for r in battle.battle_log if r.get('event_type') == 'damage']
+        self.assertEqual(len(events), 5)
+        pool.change(-pool.current + 300)
+        self.cast(battle, caster, 60, 3, enemies)
+        self.assertEqual(pool.current, 0)
+        self.assertTrue(all(t.is_dead() for t in enemies))
+
+    def test_thread_single_target_bonus_keeps_cap_ordinary_damage_and_consumption(self):
+        for active in (1, 2):
+            for count in (0, 1, 10):
+                with self.subTest(active=active, count=count):
+                    battle, caster, enemies = self.encounter(61, 3)
+                    target = enemies[0]
+                    target.character.defense = 100
+                    enemies[2].mechanic_inactive = True
+                    if active == 1:
+                        enemies[1].current_health = 0
+                    dps._mark(target, caster, self.skill(61, 1), '丝线', count, cap=10, remaining=None)
+                    other = dict(kind='mark', name='丝线', value=1, remaining=None,
+                                 owner_id='other', source_skill='other')
+                    states(target).append(other)
+                    self.cast(battle, caster, 61, 3, enemies)
+                    self.assertEqual(100000 - target.current_health, (60 if active == 1 else 40) * count)
+                    self.assertFalse(dps._layers(target, '丝线', caster))
+                    self.assertIn(other, states(target))
+                    old = target.current_health
+                    self.cast(battle, caster, 61, 3, enemies)
+                    self.assertEqual(target.current_health, old)
+                    self.assertEqual(enemies[2].current_health, 100000)
+
+    def test_reduced_aoe_keeps_hit_count_scope_and_inactive_filter(self):
+        for number, amounts, hits in ((37, (180, 208, 384), (1, 1, 4)),
+                                     (62, (300, 192, 288), (3, 3, 3))):
+            for count in (1, 5, 10):
+                for slot in (1, 2, 3):
+                    with self.subTest(number=number, count=count, slot=slot):
+                        battle, caster, enemies = self.encounter(number, count + 1)
+                        enemies[-1].mechanic_inactive = True
+                        self.cast(battle, caster, number, slot, enemies)
+                        expected = [amounts[slot - 1]] * (count if slot > 1 else 1)
+                        expected += [0] * (len(enemies) - len(expected))
+                        self.assertEqual([100000 - t.current_health for t in enemies], expected)
+                        events = [r for r in battle.battle_log if r.get('event_type') == 'damage']
+                        self.assertEqual(len(events), hits[slot - 1] * (count if slot > 1 else 1))
+
+    def test_adjusted_skill_descriptions_match_both_catalogs(self):
+        path = Path(__file__).resolve().parents[1] / 'data/content/authored-character-skills.json'
+        authored = json.loads(path.read_text(encoding='utf-8'))
+        slots = {35: (1, 3), 36: (1, 2, 3), 37: (2, 3), 42: (1, 2, 3),
+                 45: (1, 3), 46: (3,), 60: (3,), 61: (1, 3), 62: (2, 3)}
+        for number, changed_slots in slots.items():
+            row = CHARACTERS[number]
+            for skill, override in zip(row['skills'], authored['characters'][row['id']]):
+                if skill['slot'] not in changed_slots:
+                    continue
+                with self.subTest(number=number, slot=skill['slot']):
+                    self.assertEqual(skill['effect'], override['description'])
 
 
 if __name__ == '__main__':

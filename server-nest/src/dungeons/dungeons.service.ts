@@ -173,7 +173,7 @@ export class DungeonsService {
           attributeType: character.attributeType,
           skillSlots: character.skillSlots,
           equipment: character.equipment,
-          equipmentSkillEffects: this.equipmentSkillEffects(character.equipment),
+          equipmentSkillEffects: this.equipmentSkillEffects(character.equipment, character.characterConfigId),
         })),
         serverTime: new Date().toISOString(),
       };
@@ -337,7 +337,7 @@ export class DungeonsService {
     });
   }
 
-  private equipmentSkillEffects(equipment: Record<string, unknown>) {
+  private equipmentSkillEffects(equipment: Record<string, unknown>, configId: string) {
     const effects: unknown[] = [];
     const seen = new Set<string>();
     const add = (effect: unknown) => {
@@ -350,6 +350,12 @@ export class DungeonsService {
     const visit = (value: unknown) => {
       if (!value || typeof value !== 'object') return;
       const payload = value as Record<string, unknown>;
+      const data = (payload.itemData || payload.item_data || payload) as Record<string, unknown>;
+      if (data.subtype === 'exclusive_weapon') {
+        if (value === equipment.weapon && (payload.itemType ?? payload.item_type) === 'weapon' &&
+            data.characterConfigId === configId) add(this.configs.getAuthoredExclusiveEffect(configId));
+        return;
+      }
       add(payload.specialSkill);
       add(payload.special_skill);
       Object.values(payload).forEach(visit);
