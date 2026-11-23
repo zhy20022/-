@@ -303,8 +303,11 @@ export const mapOnlineDungeon = (dungeon: any, progressRows: any[] = [], charact
       character_exp_per_single_kill: 0, character_exp_per_five_group_kills: 0 }
     mapped.reward_preview = { reward_type: 'boss', title: '副本奖励',
       main: world ? '奖励按服务器结算结果发放'
-        : `每击杀Boss获得1份${team ? '套装' : '专属道具'}制作材料，全灭Boss额外2份`,
-      details: [mapped.description], thresholds: [] }
+        : `每击杀Boss获得1份${team ? '角色专属道具' : '套装'}制作材料，全灭Boss额外2份`,
+      details: world ? [mapped.description] : [
+        team ? '5份专属材料制作1件角色专属道具。' : '2份同属性套装材料制作1件套装部件。',
+        mapped.description,
+      ], thresholds: [] }
     mapped.recommended_level_bonus = 0
     mapped.recommendation = { recommended_level: 100, recommended_attribute: attribute,
       enemy_attribute: enemies[attribute] || attribute,

@@ -28,17 +28,22 @@ async function main() {
 
     await postJson(`/inventory/${playerId}/grant`, {
       source: 'e2e_workshop',
-      items: [{ itemConfigId: 'generic_battle_material', itemType: 'material', quantity: 100, payload: { materialType: 'EQUIPMENT_SET' } }],
+      items: [
+        { itemConfigId: 'generic_battle_material', itemType: 'material', quantity: 100, payload: { materialType: 'EQUIPMENT_SET' } },
+        { itemConfigId: 'equipment_material_fire', itemType: 'material', quantity: 2, payload: { materialType: 'EQUIPMENT_SET', attributeType: 'FIRE' } },
+        { itemConfigId: 'exclusive_material', itemType: 'material', quantity: 5, payload: { materialType: 'EXCLUSIVE_ITEM' } },
+      ],
     }, { 'x-admin-token': adminToken });
 
     const skills = await getJson(`/players/${playerId}/characters/${characterId}/skills`, auth);
-    assert(skills.unlockedSkills.length >= 9, 'at least nine skills should be available at level one');
+    assert(skills.unlockedSkills.map((skill) => skill.logic).join('') === 'ABC', 'all three authored skills should be available at level one');
     assert(skills.skillSlots.low.length === 5 && skills.skillSlots.mid.length === 3 && skills.skillSlots.high.length === 1, 'default skill slots should be 5/3/1');
     const skillSave = await postJson(`/players/${playerId}/characters/${characterId}/skills`, { skillSlots: skills.skillSlots }, auth);
     assert(skillSave.success, 'skill configuration should save');
 
     const exclusivePreview = await postJson(`/workshop/${playerId}/crafting/preview`, { craftingType: 'exclusive' }, auth);
     assert(exclusivePreview.preview.canCraft, 'exclusive weapon preview should be affordable');
+    assert(exclusivePreview.preview.costs[0].owned === 5 && exclusivePreview.preview.costs[0].required === 5, 'exclusive recipe must use five dedicated materials');
     const exclusive = await postJson(`/workshop/${playerId}/crafting/exclusive`, { characterId }, auth);
     assert(exclusive.item?.itemType === 'weapon', 'exclusive weapon should enter inventory');
     assert(exclusive.item.payload?.specialSkill?.trigger === 'authored_skill' &&
@@ -46,6 +51,7 @@ async function main() {
 
     const equipmentPreview = await postJson(`/workshop/${playerId}/crafting/preview`, { craftingType: 'equipment', attributeType: 'FIRE' }, auth);
     assert(equipmentPreview.preview.canCraft, 'equipment preview should be affordable');
+    assert(equipmentPreview.preview.costs[0].owned === 2 && equipmentPreview.preview.costs[0].required === 2, 'set recipe must use two matching materials');
     const crafted = await postJson(`/workshop/${playerId}/crafting/equipment`, { attributeType: 'FIRE', professionCategory: 'A', slot: 'HEAD' }, auth);
     assert(crafted.item?.itemType === 'equipment', 'crafted equipment should enter inventory');
 

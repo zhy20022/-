@@ -21,6 +21,7 @@ import { InventoryGrantItem, InventoryService } from '../inventory/inventory.ser
 import { FriendsAssistService } from '../friends-assist/friends-assist.service';
 import { RankingService } from '../ranking/ranking.service';
 import { DungeonsService } from '../dungeons/dungeons.service';
+import { EQUIPMENT_MATERIAL_IDS } from '../dungeons/dungeon-rules';
 
 type Reward = { exp?: number; gold?: number; materials?: Record<string, number> };
 type FeatureStats = {
@@ -500,7 +501,7 @@ export class OnlineFeaturesService {
   private async consumeMaterials(manager: EntityManager, playerId: string, cost: Record<string, number>, attribute: string) {
     for (const [itemConfigId, amount] of Object.entries(cost)) {
       const aliases: Record<string, string[]> = {
-        equipment_material: ['equipment_material', 'equipment_set', 'generic_battle_material'],
+        equipment_material: [...EQUIPMENT_MATERIAL_IDS, 'equipment_set', 'generic_battle_material'],
         exclusive_material: ['exclusive_material', 'exclusive_item', 'generic_battle_material'],
       };
       const acceptedIds = aliases[itemConfigId] || [itemConfigId, 'generic_battle_material'];

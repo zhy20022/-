@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const { test } = require('node:test')
-const { sweepRequirement, sweepClearCount, bossMaterialCount, playbackTime } = require('../dist/dungeons/dungeon-rules')
+const { sweepRequirement, sweepClearCount, bossMaterialCount, dungeonMaterialRewards, playbackTime } = require('../dist/dungeons/dungeon-rules')
 
 test('sweep counts separate all single clears, solo squad clears and flawless raids', () => {
   const row = { successfulAttempts: 10, bestRecord: { soloClears: 4, flawlessCount: 9 } }
@@ -18,6 +18,15 @@ test('boss rewards preserve partial kills and grant exactly two extra for a full
   assert.equal(bossMaterialCount(4, 4, true), 6)
   assert.equal(bossMaterialCount(1, 1, true), 3)
   assert.equal(bossMaterialCount(0, 0, true), 0)
+})
+
+test('partial dungeon runs grant only the matching material for each defeated boss', () => {
+  assert.deepEqual(dungeonMaterialRewards('SQUAD', 'FIRE', 0, 1, false), [])
+  const [raid] = dungeonMaterialRewards('TEAM', 'FIRE', 1, 3, false)
+  assert.equal(raid.itemConfigId, 'exclusive_material')
+  assert.equal(raid.quantity, 1)
+  assert.equal(raid.payload.attributeType, null)
+  assert.equal(dungeonMaterialRewards('SERVER_BOSS', 'FIRE', 1, 1, true), null)
 })
 
 test('room clock preserves elapsed time when unanimous consent changes speed', () => {

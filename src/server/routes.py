@@ -2711,12 +2711,16 @@ def _calculate_sweep_reward(dungeon, progress: Optional[Any]) -> Dict[str, Any]:
     best_record = (progress.best_record or {}) if progress else {}
     best_rewards = best_record.get('rewards')
     if isinstance(best_rewards, dict) and best_rewards.get('reward_type'):
+        current_type = dungeon.reward_config.get('type')
+        if (current_type in ('exclusive_material', 'equipment_material')
+                and best_rewards['reward_type'] in ('exclusive_material', 'equipment_material')):
+            return {**best_rewards, 'reward_type': current_type}
         return best_rewards
 
     from ..dungeons.dungeon_reward import RewardCalculator
     from ..dungeons.dungeon_monster import MonsterSpawner
     bosses_killed = 0
-    if dungeon.dungeon_type == DungeonType.SQUAD:
+    if dungeon.dungeon_type in (DungeonType.SQUAD, DungeonType.TEAM):
         bosses_killed = len(MonsterSpawner(dungeon).boss_spawn_times)
     reward = RewardCalculator.calculate_reward(
         dungeon=dungeon,
@@ -2887,34 +2891,15 @@ def _build_reward_preview_payload(dungeon) -> Dict[str, Any]:
                 {"label": "60秒", "amount": full_exp},
             ],
         }
-    if reward_type == "exclusive_material":
-        base = int(round(int(reward_config.get("base_material", 0)) * multiplier))
+    if reward_type in ("exclusive_material", "equipment_material"):
+        exclusive = reward_type == "exclusive_material"
+        title = "角色专属道具制作材料" if exclusive else "套装制作材料"
         return {
             "reward_type": reward_type,
-            "title": "涓撳睘閬撳叿鏉愭枡",
-            "main": "Reward summary.",
-            "details": [
-                "Text pending.",
-                "Text pending.",
-            ],
-            "thresholds": [
-                {"label": "Time", "amount": int(round(base * 0.1))},
-                {"label": "Time", "amount": int(round(base * 0.2))},
-                {"label": "Time", "amount": int(round(base * 0.5))},
-                {"label": "Time", "amount": base},
-            ],
-        }
-    if reward_type == "equipment_material":
-        base = max(1, int(round(int(reward_config.get("base_material", 1)) * multiplier)))
-        return {
-            "reward_type": reward_type,
-            "title": "瑁呭鏉愭枡",
-            "main": "Reward summary.",
-            "details": [
-                "Text pending.",
-                "Text pending.",
-            ],
-            "thresholds": [{"label": "閫氬叧", "amount": base}],
+            "title": title,
+            "main": f"每击杀1个Boss获得1份{title}，通关额外获得2份。",
+            "details": ["5份制作1件角色专属道具。" if exclusive else "2份同属性材料制作1件套装部件。"],
+            "thresholds": [],
         }
     if reward_type == "illustration_piece":
         return {

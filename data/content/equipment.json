@@ -4,15 +4,15 @@
     "exclusive": {
       "materialType": "EXCLUSIVE_ITEM",
       "acceptedItemConfigIds": ["exclusive_material"],
-      "materialCost": 8,
+      "materialCost": 5,
       "goldCost": 0,
       "quality": "epic",
       "baseStats": { "attack_bonus": 100, "magic_attack_bonus": 100 }
     },
     "equipmentSet": {
       "materialType": "EQUIPMENT_SET",
-      "acceptedItemConfigIds": ["equipment_material"],
-      "materialCost": 10,
+      "acceptedItemConfigIds": ["equipment_material", "equipment_material_fire", "equipment_material_wood", "equipment_material_wind", "equipment_material_water", "equipment_material_earth", "equipment_material_thunder", "equipment_material_light", "equipment_material_dark"],
+      "materialCost": 2,
       "goldCost": 0,
       "quality": "rare",
       "slots": ["HEAD", "CHEST", "SHOULDERS", "GLOVES", "LEGS", "BOOTS", "RING", "NECKLACE"],
@@ -26,7 +26,7 @@
     "goldCostBase": 1000,
     "materialCostBase": 1,
     "materialType": "EQUIPMENT_SET",
-    "acceptedItemConfigIds": ["equipment_material", "generic_battle_material"],
+    "acceptedItemConfigIds": ["equipment_material", "equipment_material_fire", "equipment_material_wood", "equipment_material_wind", "equipment_material_water", "equipment_material_earth", "equipment_material_thunder", "equipment_material_light", "equipment_material_dark", "generic_battle_material"],
     "successRates": { "0": 1, "10": 0.8, "20": 0.6, "30": 0.4, "40": 0.2 },
     "breakthroughCosts": {
       "10": { "gold": 10000, "material": 5 },

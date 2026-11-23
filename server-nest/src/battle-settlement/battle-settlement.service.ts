@@ -11,7 +11,7 @@ import { InventoryGrantItem, InventoryService } from '../inventory/inventory.ser
 import { ServerBattle } from './battle-simulation.service';
 import { OnlineFeaturesService } from '../online-features/online-features.service';
 import { FriendsAssistService } from '../friends-assist/friends-assist.service';
-import { bossMaterialCount, playbackTime } from '../dungeons/dungeon-rules';
+import { dungeonMaterialRewards, playbackTime } from '../dungeons/dungeon-rules';
 
 export interface BattleSettlementInput {
   playerId: string;
@@ -126,20 +126,11 @@ export class BattleSettlementService {
         damageScore: authoritative.damageScore,
         rewards: undefined,
       };
-      const isMaterialDungeon = onlineDungeon && ['SQUAD', 'TEAM'].includes(onlineDungeon.dungeonType);
-      const materialCount = isMaterialDungeon
-        ? bossMaterialCount(Number(authoritative.bossesKilled || 0), Number(authoritative.bossesSpawned || 0), authoritative.success) : 0;
-      const normalizedRewards = isMaterialDungeon
-        ? materialCount > 0 ? [{
-          itemConfigId: onlineDungeon.dungeonType === 'SQUAD' ? 'exclusive_material' : 'equipment_material',
-          itemType: 'material', quantity: materialCount,
-          payload: { materialType: onlineDungeon.dungeonType === 'SQUAD' ? 'EXCLUSIVE_ITEM' : 'EQUIPMENT_SET',
-            name: onlineDungeon.dungeonType === 'SQUAD' ? '角色专属道具制作材料' : '套装制作材料',
-            attributeType: onlineDungeon.attributeType },
-        }] : []
-        : experienceResult
+      const materialRewards = onlineDungeon && dungeonMaterialRewards(onlineDungeon.dungeonType, onlineDungeon.attributeType,
+        Number(authoritative.bossesKilled || 0), Number(authoritative.bossesSpawned || 0), authoritative.success);
+      const normalizedRewards = materialRewards ?? (experienceResult
         ? this.buildExperienceRewards(experienceResult.expCrystals)
-        : await this.normalizeRewards(effectiveInput, manager);
+        : await this.normalizeRewards(effectiveInput, manager));
       const granted = normalizedRewards.length > 0
         ? await this.inventory.grant(input.playerId, normalizedRewards, 'battle_settlement', manager)
         : [];

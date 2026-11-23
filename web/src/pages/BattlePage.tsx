@@ -737,7 +737,7 @@ const BattlePage: React.FC = () => {
           '角色经验': Number(response.data.record.rewards?.directCharacterExp || 0),
           '累计伤害': Number(response.data.record.damageScore || 0),
         } },
-        materials: (response.data?.rewards || []).map((item: any) => ({
+        materials: (response.data?.record?.rewards?.granted || []).map((item: any) => ({
           material_type: item.payload?.name || item.itemConfigId,
           attribute_type: item.payload?.attributeType || null,
           count: Number(item.quantity || 0),

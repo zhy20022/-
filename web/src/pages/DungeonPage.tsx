@@ -478,8 +478,8 @@ const DungeonPage: React.FC = () => {
   const getDungeonTypeShortText = (type: string) => {
     const typeMap: Record<string, string> = {
       'SINGLE': '经验本',
-      'SQUAD': '材料本',
-      'TEAM': '装备本',
+      'SQUAD': '套装材料本',
+      'TEAM': '专属材料本',
       'SERVER_BOSS': '立绘本'
     }
     return typeMap[normalizeDungeonType(type)] || type
@@ -577,13 +577,13 @@ const DungeonPage: React.FC = () => {
             className={`tab-btn ${activeTab === 'SQUAD' ? 'active' : ''}`}
             onClick={() => setActiveTab('SQUAD')}
           >
-            5人材料本
+            5人套装材料本
           </button>
           <button
             className={`tab-btn ${activeTab === 'TEAM' ? 'active' : ''}`}
             onClick={() => setActiveTab('TEAM')}
           >
-            20人装备本
+            20人专属材料本
           </button>
           <button
             className={`tab-btn ${activeTab === 'SERVER_BOSS' ? 'active' : ''}`}

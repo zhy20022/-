@@ -10,7 +10,7 @@ import { BattleSimulationService, ServerBattle } from '../battle-settlement/batt
 import { FriendsAssistService } from '../friends-assist/friends-assist.service';
 import { InventoryService, InventoryGrantItem } from '../inventory/inventory.service';
 import { GameConfigsService } from '../configs/configs.service';
-import { bossMaterialCount, playbackTime, sweepClearCount, sweepRequirement } from './dungeon-rules';
+import { dungeonMaterialRewards, playbackTime, sweepClearCount, sweepRequirement } from './dungeon-rules';
 
 export interface OnlineDungeon {
   dungeonId: string;
@@ -273,19 +273,15 @@ export class DungeonsService {
         } | null)?.battleSettlement;
         const configured = rules?.dungeons?.find((entry) => entry.dungeonId === dungeonId)?.successRewards;
         const bestBossCount = Number(progress.bestRecord?.maxBossesKilled || 0);
-        const materialRewards: InventoryGrantItem[] | null = dungeon.dungeonType === 'SQUAD' || dungeon.dungeonType === 'TEAM'
-          ? [{ itemConfigId: dungeon.dungeonType === 'SQUAD' ? 'exclusive_material' : 'equipment_material',
-            itemType: 'material', quantity: bossMaterialCount(bestBossCount, bestBossCount, true),
-            payload: { materialType: dungeon.dungeonType === 'SQUAD' ? 'EXCLUSIVE_ITEM' : 'EQUIPMENT_SET',
-              name: dungeon.dungeonType === 'SQUAD' ? '角色专属道具制作材料' : '套装制作材料', attributeType: dungeon.attributeType } }]
-          : null;
-        if (materialRewards && bestBossCount < 1) throw new BadRequestException('complete a boss clear under the current reward rules first');
-        const baseRewards = materialRewards || (configured?.length ? configured
+        const materialRewards = dungeonMaterialRewards(dungeon.dungeonType, dungeon.attributeType, bestBossCount, bestBossCount, true);
+        if (materialRewards?.length === 0) throw new BadRequestException('complete a boss clear under the current reward rules first');
+        const baseRewards = materialRewards ?? (configured?.length ? configured
           : rules?.defaultSuccessRewards?.length ? rules.defaultSuccessRewards
             : [{ itemConfigId: 'generic_battle_material', itemType: 'material', quantity: 1 }]);
-        const rewards = await this.inventory.grant(playerId, baseRewards
+        const awarded = baseRewards
           .filter((entry) => entry.quantity > 0)
-          .map((entry) => ({ ...entry, quantity: entry.quantity * sweepCount })), 'dungeon_sweep', manager);
+          .map((entry) => ({ ...entry, quantity: entry.quantity * sweepCount }));
+        const rewards = await this.inventory.grant(playerId, awarded, 'dungeon_sweep', manager);
         progress.totalAttempts += sweepCount;
         progress.successfulAttempts += sweepCount;
         progress.bestRecord = { ...progress.bestRecord, lastSweepAt: new Date().toISOString(), lastSweepCount: sweepCount };
@@ -295,7 +291,7 @@ export class DungeonsService {
           rewards: { granted: rewards }, resultPayload: { mode: 'sweep', count: sweepCount },
         }));
         return { success: true, sweepCount, rewards: { items: rewards },
-          materialsAwarded: rewards.map((entry) => ({ name: entry.payload?.name || entry.itemConfigId, count: entry.quantity })),
+          materialsAwarded: awarded.map((entry) => ({ name: entry.payload?.name || entry.itemConfigId, count: entry.quantity })),
           player, progress, record };
       }
       const expCrystals = dungeon.rewardConfig.fullExp * sweepCount;

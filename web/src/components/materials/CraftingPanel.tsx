@@ -305,7 +305,8 @@ const CraftingPanel: React.FC = () => {
         </div>}
         {costPreview.map((cost) => (
           <div key={`${cost.material_type}_${cost.attribute_type || 'all'}`} className={cost.enough ? 'cost-row enough' : 'cost-row lacking'}>
-            <span>{cost.attribute_type ? `${cost.attribute_type} ` : ''}{cost.material_type}</span>
+            <span>{cost.attribute_type ? `${attributeLabels[cost.attribute_type] || cost.attribute_type}属性` : ''}
+              {cost.material_type === 'EXCLUSIVE_ITEM' ? '角色专属道具制作材料' : cost.material_type === 'EQUIPMENT_SET' ? '套装制作材料' : cost.material_type}</span>
             <strong>{cost.owned} / {cost.required}</strong>
           </div>
         ))}

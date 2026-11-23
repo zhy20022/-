@@ -92,12 +92,12 @@ class FivePlayerTeam(TeamMode):
         super().__init__(
             mode_type=GameModeType.FIVE_PLAYER_TEAM,
             name="五人小队",
-            description="周长副本，获得专属武器抽取材料。副本内装备固定，无法带出。",
+            description="周常副本，获得套装制作材料，2份同属性材料制作1件套装部件。",
             team_size=5,
             unlock_level=100,  # 满级后解锁
             reset_period_days=7  # 每周重置
         )
-        self.weapon_material_reward = 50
+        self.set_material_reward = 50
     
     def is_team_ready(self) -> bool:
         """检查团队是否准备就绪"""
@@ -119,16 +119,11 @@ class FivePlayerTeam(TeamMode):
         获取奖励信息
         
         Returns:
-            奖励字典，包含专属武器抽取材料
+            奖励字典，包含套装制作材料
         """
         return {
-            "weapon_materials": self.weapon_material_reward,
-            "equipment": {
-                "type": "副本内装备",
-                "can_take_out": False,
-                "description": "副本内装备固定，无法带出副本"
-            },
-            "description": "专属武器抽取材料、副本内装备（固定）"
+            "set_materials": self.set_material_reward,
+            "description": "套装制作材料"
         }
     
     def calculate_rewards(self, difficulty: int = 1) -> Dict[str, Any]:
@@ -142,14 +137,10 @@ class FivePlayerTeam(TeamMode):
             奖励字典
         """
         difficulty_multiplier = 1 + (difficulty - 1) * 0.3
-        materials = int(self.weapon_material_reward * difficulty_multiplier)
+        materials = int(self.set_material_reward * difficulty_multiplier)
         
         return {
-            "weapon_materials": materials,
-            "equipment": {
-                "type": "副本内装备",
-                "can_take_out": False
-            }
+            "set_materials": materials,
         }
 
 
@@ -160,12 +151,12 @@ class TwentyPlayerTeam(TeamMode):
         super().__init__(
             mode_type=GameModeType.TWENTY_PLAYER_TEAM,
             name="二十人团队",
-            description="月度副本，获得套装制作材料。副本内饰品固定，无法带出。",
+            description="月度副本，获得角色专属道具制作材料，5份制作1件角色专属道具。",
             team_size=20,
             unlock_level=100,  # 需要满级
             reset_period_days=30  # 每月重置
         )
-        self.set_material_reward = 100
+        self.exclusive_material_reward = 100
         self.requires_five_player_team = True  # 需要先有五人小队
     
     def is_team_ready(self) -> bool:
@@ -189,16 +180,11 @@ class TwentyPlayerTeam(TeamMode):
         获取奖励信息
         
         Returns:
-            奖励字典，包含套装制作材料
+            奖励字典，包含角色专属道具制作材料
         """
         return {
-            "set_materials": self.set_material_reward,
-            "accessories": {
-                "type": "副本内饰品",
-                "can_take_out": False,
-                "description": "副本内饰品固定，无法带出副本"
-            },
-            "description": "套装制作材料、副本内饰品（固定）"
+            "exclusive_materials": self.exclusive_material_reward,
+            "description": "角色专属道具制作材料"
         }
     
     def calculate_rewards(self, difficulty: int = 1) -> Dict[str, Any]:
@@ -212,13 +198,9 @@ class TwentyPlayerTeam(TeamMode):
             奖励字典
         """
         difficulty_multiplier = 1 + (difficulty - 1) * 0.25
-        materials = int(self.set_material_reward * difficulty_multiplier)
+        materials = int(self.exclusive_material_reward * difficulty_multiplier)
         
         return {
-            "set_materials": materials,
-            "accessories": {
-                "type": "副本内饰品",
-                "can_take_out": False
-            }
+            "exclusive_materials": materials,
         }
 

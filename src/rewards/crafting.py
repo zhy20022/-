@@ -55,8 +55,8 @@ class CraftingSystem:
     """制作系统"""
     
     # 制作消耗
-    EXCLUSIVE_ITEM_MATERIAL_COST = 8
-    EQUIPMENT_SET_MATERIAL_COST = 10
+    EXCLUSIVE_ITEM_MATERIAL_COST = 5
+    EQUIPMENT_SET_MATERIAL_COST = 2
     
     def __init__(self, player_id: str, material_bag: MaterialBag):
         """
@@ -69,6 +69,14 @@ class CraftingSystem:
         self.player_id = player_id
         self.material_bag = material_bag
         self.crafted_items: list = []  # 制作历史
+
+    def _consume_materials(self, materials: Dict[str, int], amount: int):
+        for material_id, count in materials.items():
+            used = min(count, amount)
+            self.material_bag.remove_material(material_id, used)
+            amount -= used
+            if not amount:
+                break
     
     def craft_exclusive_item(
         self,
@@ -91,14 +99,6 @@ class CraftingSystem:
             material_type=MaterialType.EXCLUSIVE_ITEM
         )
         
-        if not exclusive_materials:
-            return CraftingResult(
-                CraftingType.EXCLUSIVE_ITEM,
-                None,
-                False,
-                "材料不足！需要8个专属道具材料"
-            )
-        
         # 检查是否有足够的材料
         total_materials = sum(exclusive_materials.values())
         if total_materials < CraftingSystem.EXCLUSIVE_ITEM_MATERIAL_COST:
@@ -109,12 +109,7 @@ class CraftingSystem:
                 f"材料不足！需要{CraftingSystem.EXCLUSIVE_ITEM_MATERIAL_COST}个专属道具材料，当前只有{total_materials}个"
             )
         
-        # 消耗材料（从第一个材料开始消耗）
-        material_id = list(exclusive_materials.keys())[0]
-        self.material_bag.remove_material(
-            material_id,
-            CraftingSystem.EXCLUSIVE_ITEM_MATERIAL_COST
-        )
+        self._consume_materials(exclusive_materials, self.EXCLUSIVE_ITEM_MATERIAL_COST)
         
         # 创建专属道具
         if weapon_id is None:
@@ -166,14 +161,6 @@ class CraftingSystem:
             attribute_type=attribute_type
         )
         
-        if not set_materials:
-            return CraftingResult(
-                CraftingType.EQUIPMENT_SET,
-                None,
-                False,
-                f"材料不足！需要1份{attribute_type.value}属性的套装材料"
-            )
-        
         # 检查是否有足够的材料
         total_materials = sum(set_materials.values())
         if total_materials < CraftingSystem.EQUIPMENT_SET_MATERIAL_COST:
@@ -184,12 +171,7 @@ class CraftingSystem:
                 f"材料不足！需要{CraftingSystem.EQUIPMENT_SET_MATERIAL_COST}份套装材料，当前只有{total_materials}份"
             )
         
-        # 消耗材料（从第一个材料开始消耗）
-        material_id = list(set_materials.keys())[0]
-        self.material_bag.remove_material(
-            material_id,
-            CraftingSystem.EQUIPMENT_SET_MATERIAL_COST
-        )
+        self._consume_materials(set_materials, self.EQUIPMENT_SET_MATERIAL_COST)
         
         # 创建套装部件
         equipment_id = f"set_{attribute_type.value}_{profession_category}_{slot.value}_{len(self.crafted_items)}"

@@ -5,6 +5,7 @@ import { EntityManager, In, Repository } from 'typeorm';
 import { IdempotencyService } from '../common/idempotency.service';
 import { GameConfigsService } from '../configs/configs.service';
 import { InventoryItemEntity, PlayerCharacterEntity, PlayerEntity } from '../database/entities';
+import { EQUIPMENT_MATERIAL_IDS } from '../dungeons/dungeon-rules';
 
 interface MaterialRule {
   materialType: string;
@@ -37,8 +38,8 @@ interface EquipmentRules {
 
 const DEFAULT_RULES: EquipmentRules = {
   crafting: {
-    exclusive: { materialType: 'EXCLUSIVE_ITEM', acceptedItemConfigIds: ['exclusive_material', 'generic_battle_material'], materialCost: 20, goldCost: 0, quality: 'epic', baseStats: { attack_bonus: 100, magic_attack_bonus: 100 } },
-    equipmentSet: { materialType: 'EQUIPMENT_SET', acceptedItemConfigIds: ['equipment_material', 'generic_battle_material'], materialCost: 1, goldCost: 0, quality: 'rare', slots: ['HEAD', 'CHEST', 'LEGS', 'BOOTS', 'GLOVES', 'ACCESSORY'], professionCategories: ['A', 'B', 'C', 'D'], baseStats: { hp_bonus: 100, attack_bonus: 50, defense_bonus: 50 } },
+    exclusive: { materialType: 'EXCLUSIVE_ITEM', acceptedItemConfigIds: ['exclusive_material'], materialCost: 5, goldCost: 0, quality: 'epic', baseStats: { attack_bonus: 100, magic_attack_bonus: 100 } },
+    equipmentSet: { materialType: 'EQUIPMENT_SET', acceptedItemConfigIds: EQUIPMENT_MATERIAL_IDS, materialCost: 2, goldCost: 0, quality: 'rare', slots: EQUIPMENT_SLOTS, professionCategories: ['A', 'B', 'C', 'D'], baseStats: { hp_bonus: 100, attack_bonus: 50, defense_bonus: 50 } },
   },
   enhancement: { maxLevel: 50, breakthroughLevels: [10, 20, 30, 40], goldCostBase: 1000, materialCostBase: 1, materialType: 'EQUIPMENT_SET', acceptedItemConfigIds: ['equipment_material', 'generic_battle_material'], successRates: { '0': 1, '10': 0.8, '20': 0.6, '30': 0.4, '40': 0.2 }, breakthroughCosts: { '10': { gold: 10000, material: 5 }, '20': { gold: 20000, material: 10 }, '30': { gold: 30000, material: 15 }, '40': { gold: 40000, material: 20 } } },
 };
@@ -211,11 +212,16 @@ export class WorkshopService {
   private async rules(): Promise<EquipmentRules> {
     const config = await this.configs.getContentConfig('equipment');
     const rules = (config.payload as EquipmentRules | null) || DEFAULT_RULES;
-    return { ...rules, crafting: {
-      ...rules.crafting,
-      exclusive: { ...rules.crafting.exclusive, materialCost: 8, acceptedItemConfigIds: ['exclusive_material'] },
-      equipmentSet: { ...rules.crafting.equipmentSet, slots: EQUIPMENT_SLOTS, materialCost: 10, acceptedItemConfigIds: ['equipment_material'] },
-    } };
+    const { exclusive, equipmentSet } = DEFAULT_RULES.crafting;
+    return { ...rules,
+      crafting: {
+        exclusive: { ...rules.crafting.exclusive, materialCost: exclusive.materialCost, acceptedItemConfigIds: exclusive.acceptedItemConfigIds },
+        equipmentSet: { ...rules.crafting.equipmentSet, slots: EQUIPMENT_SLOTS, materialCost: equipmentSet.materialCost, acceptedItemConfigIds: equipmentSet.acceptedItemConfigIds },
+      },
+      enhancement: { ...rules.enhancement,
+        acceptedItemConfigIds: [...new Set([...rules.enhancement.acceptedItemConfigIds, ...EQUIPMENT_MATERIAL_IDS])],
+      },
+    };
   }
 
   private async charge(manager: EntityManager, player: PlayerEntity, rule: MaterialRule, attributeType?: string) {

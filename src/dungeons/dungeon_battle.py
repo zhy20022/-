@@ -1101,7 +1101,7 @@ class DungeonBattleFlow:
         attribute_value = self.dungeon.attribute_type.value
         attr_slug = ATTRIBUTE_ID_MAP.get(self.dungeon.attribute_type, self.dungeon.attribute_type.name.lower())
         name_map = {
-            "exclusive_material": f"{attribute_value}系专属材料",
+            "exclusive_material": "角色专属道具制作材料",
             "equipment_material": f"{attribute_value}系套装材料",
             "illustration_piece": "立绘碎片"
         }
@@ -1158,6 +1158,8 @@ class DungeonBattleFlow:
         self._reward_drops_committed = True
     
     def _maybe_generate_runtime_drop(self, enemy_unit: BattleUnit):
+        if not self.assist_enabled and self.dungeon.dungeon_type in (DungeonType.SQUAD, DungeonType.TEAM):
+            return
         monster_type = getattr(enemy_unit, "spawn_category", "monster")
         drop = self.item_manager.drop_item_on_monster_kill("boss" if monster_type == "boss" else "monster")
         if not drop:

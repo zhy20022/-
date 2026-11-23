@@ -41,11 +41,11 @@ class RewardCalculator:
             reward = RewardCalculator._calculate_experience_reward(
                 duration, monsters_killed, groups_killed, reward_config, is_completed
             )
-        elif dungeon.dungeon_type == DungeonType.SQUAD:
+        elif dungeon.dungeon_type == DungeonType.TEAM:
             reward = RewardCalculator._calculate_exclusive_material_reward(
                 duration, bosses_killed, reward_config, is_completed
             )
-        elif dungeon.dungeon_type == DungeonType.TEAM:
+        elif dungeon.dungeon_type == DungeonType.SQUAD:
             reward = RewardCalculator._calculate_equipment_material_reward(
                 duration, bosses_killed, reward_config, is_completed, team_performance
             )

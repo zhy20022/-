@@ -14,7 +14,7 @@ const aliases: Record<string, string> = {
 export const getMaterialKind = (item: LegacyInventoryItem) => {
   if (item.item_type === 'fragment' && (item.item_data?.duplicateCharacter || item.itemConfigId?.endsWith('_shard'))) return 'character-shard'
   const keys = [
-    item.material_type, item.itemConfigId, item.item_data?.materialType,
+    item.itemConfigId, item.material_type, item.item_data?.materialType,
     item.item_data?.material_type, item.item_subtype, item.item_id,
   ]
   for (const key of keys) if (key && aliases[key]) return aliases[key]
@@ -40,7 +40,7 @@ export const materialUsage = (item: LegacyInventoryItem, illustrationExchangeAva
   const labels: Record<string, string> = {
     experience: '角色经验', exclusive: '专属制作与原有专武突破', equipment: '套装制作、装备强化与突破',
     fragment: illustrationExchangeAvailable ? '现有立绘兑换' : '立绘碎片；兑换暂未开放',
-    shared: '专属制作、套装制作及装备强化共用库存', other: '用途未标注',
+    shared: '装备强化与突破', other: '用途未标注',
     'character-shard': '对应角色升星突破',
   }
   return labels[kind]

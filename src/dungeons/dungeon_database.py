@@ -92,36 +92,25 @@ class DungeonDatabase:
 
             self._add_difficulty_variants(
                 base_dungeon_id=f"{attr_id}_type_squad_001",
-                name=f"{attr_name}系专属道具本",
+                name=f"{attr_name}系套装材料本",
                 attribute_type=attr,
                 dungeon_type=DungeonType.SQUAD,
-                description=f"{attr_name}系角色刷专属道具、产出{attr_name}属性专属道具材料",
+                description=f"产出{attr_name}属性套装材料，2份同属性材料制作1件套装部件。",
                 duration=team_config(DungeonType.SQUAD)['duration'],
                 reward_config={
-                    "type": "exclusive_material",
-                    "base_material": 20,
-                    "rewards": {
-                        30: 0.1,
-                        60: 0.2,
-                        90: 0.5,
-                        120: 1.0,
-                    },
-                    "boss_reward": 0.25,
+                    "type": "equipment_material",
                 },
             )
 
             self._add_difficulty_variants(
                 base_dungeon_id=f"{attr_id}_type_team_001",
-                name=f"{attr_name}系装备本",
+                name=f"{attr_name}系专属材料本",
                 attribute_type=attr,
                 dungeon_type=DungeonType.TEAM,
-                description=f"{attr_name}系角色刷当前版本装备、产出{attr_name}属性装备材料",
+                description="产出角色专属道具材料，5份制作1件角色专属道具。",
                 duration=team_config(DungeonType.TEAM)['duration'],
                 reward_config={
-                    "type": "equipment_material",
-                    "base_material": 1,
-                    "boss_drop_rate": 0.05,
-                    "boss_reward": 1,
+                    "type": "exclusive_material",
                 },
             )
 

@@ -24,6 +24,7 @@
     "e2e:security": "node scripts/e2e-security-regressions.mjs",
     "test:legacy-migration": "node scripts/test-legacy-migration.mjs",
     "e2e:workshop-loop": "node scripts/e2e-workshop-loop.mjs",
+    "e2e:dungeon-crafting": "npm run build && node scripts/e2e-dungeon-crafting.mjs",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "lint": "eslint \"src/**/*.ts\"",

@@ -794,7 +794,7 @@ const createDungeon = (
         character_exp_per_single_kill: 1,
         character_exp_per_five_group_kills: 1,
       }
-      : { type: dungeonType === 'TEAM' ? 'equipment_material' : 'exclusive_material', base_material: dungeonType === 'TEAM' ? 20 : 8 },
+      : { type: dungeonType === 'TEAM' ? 'exclusive_material' : 'equipment_material' },
     reward_preview: isExperience
       ? {
         reward_type: 'experience',
@@ -808,7 +808,13 @@ const createDungeon = (
           { label: '满时长', amount: reward }
         ]
       }
-      : undefined,
+      : {
+        reward_type: 'boss',
+        title: '正式服奖励',
+        main: dungeonType === 'TEAM' ? '角色专属道具制作材料' : '套装制作材料',
+        details: [dungeonType === 'TEAM' ? '5份制作1件角色专属道具。' : '2份同属性材料制作1件套装部件。'],
+        thresholds: [],
+      },
     recommendation: {
       recommended_level: difficulty === 'nightmare' ? 55 : difficulty === 'hard' ? 25 : 1,
       recommended_attribute: attributeType,

@@ -184,8 +184,8 @@ def test_dungeon_reward():
     )
     
     print(f"\n5人本奖励: {reward.rewards}")
-    assert reward.reward_type == "exclusive_material", "5人本应该奖励专属道具材料"
-    assert reward.rewards["material_count"] >= 20, "应该获得至少20个材料"
+    assert reward.reward_type == "equipment_material", "5人本应该奖励套装材料"
+    assert reward.rewards["material_count"] == 3
     print("[OK] 5人本奖励测试通过")
     
     # 测试20人本奖励
@@ -195,13 +195,13 @@ def test_dungeon_reward():
         duration=180.0,  # 坚持3分钟
         monsters_killed=0,
         groups_killed=0,
-        bosses_killed=1,  # 击杀了1个Boss（5%概率掉落）
+        bosses_killed=1,
         is_completed=True
     )
     
     print(f"\n20人本奖励: {reward.rewards}")
-    assert reward.reward_type == "equipment_material", "20人本应该奖励装备材料"
-    assert reward.rewards["material_count"] >= 1, "应该获得至少1个装备材料"
+    assert reward.reward_type == "exclusive_material", "20人本应该奖励角色专属道具材料"
+    assert reward.rewards["material_count"] == 3
     print("[OK] 20人本奖励测试通过")
 
 
